@@ -4,7 +4,7 @@
   "source": "DeepSWE leaderboard",
   "sourceUrl": "https://deepswe.datacurve.ai",
   "source_url": "https://deepswe.datacurve.ai/artifacts/v1.1/leaderboard-live.json",
-  "source_generated_at": "2026-09-03T22:24:37.984682+00:00",
+  "source_generated_at": "2026-09-22T06:27:15.860279+00:00",
   "source_latest_job": {
     "name": "20260901-deep-swe-1-1-gpt-6-astra",
     "finished_at": "2026-09-01T07:35:13Z"
@@ -12,7 +12,7 @@
   "n_tasks_in_set": 113,
   "source_scope": "Every DeepSWE rollout across imported Pier jobs, grouped by configuration (harness + model + reasoning effort)",
   "source_unit": "pass@1 is attempt pass rate over scored rollout attempts. pass@4 is tasks with at least one passing rollout divided by tasks attempted. Context-window failures and agent timeouts are scored failures; provider/verifier/network errors are excluded. Efficiency aggregates are over every scored attempt.",
-  "raw_sha256": "005cbedb49f988ba3f0d9636300862ad7ace93ce1992b37faf9945fe5b383415",
+  "raw_sha256": "a7c15d66288fd249c020b9931c017b92d1a3b90e480b3ff34974b752bd030019",
   "price_revisions": {
     "glm-5-3-flash": {
       "from": {
@@ -104,14 +104,14 @@
       "model": "gpt-6-astra",
       "effort": "xhigh",
       "pass_at_1": 0.7411504424778761,
-      "average_cost_usd": 6.52377356460177,
+      "average_cost_usd": 4.429117203539823,
       "input_tokens": 1456927.0929203539,
       "cached_tokens": 1326921.6836283186,
       "output_tokens": 29557.327433628318,
       "steps": 28.754424778761063,
       "source_config": "mini_swe_agent_gpt_6_astra_xhigh",
       "n_scored_attempts": 452,
-      "raw_average_cost_usd": 6.52377356460177,
+      "raw_average_cost_usd": 4.429117203539823,
       "cost_adjustment_factor": 1
     },
     {
@@ -146,28 +146,28 @@
       "model": "gpt-6-astra",
       "effort": "high",
       "pass_at_1": 0.7323008849557522,
-      "average_cost_usd": 5.723721956194691,
+      "average_cost_usd": 3.9237237909292038,
       "input_tokens": 1283270.8030973452,
       "cached_tokens": 1168811.0420353983,
       "output_tokens": 26505.853982300883,
       "steps": 27.424778761061948,
       "source_config": "mini_swe_agent_gpt_6_astra_high",
       "n_scored_attempts": 452,
-      "raw_average_cost_usd": 5.723721956194691,
+      "raw_average_cost_usd": 3.9237237909292038,
       "cost_adjustment_factor": 1
     },
     {
       "model": "gpt-6-astra",
       "effort": "max",
       "pass_at_1": 0.7323008849557522,
-      "average_cost_usd": 12.369032401327434,
+      "average_cost_usd": 7.497827996681416,
       "input_tokens": 2183033.681415929,
       "cached_tokens": 1986676.7079646017,
       "output_tokens": 61148.50663716814,
       "steps": 28.45353982300885,
       "source_config": "mini_swe_agent_gpt_6_astra_max",
       "n_scored_attempts": 452,
-      "raw_average_cost_usd": 12.369032401327434,
+      "raw_average_cost_usd": 7.497827996681416,
       "cost_adjustment_factor": 1
     },
     {
@@ -202,14 +202,14 @@
       "model": "gpt-6-astra",
       "effort": "medium",
       "pass_at_1": 0.7278761061946902,
-      "average_cost_usd": 4.379527705752213,
+      "average_cost_usd": 3.0754742975663714,
       "input_tokens": 1008238.2898230088,
       "cached_tokens": 916944.3473451327,
       "output_tokens": 20361.809734513274,
       "steps": 26.030973451327434,
       "source_config": "mini_swe_agent_gpt_6_astra_medium",
       "n_scored_attempts": 452,
-      "raw_average_cost_usd": 4.379527705752213,
+      "raw_average_cost_usd": 3.0754742975663714,
       "cost_adjustment_factor": 1
     },
     {
@@ -412,14 +412,14 @@
       "model": "gpt-6-astra",
       "effort": "low",
       "pass_at_1": 0.6703539823008849,
-      "average_cost_usd": 2.188762706637168,
+      "average_cost_usd": 1.595223439159292,
       "input_tokens": 494506.91150442476,
       "cached_tokens": 444727.3495575221,
       "output_tokens": 10579.53982300885,
       "steps": 19.537610619469028,
       "source_config": "mini_swe_agent_gpt_6_astra_low",
       "n_scored_attempts": 452,
-      "raw_average_cost_usd": 2.188762706637168,
+      "raw_average_cost_usd": 1.595223439159292,
       "cost_adjustment_factor": 1
     },
     {
