@@ -35,6 +35,10 @@ function App() {
 
   return (
     // max-w-5xl: wide enough for tier rows' struck-out API costs.
+    // index.html carries a static copy of this wrapper and the header (title
+    // and sentence) as the no-JavaScript fallback; keep the two in step. React
+    // replaces the copy on mount. It leaves out the provenance line on purpose,
+    // since the dates come from the data files.
     <div className="mx-auto flex min-h-svh max-w-5xl flex-col px-4 py-6 sm:px-6 sm:py-8">
       <header className="flex items-start justify-between gap-6">
         <div className="max-w-2xl">
@@ -48,7 +52,7 @@ function App() {
             </span>
           </h1>
           <p className="mt-4 text-[15px] leading-relaxed text-pretty">
-            DeepSWE's coding-agent leaderboard, plus what it doesn't report: cost per solved task,
+            DeepSWE's coding agent leaderboard, plus what it doesn't report: cost per solved task,
             time at the consumer API throughput, and the effective cost on a Claude or ChatGPT
             subscription.
           </p>

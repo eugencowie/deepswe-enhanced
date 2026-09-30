@@ -5,6 +5,30 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DeepSWE enhanced</title>
+    <meta
+      name="description"
+      content="DeepSWE's coding agent leaderboard, plus what it doesn't report: cost per solved task, time at the consumer API throughput, and the effective cost on a Claude or ChatGPT subscription."
+    />
+    <link rel="canonical" href="%VITE_SITE_URL%" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="DeepSWE enhanced" />
+    <meta
+      property="og:description"
+      content="DeepSWE's coding agent leaderboard, plus what it doesn't report: cost per solved task, time at the consumer API throughput, and the effective cost on a Claude or ChatGPT subscription."
+    />
+    <meta property="og:url" content="%VITE_SITE_URL%" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "DeepSWE enhanced",
+        "description": "DeepSWE's coding agent leaderboard, plus what it doesn't report: cost per solved task, time at the consumer API throughput, and the effective cost on a Claude or ChatGPT subscription.",
+        "url": "%VITE_SITE_URL%",
+        "applicationCategory": "DeveloperApplication",
+        "isAccessibleForFree": true
+      }
+    </script>
     <script>
       {
         // Blocking pre-paint theme resolution to avoid a flash of light theme
@@ -18,7 +42,31 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- No-JavaScript fallback. Mirrors the wrapper and masthead in src/App.tsx; keep in sync. -->
+      <div class="mx-auto flex min-h-svh max-w-5xl flex-col px-4 py-6 sm:px-6 sm:py-8">
+        <header class="flex items-start justify-between gap-6">
+          <div class="max-w-2xl">
+            <h1 class="flex items-center gap-3 text-[28px] leading-none tracking-tight">
+              <svg aria-hidden="true" class="brand-mark size-10 shrink-0" viewBox="0 0 160 144">
+                <use href="/favicon.svg#mark" />
+              </svg>
+              <span>
+                <span class="font-bold">DeepSWE</span>
+                <span class="font-light text-brand">enhanced</span>
+              </span>
+            </h1>
+            <p class="mt-4 text-[15px] leading-relaxed text-pretty">
+              DeepSWE's coding agent leaderboard, plus what it doesn't report: cost per solved task,
+              time at the consumer API throughput, and the effective cost on a Claude or ChatGPT
+              subscription.
+            </p>
+          </div>
+          <!-- Placeholder for the mode toggle, so the sentence wraps as it does once mounted. -->
+          <div class="size-8 shrink-0"></div>
+        </header>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

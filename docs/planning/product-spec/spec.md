@@ -20,4 +20,4 @@ This spec was split into one spec per feature on 2026-09-05, and the build ticke
 - [Continuous integration](../continuous-integration/spec.md): the `vp run ready` gate and the e2e smoke.
 - [Continuous deployment](../continuous-deployment/spec.md): GitHub Pages deploy.
 
-[Dark mode](../dark-mode/spec.md) and [architecture](../architecture/) were separate efforts already.
+[Dark mode](../dark-mode/spec.md) and [architecture](../architecture/) were separate efforts already. [Site metadata](../site-metadata/spec.md) came later, on 2026-09-30.

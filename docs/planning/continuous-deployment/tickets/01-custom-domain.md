@@ -6,16 +6,16 @@ Blocked by: none
 
 ## What to do
 
-Serve the site at <https://deepswe.eugen.codes/> instead of the project URL. The domain is a repository Pages setting only: no `CNAME` file, so forks do not carry it. DNS is on Cloudflare, DNS only (grey cloud), so GitHub issues the certificate itself. `eugen.codes` is verified on the `eugencowie` account so no other account can claim its subdomains for Pages. The deploy workflow gains `workflow_dispatch` so a redeploy can be triggered without a code change.
+Serve the site at <https://deepswe.eugen.codes/> instead of the project URL. The domain is a repository Pages setting only: no `CNAME` file, so forks do not carry it. DNS is on Cloudflare. The record is DNS only (grey cloud) for the cutover, because GitHub may not issue its certificate while the name resolves to addresses other than its own; whether to proxy it afterwards is the operator's choice. `eugen.codes` is verified on the `eugencowie` account so no other account can claim its subdomains for Pages. The deploy workflow gains `workflow_dispatch` so a redeploy can be triggered without a code change.
 
 ### Records
 
 Fill in the TXT value once GitHub shows it.
 
-| Type  | Name                                          | Target / value            | Proxy    |
-| ----- | --------------------------------------------- | ------------------------- | -------- |
-| CNAME | `deepswe.eugen.codes`                         | `eugencowie.github.io`    | DNS only |
-| TXT   | `_github-pages-challenge-eugencowie.eugen.codes` | _(from GitHub, step 2)_ | DNS only |
+| Type  | Name                                          | Target / value            | Proxy at cutover |
+| ----- | --------------------------------------------- | ------------------------- | ---------------- |
+| CNAME | `deepswe.eugen.codes`                         | `eugencowie.github.io`    | DNS only         |
+| TXT   | `_github-pages-challenge-eugencowie.eugen.codes` | _(from GitHub, step 2)_ | DNS only         |
 
 ### Cutover order
 
@@ -34,3 +34,7 @@ The deployed artifact is built with the base path GitHub reports at build time. 
 - <https://eugencowie.github.io/deepswe-enhanced/> redirects to the custom domain.
 - `eugen.codes` shows as verified under the account's Pages domains.
 - The deploy workflow can be run from the Actions tab.
+
+## Comments
+
+**2026-09-30**. Reworded so DNS only reads as a cutover step, not a standing rule. The record has since been switched to proxied, and the site is served through Cloudflare.
