@@ -35,10 +35,11 @@ function App() {
 
   return (
     // max-w-5xl: wide enough for tier rows' struck-out API costs.
+    // index.html carries a static copy of this wrapper and the header (title
+    // and sentence) as the no-JavaScript fallback; keep the two in step. The
+    // copy's sentence names no subscription family, on purpose.
     <div className="mx-auto flex min-h-svh max-w-5xl flex-col px-4 py-6 sm:px-6 sm:py-8">
       <header className="flex items-start justify-between gap-6">
-        {/* index.html carries a static copy of the heading and sentence below
-            as the no-JavaScript fallback; keep the two in step. */}
         <div className="max-w-2xl">
           <h1 className="flex items-center gap-3 text-[28px] leading-none tracking-tight">
             <svg aria-hidden="true" className="brand-mark size-10 shrink-0" viewBox="0 0 160 144">

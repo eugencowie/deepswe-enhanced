@@ -46,24 +46,30 @@
   <body>
     <div id="root">
       <!-- Fallback for readers that run no JavaScript; React replaces it on
-           mount. Mirrors the masthead in src/App.tsx, minus the provenance
-           line (its dates come from the data files) and the subscription
-           vendors' names. -->
+           mount. Mirrors the page wrapper and masthead in src/App.tsx, so
+           keep the two in step. Left out on purpose: the provenance line
+           (its dates come from the data files) and the subscription
+           families' names. -->
       <div class="mx-auto flex min-h-svh max-w-5xl flex-col px-4 py-6 sm:px-6 sm:py-8">
-        <header class="max-w-2xl">
-          <h1 class="flex items-center gap-3 text-[28px] leading-none tracking-tight">
-            <svg aria-hidden="true" class="brand-mark size-10 shrink-0" viewBox="0 0 160 144">
-              <use href="/favicon.svg#mark" />
-            </svg>
-            <span>
-              <span class="font-bold">DeepSWE</span>
-              <span class="font-light text-brand">enhanced</span>
-            </span>
-          </h1>
-          <p class="mt-4 text-[15px] leading-relaxed text-pretty">
-            DeepSWE's coding agent leaderboard, plus what it doesn't report: cost per solved task,
-            time at the consumer API throughput, and the effective cost on a subscription.
-          </p>
+        <header class="flex items-start justify-between gap-6">
+          <div class="max-w-2xl">
+            <h1 class="flex items-center gap-3 text-[28px] leading-none tracking-tight">
+              <svg aria-hidden="true" class="brand-mark size-10 shrink-0" viewBox="0 0 160 144">
+                <use href="/favicon.svg#mark" />
+              </svg>
+              <span>
+                <span class="font-bold">DeepSWE</span>
+                <span class="font-light text-brand">enhanced</span>
+              </span>
+            </h1>
+            <p class="mt-4 text-[15px] leading-relaxed text-pretty">
+              DeepSWE's coding agent leaderboard, plus what it doesn't report: cost per solved task,
+              time at the consumer API throughput, and the effective cost on a subscription.
+            </p>
+          </div>
+          <!-- Holds the mode toggle's place, so the sentence wraps as it will
+               once mounted. -->
+          <div class="size-8 shrink-0"></div>
         </header>
       </div>
     </div>

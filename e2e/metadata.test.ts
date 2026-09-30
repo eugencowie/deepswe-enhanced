@@ -28,7 +28,7 @@ test("the head describes the site", async ({ page }) => {
 
 test("the fallback says what the site is", async ({ page }) => {
   // The fallback's logo mark is a root-absolute reference in index.html, so
-  // it needs the same base-path guard as the smoke test.
+  // it needs a base-path guard like the smoke test's.
   const failures: string[] = [];
   page.on("response", (response) => {
     if (response.status() >= 400) {
@@ -43,7 +43,9 @@ test("the fallback says what the site is", async ({ page }) => {
   expect(failures).toEqual([]);
 });
 
-test("the build stamps the site URL it is given", async ({ page }) => {
+test("the URL tags and the JSON-LD block carry the site URL the build is given", async ({
+  page,
+}) => {
   await page.goto("./");
 
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", siteUrl);
