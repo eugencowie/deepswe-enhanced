@@ -9,17 +9,15 @@
       name="description"
       content="DeepSWE's coding agent leaderboard, plus what it doesn't report: cost per solved task, time at the consumer API throughput, and the effective cost on a Claude or ChatGPT subscription."
     />
+    <link rel="canonical" href="%VITE_SITE_URL%" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="DeepSWE enhanced" />
     <meta
       property="og:description"
       content="DeepSWE's coding agent leaderboard, plus what it doesn't report: cost per solved task, time at the consumer API throughput, and the effective cost on a Claude or ChatGPT subscription."
     />
-    <meta name="twitter:card" content="summary" />
-    <!-- VITE_SITE_URL is the deployed site's absolute URL, which the deploy
-         workflow passes to the build. Builds without it keep the placeholder. -->
-    <link rel="canonical" href="%VITE_SITE_URL%" />
     <meta property="og:url" content="%VITE_SITE_URL%" />
+    <meta name="twitter:card" content="summary" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -45,10 +43,7 @@
   </head>
   <body>
     <div id="root">
-      <!-- Fallback for readers that run no JavaScript; React replaces it on
-           mount. Mirrors the page wrapper and masthead in src/App.tsx, so
-           keep the two in step. Left out on purpose: the provenance line,
-           whose dates come from the data files. -->
+      <!-- No-JavaScript fallback. Mirrors the wrapper and masthead in src/App.tsx; keep in sync. -->
       <div class="mx-auto flex min-h-svh max-w-5xl flex-col px-4 py-6 sm:px-6 sm:py-8">
         <header class="flex items-start justify-between gap-6">
           <div class="max-w-2xl">
@@ -67,8 +62,7 @@
               subscription.
             </p>
           </div>
-          <!-- Holds the mode toggle's place, so the sentence wraps as it will
-               once mounted. -->
+          <!-- Placeholder for the mode toggle, so the sentence wraps as it does once mounted. -->
           <div class="size-8 shrink-0"></div>
         </header>
       </div>
