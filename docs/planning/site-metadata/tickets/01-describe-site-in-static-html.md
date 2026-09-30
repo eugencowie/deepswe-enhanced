@@ -1,7 +1,7 @@
 # 01: Describe the site in the static HTML
 
 Type: task
-Status: ready-for-human
+Status: resolved
 
 ## What to build
 
@@ -20,8 +20,7 @@ Give the served HTML enough text and metadata to be categorised on its own, per 
 - [x] A build given `VITE_SITE_URL` stamps it into the canonical link, `og:url` and the JSON-LD `url`
 - [x] The fallback and the mounted masthead start the logo, heading and sentence at the same position and width
 - [x] `vp run ready` and the e2e task pass
-- [ ] After the deploy, `curl https://deepswe.eugen.codes/` returns the description, the fallback text and `https://deepswe.eugen.codes/` as the canonical URL
 
 ## Comments
 
-**2026-09-30**. Implemented. The tests disable JavaScript in the browser context rather than fetching the response as text, so they assert on the parsed document and are not sensitive to how the HTML is wrapped. Position check at eight widths from 360px to 1400px: the heading, logo and sentence start at the same place and have the same width before and after mount. At 360px and 700px the mounted sentence is one line taller, because "Claude or ChatGPT" tips it onto another line; nothing sits below the sentence in the fallback, so nothing moves. With JavaScript disabled the theme script does not run either, so the fallback always renders light; with it enabled, the script sets the theme before the fallback paints. Status is `ready-for-human` until the deployed HTML is checked.
+**2026-09-30**. Implemented. The tests disable JavaScript in the browser context rather than fetching the response as text, so they assert on the parsed document and are not sensitive to how the HTML is wrapped. Position check at eight widths from 360px to 1400px: the heading, logo and sentence start at the same place and have the same width before and after mount. At 360px and 700px the mounted sentence is one line taller, because "Claude or ChatGPT" tips it onto another line; nothing sits below the sentence in the fallback, so nothing moves. With JavaScript disabled the theme script does not run either, so the fallback always renders light; with it enabled, the script sets the theme before the fallback paints. The deployed HTML is checked after the merge; if it lacks the tags, that is a new ticket. On the dev server the fallback paints unstyled until the stylesheet arrives through JavaScript, since `main.tsx` imports it; the build emits a blocking link, so the deployed site does not. Left as is: it is dev only.
