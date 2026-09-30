@@ -36,8 +36,7 @@ function App() {
   return (
     // max-w-5xl: wide enough for tier rows' struck-out API costs.
     // index.html carries a static copy of this wrapper and the header (title
-    // and sentence) as the no-JavaScript fallback; keep the two in step. The
-    // copy's sentence names no subscription family, on purpose.
+    // and sentence) as the no-JavaScript fallback; keep the two in step.
     <div className="mx-auto flex min-h-svh max-w-5xl flex-col px-4 py-6 sm:px-6 sm:py-8">
       <header className="flex items-start justify-between gap-6">
         <div className="max-w-2xl">

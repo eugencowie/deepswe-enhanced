@@ -7,7 +7,7 @@ import { siteUrl } from "../playwright.config.ts";
 test.use({ javaScriptEnabled: false });
 
 const description =
-  "DeepSWE's coding agent leaderboard, plus what it doesn't report: cost per solved task, time at the consumer API throughput, and the effective cost on a subscription.";
+  "DeepSWE's coding agent leaderboard, plus what it doesn't report: cost per solved task, time at the consumer API throughput, and the effective cost on a Claude or ChatGPT subscription.";
 
 test("the head describes the site", async ({ page }) => {
   await page.goto("./");
