@@ -37,6 +37,8 @@ function App() {
     // max-w-5xl: wide enough for tier rows' struck-out API costs.
     <div className="mx-auto flex min-h-svh max-w-5xl flex-col px-4 py-6 sm:px-6 sm:py-8">
       <header className="flex items-start justify-between gap-6">
+        {/* index.html carries a static copy of the heading and sentence below
+            as the no-JavaScript fallback; keep the two in step. */}
         <div className="max-w-2xl">
           <h1 className="flex items-center gap-3 text-[28px] leading-none tracking-tight">
             <svg aria-hidden="true" className="brand-mark size-10 shrink-0" viewBox="0 0 160 144">
@@ -48,7 +50,7 @@ function App() {
             </span>
           </h1>
           <p className="mt-4 text-[15px] leading-relaxed text-pretty">
-            DeepSWE's coding-agent leaderboard, plus what it doesn't report: cost per solved task,
+            DeepSWE's coding agent leaderboard, plus what it doesn't report: cost per solved task,
             time at the consumer API throughput, and the effective cost on a Claude or ChatGPT
             subscription.
           </p>

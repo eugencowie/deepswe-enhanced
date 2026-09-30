@@ -121,3 +121,7 @@ tightens below the sm breakpoint. Left alone on purpose: the "Cost/perf"
 header (the sentence's "cost per solved task" describes it), the v1.1
 chip styling (matches DeepSWE, and more chips may follow), and the
 right-aligned second toolbar row on phones.
+
+**2026-09-30**. The masthead sentence now reads "coding agent", without
+the hyphen, to match the description the
+[site metadata](../../site-metadata/spec.md) puts in the static HTML.
