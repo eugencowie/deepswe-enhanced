@@ -30,9 +30,13 @@ run = [
   "vp update --latest",
 ]
 
-[tasks.ready]
-description = "Run checks, tests, and build"
-run = "vp run ready"
+[tasks.validate]
+description = "Build, then run checks, tests, and end-to-end tests"
+run = "vp run validate"
+
+[tasks."validate:fix"]
+description = "Fix formatting and lint issues, then validate"
+run = "vp run validate:fix"
 
 [tasks.check]
 description = "Run format, lint, and type checks"
@@ -42,13 +46,9 @@ run = "vp check"
 description = "Run tests"
 run = "vp test"
 
-[tasks."e2e:install"]
-description = "Install browsers for end-to-end tests"
-run = "vp run e2e:install"
-
 [tasks.e2e]
-description = "Run end-to-end tests"
-run = "vp run e2e"
+description = "Build, then run end-to-end tests"
+run = ["vp build", "vp run e2e"]
 
 [tasks.dev]
 description = "Run development server"

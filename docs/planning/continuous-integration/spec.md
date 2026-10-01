@@ -2,14 +2,17 @@
 
 The check gate every change passes before it reaches `main` or the deployed site.
 
-- `vp run ready` is the CI check gate.
-- `.github/workflows/ci.yml`: `vp run ready` (the template's CI checks) runs on pull requests and on push to `main`. The Playwright e2e smoke (leaderboard-table ticket 01, [ADR 0001](../../architecture/0001-toolchain-conventions.md)) runs as its own job; [continuous deployment](../continuous-deployment/spec.md) gates on both.
+- `vp run validate` is the gate: `vp build`, `vp check`, `vp test`, then the Playwright e2e suite against `vp preview` of that build. `vp run validate:fix` fixes formatting and lint first. The shape matches the astro template and the portfolio ([ADR 0001](../../architecture/0001-toolchain-conventions.md)).
+- `.github/workflows/ci.yml` runs on pull requests: one `ci` job with a step per `validate` command, which uploads the Playwright report. The default-branch ruleset requires the `ci` check, so nothing reaches `main`, and from there the [deployed site](../continuous-deployment/spec.md), without passing it.
 
 ## Acceptance criteria
 
-- `vp run ready` passes and gates deploy.
-- The Playwright e2e smoke passes: a build at a non-root base renders the table with no failed requests.
+- `vp run validate` passes after a fresh install, with no separate browser install.
+- The default-branch ruleset requires the `ci` check.
+- The Playwright smoke passes: the build renders the table with no failed requests.
 
 ## Tickets
 
-None yet. The ready gate was built in [project-structure ticket 01](../project-structure/tickets/01-scaffold-and-deploy-foundation.md) and the e2e job in [leaderboard-table ticket 01](../leaderboard-table/tickets/01-base-api-rows-table.md).
+The gate was first built in [project-structure ticket 01](../project-structure/tickets/01-scaffold-and-deploy-foundation.md) and the e2e job in [leaderboard-table ticket 01](../leaderboard-table/tickets/01-base-api-rows-table.md).
+
+- [01: Adopt the template's CI shape](tickets/01-template-ci-shape.md)
