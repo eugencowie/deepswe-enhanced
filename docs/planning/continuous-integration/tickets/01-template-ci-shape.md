@@ -1,7 +1,7 @@
 # 01: Adopt the template's CI shape
 
 Type: task
-Status: claimed
+Status: resolved
 Blocked by: none
 
 ## What to do
@@ -22,9 +22,12 @@ The default-branch ruleset requires the `ready` and `e2e` checks, which this cha
 
 ## Acceptance criteria
 
-- [ ] `vp run validate` passes locally after a fresh `vp install`, with no separate browser install
-- [ ] A build without `VITE_SITE_URL` stamps `/` into the canonical link, `og:url` and the JSON-LD `url`, without a warning
-- [ ] A build given `VITE_SITE_URL` stamps that URL instead
+- [x] `vp run validate` passes locally after a fresh `vp install`, with no separate browser install
+- [x] A build without `VITE_SITE_URL` stamps `/` into the canonical link, `og:url` and the JSON-LD `url`, without a warning
+- [x] A build given `VITE_SITE_URL` stamps that URL instead
 - [ ] The CI run on the pull request shows one `ci` job with a step per command
 - [ ] The ruleset requires `ci` instead of `ready` and `e2e`
 
+## Comments
+
+**2026-10-01**. Implemented. A relative `/` in the canonical link broke the build, because Vite reads a relative `<link href>` as an asset to bundle. The canonical link is therefore marked `vite-ignore`, which Vite strips from the output. An empty `VITE_SITE_URL` falls back too. Verified locally: `vp run validate` passes after deleting `node_modules` and pointing Playwright at an empty browser cache, so a cached pnpm store still downloads Chromium. Builds without the variable, with it empty, and with it set all stamp the expected URL without warnings, and so does `vp dev`. Remaining after the pull request opens: the CI run on it, then the ruleset switch just before merging.
