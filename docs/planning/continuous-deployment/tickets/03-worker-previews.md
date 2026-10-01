@@ -18,3 +18,7 @@ The header of `wrangler.jsonc` now names the dashboard's own label for preview b
 
 - The pull request for this ticket gets a `Workers Builds: deepswe-enhanced` check and a Cloudflare comment with a preview URL
 - The preview URL serves the site
+
+## Comments
+
+**2026-10-01**. The dashboard fixes are done: the repository is reconnected to the GitHub app, and the Worker uses Worker Previews.
