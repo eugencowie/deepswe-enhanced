@@ -18,6 +18,6 @@ This spec was split into one spec per feature on 2026-09-05, and the build ticke
 - [Automated refresh](../automated-refresh/spec.md): keeps the snapshots and mapping up to date.
 - [Project structure](../project-structure/spec.md): toolchain, repo layout, app stack.
 - [Continuous integration](../continuous-integration/spec.md): the `vp run validate` gate, e2e suite included.
-- [Continuous deployment](../continuous-deployment/spec.md): GitHub Pages deploy.
+- [Continuous deployment](../continuous-deployment/spec.md): Cloudflare Workers Builds deploy.
 
 [Dark mode](../dark-mode/spec.md) and [architecture](../architecture/) were separate efforts already. [Site metadata](../site-metadata/spec.md) came later, on 2026-09-30.

@@ -35,7 +35,7 @@ React + TypeScript + TanStack Table on the Vite+ toolchain, with shadcn/ui compo
 
 ## Repo
 
-~~Scaffold and repo creation~~ — done in ticket [01](tickets/01-scaffold-and-deploy-foundation.md): scaffold, public repo, and Pages deploy are live (<https://eugencowie.github.io/deepswe-enhanced/>).
+~~Scaffold and repo creation~~ — done in ticket [01](tickets/01-scaffold-and-deploy-foundation.md): scaffold, public repo, and Pages deploy are live (<https://eugencowie.github.io/deepswe-enhanced/>). The site has since moved to a Cloudflare Worker ([continuous-deployment ticket 02](../continuous-deployment/tickets/02-cloudflare-workers-builds.md)).
 
 ## Tickets
 

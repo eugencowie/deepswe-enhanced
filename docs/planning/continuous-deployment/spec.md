@@ -1,18 +1,23 @@
 # Spec: Continuous deployment
 
-Publishes `main` to GitHub Pages at <https://deepswe.eugen.codes/>. The custom domain is a repository Pages setting, not a file in the repo, so a fork or recreated repo has to set it again. Without it, Pages publishes at the project URL <https://eugencowie.github.io/deepswe-enhanced/>, where the site's root-absolute URLs 404.
+Publishes `main` from a Cloudflare Worker at <https://deepswe.eugen.codes/>, built and deployed by Workers Builds, as the portfolio is. The custom domain is a setting on the Worker, not a file in the repo, so a fork or recreated Worker has to set it again. Without it, the site serves only at the Worker's `workers.dev` URL.
 
-- Pushes to `main` (and manual `workflow_dispatch` runs, for redeploying after a Pages settings change) build and deploy via `actions/upload-pages-artifact` and `actions/deploy-pages`, gated by the `ci` check that [continuous integration](../continuous-integration/spec.md) requires before merging. Pages uses "GitHub Actions" as the source.
-- The site is built for the root path, which is where the custom domain serves it. The base path used to be derived from `actions/configure-pages`; [continuous-integration ticket 01](../continuous-integration/tickets/01-template-ci-shape.md) dropped it.
-- The deploy job also passes the site's absolute URL to the build as `VITE_SITE_URL`: the `base_url` that `actions/configure-pages` reports, plus a trailing slash. [Site metadata](../site-metadata/spec.md) stamps it into the canonical link and its companions. It is derived, never hardcoded.
+- **Builds**: Cloudflare's GitHub app builds every push. `main` runs the deploy command and goes to production. Other branches run the preview command, which gives the branch its own preview URL and comments it on the pull request. The settings live in the Cloudflare dashboard and are listed in the header of `wrangler.jsonc`; [ticket 02](tickets/02-cloudflare-workers-builds.md) has the setup steps.
+- **Gate**: Workers Builds does not wait for GitHub checks. Merging to `main` needs the `ci` check from [continuous integration](../continuous-integration/spec.md), which ends with a Wrangler dry-run deploy, so a broken config fails before it reaches the Worker. Cloudflare's own check on a pull request is informational and not required.
+- **Worker**: assets only, serving `dist` at the root path. Unknown paths get an empty 404, Cloudflare's default. The `workers.dev` URL stays live beside the custom domain, and the canonical link points crawlers at the domain.
+- **Site URL**: `VITE_SITE_URL` is a build variable in the dashboard: the custom domain with a trailing slash. [Site metadata](../site-metadata/spec.md) stamps it into the canonical link and its companions.
+- **Versions**: Workers Builds reads neither `devEngines` nor the lockfile, so the `NODE_VERSION` and `PNPM_VERSION` build variables are kept in step with `devEngines` in `package.json` by hand.
+- **Manual deploy**: `mise run deploy` validates, then deploys from a machine logged in with `wrangler login`. It refuses to run without `VITE_SITE_URL` in the environment, which would ship the relative fallback. It is the fallback if Workers Builds is unavailable.
 
 ## Acceptance criteria
 
 - A push to `main` that passes the gate deploys the site at <https://deepswe.eugen.codes/>.
-- <https://eugencowie.github.io/deepswe-enhanced/> redirects to the custom domain.
+- A pull request gets a preview URL from Cloudflare.
+- A broken `wrangler.jsonc` fails `vp run validate`.
 
 ## Tickets
 
-Initial deploy built in [project-structure ticket 01](../project-structure/tickets/01-scaffold-and-deploy-foundation.md).
+The initial deploy, to GitHub Pages, was built in [project-structure ticket 01](../project-structure/tickets/01-scaffold-and-deploy-foundation.md).
 
-- [01: Custom domain](tickets/01-custom-domain.md)
+- [01: Custom domain](tickets/01-custom-domain.md), on GitHub Pages
+- [02: Deploy from Cloudflare Workers Builds](tickets/02-cloudflare-workers-builds.md)

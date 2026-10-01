@@ -29,6 +29,6 @@ A spec at `docs/planning/product-spec/spec.md`, executable by a build session wi
 
 ## Out of scope
 
-- **Cloudflare Workers hosting** — user ruled it unnecessary; GitHub Pages chosen.
+- **Cloudflare Workers hosting** — user ruled it unnecessary; GitHub Pages chosen. Reversed on 2026-10-01 by [continuous-deployment ticket 02](../continuous-deployment/tickets/02-cloudflare-workers-builds.md).
 - **Accuracy modelling beyond the approximation** — latency, per-step overhead, cache-pricing effects; the tool's point is rough comparability.
 - **Building the app** — the destination is the spec; the build is a follow-on effort once ticket 04 closes.
