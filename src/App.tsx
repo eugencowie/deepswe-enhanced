@@ -44,7 +44,7 @@ function App() {
         <div className="max-w-2xl">
           <h1 className="flex items-center gap-3 text-[28px] leading-none tracking-tight">
             <svg aria-hidden="true" className="brand-mark size-10 shrink-0" viewBox="0 0 160 144">
-              <use href={`${import.meta.env.BASE_URL}favicon.svg#mark`} />
+              <use href="/favicon.svg#mark" />
             </svg>
             <span>
               <span className="font-bold">DeepSWE</span>{" "}
