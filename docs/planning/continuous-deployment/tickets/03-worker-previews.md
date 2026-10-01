@@ -22,3 +22,5 @@ The header of `wrangler.jsonc` now names the dashboard's own label for preview b
 ## Comments
 
 **2026-10-01**. The dashboard fixes are done: the repository is reconnected to the GitHub app, and the Worker uses Worker Previews.
+
+**2026-10-01**. Verified on this pull request: the `Workers Builds: deepswe-enhanced` check passed, and Cloudflare commented a branch preview URL and a deployment URL. Both serve the site with its assets, and the canonical link points at the production domain, since preview builds get the same `VITE_SITE_URL`. This completes step 7 of ticket 02. A push to `main` has not yet triggered a production build, because the merge of this pull request is the first push since the repository was reconnected.
