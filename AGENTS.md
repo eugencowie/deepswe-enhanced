@@ -23,6 +23,8 @@ This project uses mise to manage the development environment.
 - Run `mise ls -l` to see the managed tools.
 - When invoking a managed tool directly, use `mise exec -- <command> [args]` rather than invoking the tool by its bare name.
 
+To reach the dev or preview server over Tailscale, pass `--host "$(tailscale ip -4)"` (e.g. `mise run dev --host "$(tailscale ip -4)"`) and open the Network URL it prints.
+
 <!--VITE PLUS START-->
 
 # Using Vite+, the Unified Toolchain for the Web

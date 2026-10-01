@@ -15,9 +15,9 @@ export default defineConfig({
     command: `vp build --base ${base} && vp preview --base ${base} --host 127.0.0.1 --port 4173 --strictPort`,
     url: `${origin}${base}`,
     env: { VITE_SITE_URL: siteUrl },
-    // Playwright recommends `!process.env.CI`, but `preview:tailnet` also uses
-    // port 4173 and serves base `/`. Reusing that server would run the smoke
-    // against the wrong base or a stale build, so always start fresh.
+    // Playwright recommends `!process.env.CI`, but a plain `vp preview` also
+    // uses port 4173 and serves base `/`. Reusing that server would run the
+    // smoke against the wrong base or a stale build, so always start fresh.
     reuseExistingServer: false,
   },
 });

@@ -8,8 +8,6 @@
     "ready": "vp check && vp test && vp build",
     "e2e:install": "playwright install chromium --with-deps",
     "e2e": "playwright test",
-    "dev:tailnet": "concurrently --passthrough-arguments --kill-others --success first --names tailscale,vp 'tailscale serve 5173' '__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS=.ts.net vp dev --host 127.0.0.1 --port 5173 --strictPort {@}' --",
-    "preview:tailnet": "concurrently --passthrough-arguments --kill-others --success first --names tailscale,vp 'tailscale serve 4173' '__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS=.ts.net vp preview --host 127.0.0.1 --port 4173 --strictPort {@}' --",
     "refresh": "vp run refresh:deepswe && vp run refresh:openrouter",
     "refresh:deepswe": "node scripts/refresh-deepswe.ts",
     "refresh:openrouter": "node scripts/refresh-openrouter.ts"
@@ -35,7 +33,6 @@
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
     "@vitejs/plugin-react": "6.1.1",
-    "concurrently": "10.0.5",
     "shadcn": "4.21.0",
     "typescript": "7.0.2",
     "vite": "catalog:",
