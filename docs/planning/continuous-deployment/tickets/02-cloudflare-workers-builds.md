@@ -56,11 +56,11 @@ Merging this ticket's pull request deletes the Pages deploy. The site stays on i
 
 ## Acceptance criteria
 
-- [x] `vp run validate` runs a Wrangler dry-run deploy and fails on a broken Wrangler config
-- [ ] A push to `main` deploys the site at <https://deepswe.eugen.codes/> from the Worker
-- [ ] A pull request gets a preview URL from Cloudflare
-- [ ] Pages is unpublished, and `deploy.yml` and the `github-pages` environment are gone
+- `vp run validate` runs a Wrangler dry-run deploy and fails on a broken Wrangler config
+- A push to `main` deploys the site at <https://deepswe.eugen.codes/> from the Worker
+- A pull request gets a preview URL from Cloudflare
+- Pages is unpublished, and `deploy.yml` and the `github-pages` environment are gone
 
 ## Comments
 
-**2026-10-01**. Resolved with the pull request rather than after the cutover, so closing it needs no second pull request. The cutover steps above follow the merge, and the three unticked criteria are checked during them. A problem found there becomes a new ticket. The dry-run fails on a missing assets directory and on a misspelt `assets` key. A scratch copy of the repo went through what Workers Builds runs, using plain Node `26.7.0` and pnpm `11.22.0` with no global `vp`: `pnpm install --frozen-lockfile`, `pnpm run build` with `VITE_SITE_URL` set, and `pnpm run deploy:dry-run`. All three passed. The `prepare` script needs `git`, which the build image has, since it clones the repository. The canonical link carried the given URL. `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD` skipped the Chromium download in that install. `mise run deploy` refuses to start without `VITE_SITE_URL`, because a manual deploy would otherwise ship the relative fallback.
+**2026-10-01**. Resolved with the pull request rather than after the cutover, so closing it needs no second pull request. The cutover steps above follow the merge, and the last three criteria are checked during them. A problem found there becomes a new ticket. The dry-run fails on a missing assets directory and on a misspelt `assets` key. A scratch copy of the repo went through what Workers Builds runs, using plain Node `26.7.0` and pnpm `11.22.0` with no global `vp`: `pnpm install --frozen-lockfile`, `pnpm run build` with `VITE_SITE_URL` set, and `pnpm run deploy:dry-run`. All three passed. The `prepare` script needs `git`, which the build image has, since it clones the repository. The canonical link carried the given URL. `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD` skipped the Chromium download in that install. `mise run deploy` refuses to start without `VITE_SITE_URL`, because a manual deploy would otherwise ship the relative fallback.
