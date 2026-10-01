@@ -54,10 +54,6 @@ run = "vp run e2e"
 description = "Run development server"
 run = "vp dev"
 
-[tasks."dev:tailnet"]
-description = "Run development server on tailnet"
-run = "vp run dev:tailnet"
-
 [tasks.build]
 description = "Build for production"
 run = "vp build"
@@ -65,10 +61,6 @@ run = "vp build"
 [tasks.preview]
 description = "Preview production build"
 run = "vp preview"
-
-[tasks."preview:tailnet"]
-description = "Preview production build on tailnet"
-run = "vp run preview:tailnet"
 
 [tasks.refresh]
 description = "Refresh all snapshots in workflow order (DeepSWE, then OpenRouter)"

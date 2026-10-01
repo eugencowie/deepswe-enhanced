@@ -1,7 +1,5 @@
 # 0001: Toolchain conventions for the scaffold
 
-**Tailnet scripts stay duplicated, until there are three.** `dev:tailnet` and `preview:tailnet` in `package.json` repeat the same `concurrently` + `tailscale serve` incantation with different ports. Development happens over the tailnet, so the scripts are necessary, and two near-identical scripts are cheaper to read than one parameterised one. The trigger to extract a shared script is a third `:tailnet` variant appearing.
-
 **Vite config merges layered objects via `defineMergedConfig`.** The array-merge helper in `vite.config.ts` keeps template-generated defaults (`baseConfig`, `vitePlusConfig`) separate from project overrides (`projectConfig`). Three static objects don't need it yet; it earns its keep when `reactConfig` and the Tailwind config join in leaderboard-table ticket 01.
 
 **Routine mise tasks delegate one-for-one to `vp`.** Each routine task is a thin wrapper, which doubles the edit surface when a command changes. That cost is accepted because `mise tasks` is the discovery mechanism: a contributor with only mise installed can list everything the project can do. The `upgrade` task is the exception. It combines mise maintenance with a hidden nested task for the Vite+ upgrade. mise resolves a task's tools when that task starts, so the nested task forces mise to load the newly upgraded Vite+ before running `vp`. Only the user-facing `upgrade` task is listed; its nested task is hidden because it is an implementation detail.
