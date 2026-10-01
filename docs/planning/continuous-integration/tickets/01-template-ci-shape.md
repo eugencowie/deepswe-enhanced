@@ -18,7 +18,7 @@ Make this repo's checks follow the same pattern as the astro template, so this r
 
 ### Manual step: required checks
 
-The default-branch ruleset requires the `ready` and `e2e` checks, which this change replaces with `ci`. Switch the ruleset to require `ci` just before merging, not earlier: every other open pull request still reports the old names until it is rebased. Settings › Rules › Rulesets › the default-branch ruleset › Require status checks to pass: remove `ready` and `e2e`, add `ci`.
+The default-branch ruleset requires the `ready` and `e2e` checks, which this change replaces with `ci`. Switch the ruleset to require `ci` just before merging, not earlier: every other open pull request still reports the old names until it is rebased. The ruleset is managed in Terraform in the infrastructure repo (`repos/repositories.tf`, `required_status_checks`), not in the GitHub settings page.
 
 ## Acceptance criteria
 
@@ -26,10 +26,12 @@ The default-branch ruleset requires the `ready` and `e2e` checks, which this cha
 - [x] A build without `VITE_SITE_URL` stamps `/` into the canonical link, `og:url` and the JSON-LD `url`, without a warning
 - [x] A build given `VITE_SITE_URL` stamps that URL instead
 - [x] The CI run on the pull request shows one `ci` job with a step per command
-- [ ] The ruleset requires `ci` instead of `ready` and `e2e`
+- [x] The ruleset requires `ci` instead of `ready` and `e2e`
 
 ## Comments
 
 **2026-10-01**. Implemented. A relative `/` in the canonical link broke the build, because Vite reads a relative `<link href>` as an asset to bundle. The canonical link is therefore marked `vite-ignore`, which Vite strips from the output. An empty `VITE_SITE_URL` falls back too. Verified locally: `vp run validate` passes after deleting `node_modules` and pointing Playwright at an empty browser cache, so a cached pnpm store still downloads Chromium. Builds without the variable, with it empty, and with it set all stamp the expected URL without warnings, and so does `vp dev`. Remaining: the ruleset switch just before merging.
 
 **2026-10-01**. The `ci` job passed on [#85](https://github.com/eugencowie/deepswe-enhanced/pull/85), with one step each for build, check, test and e2e. Chromium came from the dependency install alone.
+
+**2026-10-01**. The ruleset now requires `ci`, applied from [infrastructure#30](https://github.com/eugencowie/infrastructure/pull/30). #85 was the only open pull request at the time, so no other pull request was left waiting on the old checks.
