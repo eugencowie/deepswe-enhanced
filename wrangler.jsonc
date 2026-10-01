@@ -1,0 +1,27 @@
+// Workers Builds settings live in the Cloudflare dashboard, under the
+// Worker's Settings › Build, so they are listed here rather than configured.
+//
+// Build configuration
+// - Build command: pnpm run build
+// - Deploy command: pnpm run deploy
+// - Preview command: pnpm run deploy:preview
+// - Root directory: /
+// - Build watch paths: the default, so every push builds
+//
+// Branch control
+// - Production branch: main
+// - Preview builds: enabled
+//
+// Variables and secrets
+// - NODE_VERSION: devEngines.runtime.version in package.json
+// - PNPM_VERSION: devEngines.packageManager.version in package.json
+// - VITE_SITE_URL: https://example.com/, the custom domain with a trailing slash
+// - PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1, since the build runs no browser tests
+
+{
+  "name": "deepswe-enhanced",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+  },
+}
