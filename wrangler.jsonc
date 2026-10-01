@@ -4,13 +4,14 @@
 // Build configuration
 // - Build command: pnpm run build
 // - Deploy command: pnpm run deploy
-// - Preview command: pnpm run deploy:preview
+// - Preview command: pnpm run deploy:preview, never npx, which npm rejects
+//   here because devEngines names pnpm
 // - Root directory: /
 // - Build watch paths: the default, so every push builds
 //
 // Branch control
 // - Production branch: main
-// - Preview builds: enabled
+// - Builds for non-production branches: enabled, using Worker Previews
 //
 // Variables and secrets
 // - NODE_VERSION: devEngines.runtime.version in package.json
@@ -24,4 +25,7 @@
   "assets": {
     "directory": "./dist",
   },
+  // Required by `wrangler preview`. Previews inherit nothing from the top
+  // level, and this Worker has no variables or bindings to give them.
+  "previews": {},
 }

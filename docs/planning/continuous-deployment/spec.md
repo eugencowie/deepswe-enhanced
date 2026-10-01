@@ -21,3 +21,4 @@ The initial deploy, to GitHub Pages, was built in [project-structure ticket 01](
 
 - [01: Custom domain](tickets/01-custom-domain.md), on GitHub Pages
 - [02: Deploy from Cloudflare Workers Builds](tickets/02-cloudflare-workers-builds.md)
+- [03: Make preview builds work with Worker Previews](tickets/03-worker-previews.md)
