@@ -5,9 +5,13 @@
   "type": "module",
   "scripts": {
     "prepare": "vp config",
-    "validate": "vp build && vp check && vp test && vp run e2e",
+    "build": "vp build",
+    "validate": "vp build && vp check && vp test && vp run e2e && vp run deploy:dry-run",
     "validate:fix": "vp check --fix && vp run validate",
     "e2e": "playwright test",
+    "deploy": "wrangler deploy",
+    "deploy:dry-run": "vp run deploy --dry-run",
+    "deploy:preview": "wrangler preview",
     "refresh": "vp run refresh:deepswe && vp run refresh:openrouter",
     "refresh:deepswe": "node scripts/refresh-deepswe.ts",
     "refresh:openrouter": "node scripts/refresh-openrouter.ts"
@@ -37,7 +41,8 @@
     "shadcn": "4.21.0",
     "typescript": "7.0.2",
     "vite": "catalog:",
-    "vite-plus": "catalog:"
+    "vite-plus": "catalog:",
+    "wrangler": "4.145.0"
   },
   "devEngines": {
     "packageManager": {
