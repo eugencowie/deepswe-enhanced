@@ -38,3 +38,5 @@ The deployed artifact is built with the base path GitHub reports at build time. 
 ## Comments
 
 **2026-09-30**. Reworded so DNS only reads as a cutover step, not a standing rule. The record has since been switched to proxied, and the site is served through Cloudflare.
+
+**2026-10-01**. Superseded by [ticket 02](02-cloudflare-workers-builds.md). The site moves to a Cloudflare Worker, and the domain becomes a custom domain on the Worker. The Pages custom domain and the CNAME to `eugencowie.github.io` go in its cutover.
