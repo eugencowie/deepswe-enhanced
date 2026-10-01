@@ -1,7 +1,5 @@
 import { expect, test } from "@playwright/test";
 
-import { siteUrl } from "../playwright.config.ts";
-
 // What a crawler that runs no JavaScript reads: the built HTML as served,
 // before React replaces the fallback inside #root.
 test.use({ javaScriptEnabled: false });
@@ -27,8 +25,8 @@ test("the head describes the site", async ({ page }) => {
 });
 
 test("the fallback says what the site is", async ({ page }) => {
-  // The fallback's logo mark is a root-absolute reference in index.html, so
-  // it needs a base-path guard like the smoke test's.
+  // The fallback's logo mark is a separate request, so a broken reference to
+  // it shows up as a failure.
   const failures: string[] = [];
   page.on("response", (response) => {
     if (response.status() >= 400) {
@@ -43,12 +41,15 @@ test("the fallback says what the site is", async ({ page }) => {
   expect(failures).toEqual([]);
 });
 
-test("the URL tags and the JSON-LD block carry the site URL the build is given", async ({
-  page,
-}) => {
+test("the URL tags and the JSON-LD block carry one filled-in site URL", async ({ page }) => {
   await page.goto("./");
 
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", siteUrl);
+  // The site URL is a deploy-time setting, so its value is not pinned here:
+  // only that the build filled the placeholder, and filled it the same way
+  // everywhere.
+  const siteUrl = (await page.locator('link[rel="canonical"]').getAttribute("href")) ?? "";
+  expect(siteUrl).not.toBe("");
+  expect(siteUrl).not.toContain("%VITE_SITE_URL%");
   await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", siteUrl);
 
   const jsonLd: unknown = JSON.parse(

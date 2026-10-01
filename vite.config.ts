@@ -50,6 +50,11 @@ const playwrightConfig: UserConfig = {
 
 const projectConfig: UserConfig = {
   fmt: { ignorePatterns: ["docs/", ".github/", ".cruft.json"] },
+  // index.html's site URL placeholder. The deploy sets it in the process
+  // environment; a build without it gets a relative `/` instead of the literal
+  // placeholder.
+  // The canonical link is `vite-ignore`, or Vite would read `/` as an asset.
+  define: { "import.meta.env.VITE_SITE_URL": JSON.stringify(process.env.VITE_SITE_URL || "/") },
 };
 
 function defineMergedConfig(configs: UserConfig[]) {

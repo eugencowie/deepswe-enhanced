@@ -7,7 +7,7 @@ import { leaderboardSources } from "../src/data/sources.ts";
 const leaderboard = createLeaderboard(leaderboardSources);
 const rowCount = leaderboard.visibleRows(leaderboard.defaultFilters()).length;
 
-test("e2e build renders the table with no failed requests", async ({ page }) => {
+test("the build renders the table with no failed requests", async ({ page }) => {
   const failures: string[] = [];
   page.on("requestfailed", (request) => {
     failures.push(`${request.url()} (${request.failure()?.errorText})`);
@@ -23,8 +23,8 @@ test("e2e build renders the table with no failed requests", async ({ page }) => 
   const table = page.getByRole("table");
   await expect(table).toBeVisible();
   // Count against the derived rows, not a literal, so a data refresh that
-  // changes the entry count or ranking cannot fail the deploy gate for a
-  // reason that has nothing to do with the base path.
+  // changes the entry count or ranking cannot fail the smoke for a reason
+  // that has nothing to do with the page loading.
   await expect(table.locator("tbody tr")).toHaveCount(rowCount);
 
   expect(failures).toEqual([]);

@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "prepare": "vp config",
-    "ready": "vp check && vp test && vp build",
-    "e2e:install": "playwright install chromium --with-deps",
+    "validate": "vp build && vp check && vp test && vp run e2e",
+    "validate:fix": "vp check --fix && vp run validate",
     "e2e": "playwright test",
     "refresh": "vp run refresh:deepswe && vp run refresh:openrouter",
     "refresh:deepswe": "node scripts/refresh-deepswe.ts",
@@ -28,6 +28,7 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
+    "@playwright/browser-chromium": "1.63.0",
     "@playwright/test": "1.63.0",
     "@types/node": "26.4.1",
     "@types/react": "19.2.18",
