@@ -48,13 +48,22 @@ const playwrightConfig: UserConfig = {
   test: { exclude: [...configDefaults.exclude, "e2e/**"] },
 };
 
+// index.html's site URL placeholder. The deploy sets VITE_SITE_URL in the
+// process environment; a build without it gets a relative `/` instead of the
+// literal placeholder. The value is parsed, so a malformed URL fails the build,
+// and given a trailing slash, since that is how the root is served.
+// The canonical link is `vite-ignore`, or Vite would read `/` as an asset.
+function siteUrl(): string {
+  const value = process.env.VITE_SITE_URL;
+  if (!value) return "/";
+  const url = new URL(value);
+  if (!url.pathname.endsWith("/")) url.pathname += "/";
+  return url.href;
+}
+
 const projectConfig: UserConfig = {
   fmt: { ignorePatterns: ["docs/", ".github/", ".cruft.json"] },
-  // index.html's site URL placeholder. The deploy sets it in the process
-  // environment; a build without it gets a relative `/` instead of the literal
-  // placeholder.
-  // The canonical link is `vite-ignore`, or Vite would read `/` as an asset.
-  define: { "import.meta.env.VITE_SITE_URL": JSON.stringify(process.env.VITE_SITE_URL || "/") },
+  define: { "import.meta.env.VITE_SITE_URL": JSON.stringify(siteUrl()) },
 };
 
 function defineMergedConfig(configs: UserConfig[]) {
