@@ -24,7 +24,7 @@ Vite+ project at the repo root, keeping `docs/` as-is:
 │   ├── data/schema.ts         ← one schema and inferred type per data file (scripts import from here)
 │   ├── data/derive.ts         ← row expansion + maths (pure functions)
 │   └── ...
-└── .github/workflows/ci.yml
+└── .github/workflows/validate.yml
 ```
 
 Data is imported at build time (`import data from "../data/..."`), no runtime fetch. Scripts and app share the schemas and inferred types in `src/data/schema.ts` (architecture ticket 04).
