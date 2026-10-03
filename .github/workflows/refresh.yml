@@ -1,8 +1,5 @@
 name: Refresh
 
-permissions:
-  contents: read
-
 on:
   schedule:
     - cron: "0 16 * * 5"
