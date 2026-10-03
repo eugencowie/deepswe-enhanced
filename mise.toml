@@ -63,21 +63,9 @@ run = "vp build"
 description = "Preview production build"
 run = "vp preview"
 
-[tasks.deploy]
-description = "Validate, then deploy to production (needs a Wrangler login and VITE_SITE_URL)"
-run = [
-  'test -n "$VITE_SITE_URL" || { echo "Set VITE_SITE_URL to the site URL, as in the Workers Builds variables" >&2; exit 1; }',
-  "vp run validate",
-  "vp run deploy",
-]
-
 [tasks."deploy:dry-run"]
 description = "Build, then check the deploy without uploading"
 run = ["vp build", "vp run deploy:dry-run"]
-
-[tasks."deploy:preview"]
-description = "Build, then upload a preview (needs a Wrangler login)"
-run = ["vp build", "vp run deploy:preview"]
 
 [tasks.refresh]
 description = "Refresh all snapshots in workflow order (DeepSWE, then OpenRouter)"
