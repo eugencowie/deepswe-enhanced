@@ -50,12 +50,14 @@ const playwrightConfig: UserConfig = {
 
 // index.html's site URL placeholder. The deploy sets VITE_SITE_URL in the
 // process environment; a build without it gets a relative `/` instead of the
-// literal placeholder. The value is parsed, so a malformed URL fails the build,
-// and given a trailing slash, since that is how the root is served.
+// literal placeholder. A set value is parsed, so a malformed or empty URL fails
+// the build, as Astro's `--site` does: the workflows pass an unset repository
+// variable as an empty string. It is given a trailing slash, since that is how
+// the root is served.
 // The canonical link is `vite-ignore`, or Vite would read `/` as an asset.
 function siteUrl(): string {
   const value = process.env.VITE_SITE_URL;
-  if (!value) return "/";
+  if (value === undefined) return "/";
   const url = new URL(value);
   if (!url.pathname.endsWith("/")) url.pathname += "/";
   return url.href;
