@@ -5,8 +5,9 @@ disable_backends = ["asdf"] # cannot be updated by Renovate
 vite-plus = "https://github.com/markmals/mise-vite-plus"
 
 [tools]
-pipx = "latest"
+"aqua:astral-sh/uv" = "latest"
 "pipx:cruft" = "latest"
+python = "latest"
 vite-plus = "latest"
 
 [tasks.install]
