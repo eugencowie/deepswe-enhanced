@@ -9,9 +9,7 @@
     "validate": "vp build && vp check && vp test && vp run e2e && vp run deploy:dry-run",
     "validate:fix": "vp check --fix && vp run validate",
     "e2e": "playwright test",
-    "deploy": "wrangler deploy",
-    "deploy:dry-run": "vp run deploy --dry-run",
-    "deploy:preview": "wrangler preview",
+    "deploy:dry-run": "wrangler deploy --dry-run",
     "refresh": "vp run refresh:deepswe && vp run refresh:openrouter",
     "refresh:deepswe": "node scripts/refresh-deepswe.ts",
     "refresh:openrouter": "node scripts/refresh-openrouter.ts"
