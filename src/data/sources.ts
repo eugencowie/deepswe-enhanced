@@ -32,6 +32,7 @@ export const familyVendors = readFamilyVendors(modelMapping);
 // tests spread this to override a source.
 export const leaderboardSources: LeaderboardSources = {
   snapshot: deepsweSnapshot,
+  vendorReported: vendorReportedSnapshot,
   mapping: modelMapping,
   throughput: throughputSnapshot,
   tiers,

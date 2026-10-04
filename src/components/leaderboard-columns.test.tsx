@@ -15,6 +15,7 @@ const row = (overrides: Partial<LeaderboardRow> = {}): LeaderboardRow => ({
   family: "none",
   accessRoute: "api",
   isBestEntry: true,
+  provenance: { kind: "deepswe" },
   passAt1: 0.7364864,
   cost: { api: 11.8375, effective: 11.8375 },
   costPerSolvedTask: { api: 11.8375 / 0.7364864, effective: 11.8375 / 0.7364864 },
@@ -93,7 +94,7 @@ describe("sort definitions", () => {
     ]);
   });
 
-  test("cost accessors return effective figures and preserve absent cost per solved task", () => {
+  test("cost accessors return effective figures and preserve absent costs", () => {
     const tier = row({
       accessRoute: "claude-pro",
       cost: { api: 20, effective: 1 },
@@ -107,6 +108,7 @@ describe("sort definitions", () => {
     expect(cost.accessorFn(tier, 0)).toBe(1);
     expect(costPerf.accessorFn(tier, 0)).toBe(2);
     expect(costPerf.accessorFn(row({ costPerSolvedTask: undefined }), 0)).toBeUndefined();
+    expect(cost.accessorFn(row({ cost: undefined }), 0)).toBeUndefined();
   });
 
   test("every figure column places blanks last", () => {
@@ -236,5 +238,21 @@ describe("figure cells", () => {
     const blank = row({ throughputTokPerSec: undefined, averageTimeSeconds: undefined });
     expect(text("avgTime", blank)).toBe("–");
     expect(text("tokPerSec", blank)).toBe("–");
+  });
+
+  // A vendor-reported entry usually states Pass@1 alone (ADR 0009).
+  test("Cost, Tokens and Steps are blank when the entry states none", () => {
+    for (const accessRoute of ["api", "claude-pro"] as const) {
+      const blank = row({
+        accessRoute,
+        cost: undefined,
+        costPerSolvedTask: undefined,
+        outputTokens: undefined,
+        steps: undefined,
+      });
+      expect(markup("avgCost", blank), accessRoute).toBe("–");
+      expect(text("outTok", blank), accessRoute).toBe("–");
+      expect(text("steps", blank), accessRoute).toBe("–");
+    }
   });
 });

@@ -19,7 +19,7 @@ import {
   vendorMappingSchema,
   vendorReportedSnapshotSchema,
 } from "./schema.ts";
-import { deepsweSnapshot, modelMapping } from "./sources.ts";
+import { deepsweSnapshot, modelMapping, vendorReportedSnapshot } from "./sources.ts";
 
 // The app parses the five files it imports at load; the refresh shells parse
 // the other two. This is the one place every committed data file is parsed on
@@ -78,11 +78,11 @@ describe("deepsweSnapshotSchema", () => {
 
 // A Pass@1-only claim, the shape nearly every vendor publishes.
 const vendorEntry = {
-  model: "claude-opus-5-5",
+  model: "claude-opus-9",
   effort: "max",
   pass_at_1: 0.742,
-  source: "Claude Opus 5.5 System Card §8.3",
-  sourceUrl: "https://www.anthropic.com/claude-opus-5-5",
+  source: "Claude Opus 9 System Card §8.3",
+  sourceUrl: "https://www.anthropic.com/claude-opus-9",
   publishedAt: "2026-09-22",
   figureFrom: "text",
 };
@@ -106,7 +106,7 @@ describe("vendorReportedSnapshotSchema", () => {
   test("rejects a duplicate (model, effort) identity", () => {
     const tampered = vendorReported(vendorEntry, { ...vendorEntry, pass_at_1: 0.75 });
     expect(() => vendorReportedSnapshotSchema.parse(tampered)).toThrowError(
-      /duplicate vendor-reported entry: claude-opus-5-5 @ max/,
+      /duplicate vendor-reported entry: claude-opus-9 @ max/,
     );
   });
 });
@@ -146,38 +146,40 @@ describe("modelMappingSchema", () => {
 });
 
 describe("assertMappingCoverage", () => {
-  const noVendorReported = vendorReportedSnapshotSchema.parse(vendorReported());
-  const opusFiveFive = vendorReportedSnapshotSchema.parse(vendorReported(vendorEntry));
-  const opusFiveFiveMapping = {
+  // The live files plus one claim, so each test trips only the rule it names.
+  const opusNine = vendorReportedSnapshotSchema.parse(
+    vendorReported(...vendorReportedSnapshot.entries, vendorEntry),
+  );
+  const opusNineMapping = {
     ...modelMapping[0],
-    leaderboardModel: "claude-opus-5-5",
-    displayName: "Claude Opus 5.5",
-    openrouterId: "anthropic/claude-opus-5.5",
+    leaderboardModel: "claude-opus-9",
+    displayName: "Claude Opus 9",
+    openrouterId: "anthropic/claude-opus-9",
   };
 
   test("rejects a snapshot model missing from the mapping", () => {
     const [dropped, ...rest] = modelMapping;
-    expect(() => assertMappingCoverage(deepsweSnapshot, noVendorReported, rest)).toThrowError(
+    expect(() => assertMappingCoverage(deepsweSnapshot, vendorReportedSnapshot, rest)).toThrowError(
       dropped.leaderboardModel,
     );
   });
 
   test("rejects a mapping entry matching no model in either file", () => {
     const orphaned = [...modelMapping, { ...modelMapping[0], leaderboardModel: "ghost-model" }];
-    expect(() => assertMappingCoverage(deepsweSnapshot, noVendorReported, orphaned)).toThrowError(
-      /ghost-model/,
-    );
+    expect(() =>
+      assertMappingCoverage(deepsweSnapshot, vendorReportedSnapshot, orphaned),
+    ).toThrowError(/ghost-model/);
   });
 
   test("rejects a vendor-reported model missing from the mapping", () => {
-    expect(() => assertMappingCoverage(deepsweSnapshot, opusFiveFive, modelMapping)).toThrowError(
-      /claude-opus-5-5/,
+    expect(() => assertMappingCoverage(deepsweSnapshot, opusNine, modelMapping)).toThrowError(
+      /claude-opus-9/,
     );
   });
 
   test("accepts a mapping entry matching only a vendor-reported model", () => {
-    const mapping = [...modelMapping, opusFiveFiveMapping];
-    expect(() => assertMappingCoverage(deepsweSnapshot, opusFiveFive, mapping)).not.toThrow();
+    const mapping = [...modelMapping, opusNineMapping];
+    expect(() => assertMappingCoverage(deepsweSnapshot, opusNine, mapping)).not.toThrow();
   });
 });
 

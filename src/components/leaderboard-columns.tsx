@@ -65,7 +65,7 @@ const columns = helper.columns([
     sortDescFirst: true,
     cell: figureCell(formatPassAt1),
   }),
-  helper.accessor((row) => row.cost.effective, {
+  helper.accessor((row) => row.cost?.effective, {
     id: "avgCost",
     header: "Cost",
     ...figure(),

@@ -1,9 +1,15 @@
 import { expect, test, type Page } from "@playwright/test";
 
 import { createLeaderboard } from "../src/data/leaderboard.ts";
-import { deepsweSnapshot, leaderboardSources } from "../src/data/sources.ts";
+import {
+  deepsweSnapshot,
+  leaderboardSources,
+  vendorReportedSnapshot,
+} from "../src/data/sources.ts";
 
 const modelCount = createLeaderboard(leaderboardSources).modelOptions.length;
+// The All view shows every entry once, whichever source it came from.
+const entryCount = deepsweSnapshot.entries.length + vendorReportedSnapshot.entries.length;
 
 const bodyRows = (page: Page) => page.getByRole("table").locator("tbody tr");
 
@@ -15,7 +21,7 @@ test("the effort toggle switches between best and all entries", async ({ page })
   await expect(page.getByRole("cell", { name: "Claude Fable 5 xhigh" })).toBeVisible();
 
   await page.getByRole("button", { name: "All effort levels" }).click();
-  await expect(bodyRows(page)).toHaveCount(deepsweSnapshot.entries.length);
+  await expect(bodyRows(page)).toHaveCount(entryCount);
 
   await page.getByRole("button", { name: "Best", exact: true }).click();
   await expect(bodyRows(page)).toHaveCount(modelCount);

@@ -4,7 +4,6 @@
 // interface.
 
 import {
-  type DeepsweEntry,
   type DeepsweSnapshot,
   type FamilyVendors,
   type ModelMappingEntry,
@@ -14,6 +13,8 @@ import {
   type ThroughputSnapshot,
   type Tier,
   type TierId,
+  type VendorReportedEntry,
+  type VendorReportedSnapshot,
 } from "./schema.ts";
 
 // How you would pay to run a model: direct API, or a specific tier. Every row
@@ -22,6 +23,15 @@ export type AccessRoute = "api" | TierId;
 
 // The marker on a tier row naming its tier; API rows are untagged.
 export type AccessTag = { label: string; family: PickerFamilyId };
+
+// Where a row's figures come from: the DeepSWE leaderboard, or a vendor's own
+// claim, which the UI marks and cites (ADR 0009).
+export type Provenance =
+  | { kind: "deepswe" }
+  | ({ kind: "vendor-reported" } & Pick<
+      VendorReportedEntry,
+      "source" | "sourceUrl" | "publishedAt" | "figureFrom" | "harness" | "trials"
+    >);
 
 // API and effective figures in USD for the same cost measure.
 export type CostPair = { api: number; effective: number };
@@ -38,14 +48,15 @@ export type LeaderboardRow = {
   accessRoute: AccessRoute;
   accessTag?: AccessTag; // absent on API rows
   isBestEntry: boolean; // the model's best entry (docs/context.md); the same on every route
+  provenance: Provenance; // the same on every route
   passAt1: number;
-  cost: CostPair;
-  costPerSolvedTask: CostPair | undefined; // absent when passAt1 is 0
-  outputTokens: number;
-  steps: number;
+  cost: CostPair | undefined; // absent when the vendor-reported entry states no cost
+  costPerSolvedTask: CostPair | undefined; // absent when passAt1 is 0 or cost is absent
+  outputTokens?: number; // absent when the vendor-reported entry states none
+  steps?: number; // likewise
   openrouterId?: string; // shown in the model-name tooltip
   throughputTokPerSec?: number; // absent when unmapped or absent from the snapshot
-  averageTimeSeconds?: number; // absent whenever throughput is
+  averageTimeSeconds?: number; // absent whenever throughput or output tokens are
 };
 
 export type ModelOption = { model: string; displayName: string; vendor: string };
@@ -98,6 +109,7 @@ export type Leaderboard = {
 
 export type LeaderboardSources = {
   snapshot: DeepsweSnapshot;
+  vendorReported: VendorReportedSnapshot;
   mapping: ModelMappingEntry[];
   throughput: ThroughputSnapshot;
   tiers: Tier[];
@@ -106,12 +118,13 @@ export type LeaderboardSources = {
 
 export function createLeaderboard({
   snapshot,
+  vendorReported,
   mapping,
   throughput,
   tiers,
   familyVendors,
 }: LeaderboardSources): Leaderboard {
-  const rows = deriveRows(snapshot, mapping, throughput, tiers);
+  const rows = deriveRows(leaderboardEntries(snapshot, vendorReported), mapping, throughput, tiers);
   const modelOptions = [...new Map(rows.map((row) => [row.model, row]))]
     .map(([model, { displayName, vendor }]) => ({ model, displayName, vendor }))
     .toSorted((a, b) => a.displayName.localeCompare(b.displayName, "en"));
@@ -162,15 +175,53 @@ export function compareModel(a: LeaderboardRow, b: LeaderboardRow): number {
   return effortRank(a.effort) - effortRank(b.effort);
 }
 
-function deriveRows(
+// A leaderboard entry from either source, in the one shape rows derive from.
+// Vendor-reported entries leave unstated figures absent (ADR 0009).
+type Entry = {
+  model: string;
+  effort: string | null; // null = model's default effort
+  pass_at_1: number;
+  average_cost_usd?: number;
+  output_tokens?: number;
+  steps?: number;
+  provenance: Provenance;
+};
+
+function leaderboardEntries(
   snapshot: DeepsweSnapshot,
+  vendorReported: VendorReportedSnapshot,
+): Entry[] {
+  return [
+    ...snapshot.entries.map((entry) => ({
+      ...entry,
+      provenance: { kind: "deepswe" } satisfies Provenance,
+    })),
+    ...vendorReported.entries.map(
+      ({ source, sourceUrl, publishedAt, figureFrom, harness, trials, ...entry }) => ({
+        ...entry,
+        provenance: {
+          kind: "vendor-reported",
+          source,
+          sourceUrl,
+          publishedAt,
+          figureFrom,
+          harness,
+          trials,
+        } satisfies Provenance,
+      }),
+    ),
+  ];
+}
+
+function deriveRows(
+  entries: Entry[],
   mapping: ModelMappingEntry[],
   throughput: ThroughputSnapshot,
   tiers: Tier[],
 ): LeaderboardRow[] {
   const byModel = new Map(mapping.map((entry) => [entry.leaderboardModel, entry]));
-  const bestByModel = bestEntries(snapshot.entries);
-  return snapshot.entries.flatMap((entry) => {
+  const bestByModel = bestEntries(entries);
+  return entries.flatMap((entry) => {
     const mapped = byModel.get(entry.model);
     if (!mapped) {
       throw new Error(
@@ -183,10 +234,16 @@ function deriveRows(
         : throughput.models[mapped.openrouterId]?.consumerP50;
     const familyTiers = tiers.filter((tier) => tier.family === mapped.family);
     const isBestEntry = bestByModel.get(entry.model) === entry;
+    // The entry's cost on a route with this subsidisation factor (1 on the
+    // API); absent when the entry states no cost.
+    const costAt = (factor: number): CostPair | undefined =>
+      entry.average_cost_usd === undefined
+        ? undefined
+        : { api: entry.average_cost_usd, effective: entry.average_cost_usd * factor };
     const row = (
       accessRoute: AccessRoute,
       accessTag: AccessTag | undefined,
-      effectiveCostUsd: number,
+      cost: CostPair | undefined,
     ): LeaderboardRow => ({
       model: entry.model,
       displayName: mapped.displayName,
@@ -196,29 +253,29 @@ function deriveRows(
       accessRoute,
       accessTag,
       isBestEntry,
+      provenance: entry.provenance,
       passAt1: entry.pass_at_1,
-      cost: { api: entry.average_cost_usd, effective: effectiveCostUsd },
+      cost,
       costPerSolvedTask:
-        entry.pass_at_1 === 0
+        cost === undefined || entry.pass_at_1 === 0
           ? undefined
-          : {
-              api: entry.average_cost_usd / entry.pass_at_1,
-              effective: effectiveCostUsd / entry.pass_at_1,
-            },
+          : { api: cost.api / entry.pass_at_1, effective: cost.effective / entry.pass_at_1 },
       outputTokens: entry.output_tokens,
       steps: entry.steps,
       openrouterId: mapped.openrouterId ?? undefined,
       throughputTokPerSec,
       averageTimeSeconds:
-        throughputTokPerSec === undefined ? undefined : entry.output_tokens / throughputTokPerSec,
+        throughputTokPerSec === undefined || entry.output_tokens === undefined
+          ? undefined
+          : entry.output_tokens / throughputTokPerSec,
     });
     return [
-      row("api", undefined, entry.average_cost_usd),
+      row("api", undefined, costAt(1)),
       ...familyTiers.map((tier) =>
         row(
           tier.id,
           { label: tier.shortLabel, family: tier.family },
-          entry.average_cost_usd * entrySubsidisationFactor(tier, mapped),
+          costAt(entrySubsidisationFactor(tier, mapped)),
         ),
       ),
     ];
@@ -263,8 +320,8 @@ export function toggleModel(filters: LeaderboardFilters, model: string): Leaderb
 // higher effort level winning an exact tie. This is the DeepSWE site's rule;
 // for claude-fable-5 it picks xhigh over max. Chosen per model, so every
 // access route of the entry is best together.
-function bestEntries(entries: DeepsweEntry[]): Map<string, DeepsweEntry> {
-  const best = new Map<string, DeepsweEntry>();
+function bestEntries(entries: Entry[]): Map<string, Entry> {
+  const best = new Map<string, Entry>();
   for (const entry of entries) {
     const incumbent = best.get(entry.model);
     if (incumbent === undefined || outscores(entry, incumbent)) best.set(entry.model, entry);
@@ -272,7 +329,7 @@ function bestEntries(entries: DeepsweEntry[]): Map<string, DeepsweEntry> {
   return best;
 }
 
-function outscores(entry: DeepsweEntry, incumbent: DeepsweEntry): boolean {
+function outscores(entry: Entry, incumbent: Entry): boolean {
   if (entry.pass_at_1 !== incumbent.pass_at_1) return entry.pass_at_1 > incumbent.pass_at_1;
   return effortRank(entry.effort) > effortRank(incumbent.effort);
 }

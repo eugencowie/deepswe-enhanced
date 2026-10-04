@@ -1,7 +1,7 @@
 # 02: Leaderboard joins vendor-reported entries
 
 Type: task
-Status: ready-for-agent
+Status: resolved
 Blocked by: 01
 
 ## What to build
@@ -14,8 +14,16 @@ Best entry, the effort filter and `modelOptions` treat vendor-reported entries l
 
 ## Acceptance criteria
 
-- [ ] Fixture tests: a vendor-reported entry with Pass@1 only yields rows with blank cost, cost per solved task, output tokens, steps and average time, filled throughput, and one row per access route
-- [ ] Fixture tests: an entry that does state cost carries it through, including the effective cost on tier rows
-- [ ] Rows carry provenance, and DeepSWE rows are unchanged
-- [ ] The column cells for Cost, Output tokens and Steps render blank for undefined values
-- [ ] `vp check` and `vp test` pass
+- [x] Fixture tests: a vendor-reported entry with Pass@1 only yields rows with blank cost, cost per solved task, output tokens, steps and average time, filled throughput, and one row per access route
+- [x] Fixture tests: an entry that does state cost carries it through, including the effective cost on tier rows
+- [x] Rows carry provenance, and DeepSWE rows are unchanged
+- [x] The column cells for Cost, Output tokens and Steps render blank for undefined values
+- [x] `vp check` and `vp test` pass
+
+## Comments
+
+**Implementation notes (2026-10-04):**
+
+- Provenance is a discriminated union on the row, `provenance: { kind: "deepswe" } | { kind: "vendor-reported", source, sourceUrl, publishedAt, figureFrom, harness?, trials? }`, rather than an optional field, so ticket 03 switches on `kind`.
+- `createLeaderboard` maps both files into one internal entry shape before deriving rows; Best entry, `modelOptions` and filters needed no change.
+- Live-data tests (unit and e2e) now count entries from both files, and fixture-built leaderboards start from no vendor-reported entries. Verified by temporarily adding a live entry and mapping entry: unit tests and e2e passed, then the data was restored. Test fixtures use the fictional `claude-opus-9`, so they never collide with ticket 05's `claude-opus-5-5`.
