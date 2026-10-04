@@ -1,7 +1,7 @@
 # 06: Checklist for adding a vendor-reported entry
 
 Type: task
-Status: ready-for-agent
+Status: resolved
 Blocked by: none
 
 ## What to write
@@ -19,6 +19,14 @@ A recurring agent task that scans vendor launches can come later on top of this 
 
 ## Acceptance criteria
 
-- [ ] The doc exists and links the spec and ADR 0009
-- [ ] The rules match the spec's
-- [ ] AGENTS.md or the issue-tracker doc points to it, so an agent adding an entry finds it
+- [x] The doc exists and links the spec and ADR 0009
+- [x] The rules match the spec's
+- [x] AGENTS.md or the issue-tracker doc points to it, so an agent adding an entry finds it
+
+## Comments
+
+**Implementation notes (2026-10-04):**
+
+- The doc is the single source of truth for the admission rules; the spec's Admission rules section now summarises them in one sentence and points to it, so the two can't drift. The spec's rule 3 (text or chart) became a note under the rules plus the maintainer-check step.
+- Field shapes stay in `vendorReportedEntrySchema`; the doc covers only the fields that take judgement.
+- AGENTS.md points to the doc under Agent skills.

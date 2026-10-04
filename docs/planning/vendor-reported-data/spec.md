@@ -4,13 +4,7 @@ Adds vendor-reported entries to the [leaderboard](../leaderboard-table/spec.md):
 
 ## Admission rules
 
-A vendor claim becomes a vendor-reported entry only if all of these hold:
-
-1. **DeepSWE v1.1, Pass@1.** The figure is a DeepSWE v1.1 pass rate over attempts. Other benchmarks (SWE-bench Pro, Terminal-Bench) never enter the Pass@1 column: cost per solved task divides by it, so it must stay one benchmark.
-2. **The vendor's own publication.** Launch posts, system cards, model cards, docs, and the vendor's official social accounts count; third-party transcriptions don't.
-3. **Text or chart.** Figures stated as text or in a table, and figures read off a chart, both count. Every chart reading is put to the maintainer as a checklist (figure, chart, effort) and checked against the source before it is committed. Where text and a chart give a figure for the same effort, the text wins.
-4. **A named effort level.** The source names the effort, or names "highest" where the vendor's own docs name that level (cited). A claim with no effort stated is not admitted: `null` already means "the model's default effort", and an "unstated" value would poison the effort sort and the Best-entry tiebreak.
-5. **No method known to differ.** Admit unless the source says the method differs: best-of-harnesses, the vendor's own scaffold, best-of-k. An unstated harness is admitted; the marker already says the figure is unverified.
+A vendor claim becomes a vendor-reported entry only if it is a DeepSWE v1.1 Pass@1 figure, from the vendor's own publication, at a named effort level, by a method not known to differ; figures read off a chart are checked by the maintainer before they are committed. The rules, with the reason for each, live in [docs/agents/vendor-reported-entries.md](../../agents/vendor-reported-entries.md) (ticket 06), the single source of truth for adding an entry.
 
 ## Data file: `data/vendor-reported.json`
 
