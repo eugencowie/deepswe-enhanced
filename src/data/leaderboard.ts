@@ -137,13 +137,7 @@ export function createLeaderboard({
         shortLabel: tier.shortLabel,
         priceUsdPerMonth: tier.priceUsdPerMonth,
         tierDiscount: tierDiscount(tier, 1),
-        // A non-standard usage multiplier, or a tier that excludes the model.
-        notes: mapping.flatMap((entry) => {
-          const factor = entrySubsidisationFactor(tier, entry);
-          return entry.family !== family || factor === subsidisationFactor(tier, 1)
-            ? []
-            : [{ name: entry.shortName ?? entry.displayName, tierDiscount: 1 - factor }];
-        }),
+        notes: usageLimitNotes(mapping, family, tier),
       })),
   }));
   return {
@@ -356,6 +350,25 @@ function entrySubsidisationFactor(tier: Tier, entry: ModelMappingEntry): number 
   return entry.excludedTiers?.includes(tier.id)
     ? 1
     : subsidisationFactor(tier, entry.usageMultiplier);
+}
+
+// A family's models whose factor on the tier differs from the tier-wide one
+// (a non-standard usage multiplier, or a tier that excludes the model), one
+// note per distinct label and factor: models sharing both (Fable 5 and
+// Fable 5.1, both "Fable" at 0.5) share one note.
+function usageLimitNotes(
+  mapping: ModelMappingEntry[],
+  family: PickerFamilyId,
+  tier: Tier,
+): UsageLimitNote[] {
+  const notes = new Map<string, UsageLimitNote>();
+  for (const entry of mapping) {
+    const factor = entrySubsidisationFactor(tier, entry);
+    if (entry.family !== family || factor === subsidisationFactor(tier, 1)) continue;
+    const name = entry.shortName ?? entry.displayName;
+    notes.set(`${name}@${factor}`, { name, tierDiscount: 1 - factor });
+  }
+  return [...notes.values()];
 }
 
 // A subsidisation factor as the discount it amounts to.

@@ -662,6 +662,19 @@ describe("pickerFamilies", () => {
     }
   });
 
+  // Fable 5 and Fable 5.1 share Fable's halved limits, so one "Fable" note
+  // covers both.
+  test("models sharing a short name and usage multiplier share one note", () => {
+    const fable = modelMapping.find((entry) => entry.leaderboardModel === "claude-fable-5")!;
+    const mapping = [...modelMapping, { ...fable, leaderboardModel: "claude-fable-9" }];
+    const { pickerFamilies } = createLeaderboard({ ...fixtureSources, mapping });
+    // Max 5x, not Pro: Pro excludes Fable. 1 − 100/(2000 × 0.5)
+    const maxFive = pickerFamilies
+      .find((f) => f.family === "claude")!
+      .tiers.find((tier) => tier.id === "claude-max-5x");
+    expect(maxFive?.notes).toEqual([{ name: "Fable", tierDiscount: expect.closeTo(0.9, 10) }]);
+  });
+
   test("a note uses the mapping's short name, falling back to the display name", () => {
     const mapping = modelMapping.map((entry) =>
       entry.leaderboardModel === "gpt-5-5"
