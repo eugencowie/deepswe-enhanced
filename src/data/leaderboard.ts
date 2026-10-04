@@ -58,7 +58,12 @@ export type LeaderboardRow = {
   averageTimeSeconds?: number; // absent whenever throughput or output tokens are
 };
 
-export type ModelOption = { model: string; displayName: string; vendor: string };
+export type ModelOption = {
+  model: string;
+  displayName: string;
+  vendor: string;
+  vendorReported: boolean; // coloured like its rows in the Models picker
+};
 
 // A family model with a non-standard usage limit, badged per tier in the
 // Subscriptions picker because its discount differs from the tier-wide one;
@@ -125,7 +130,13 @@ export function createLeaderboard({
 }: LeaderboardSources): Leaderboard {
   const rows = deriveRows(leaderboardEntries(snapshot, vendorReported), mapping, throughput, tiers);
   const modelOptions = [...new Map(rows.map((row) => [row.model, row]))]
-    .map(([model, { displayName, vendor }]) => ({ model, displayName, vendor }))
+    .map(([model, { displayName, vendor, provenance }]) => ({
+      model,
+      displayName,
+      vendor,
+      // Supersession is per model, so every row of a model shares a source.
+      vendorReported: provenance.kind === "vendor-reported",
+    }))
     .toSorted((a, b) => a.displayName.localeCompare(b.displayName, "en"));
   const pickerFamilies = PICKER_FAMILIES.map((family) => ({
     family,

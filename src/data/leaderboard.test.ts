@@ -534,6 +534,7 @@ describe("vendor-reported entries", () => {
       model: "claude-opus-9",
       displayName: "Claude Opus 9",
       vendor: "Anthropic",
+      vendorReported: true,
     });
   });
 });
@@ -585,6 +586,14 @@ describe("modelOptions", () => {
     expect(modelOptions.find((option) => option.model === "claude-opus-5")?.displayName).toBe(
       "Claude Opus 5",
     );
+  });
+
+  // The Models picker colours vendor-reported models like their rows.
+  test("says whether a model is vendor-reported", () => {
+    const { modelOptions } = vendorReportedLeaderboard(opusNineClaim);
+    const flag = (model: string) => modelOptions.find((o) => o.model === model)?.vendorReported;
+    expect(flag("claude-opus-9")).toBe(true);
+    expect(flag("claude-opus-5")).toBe(false);
   });
 
   test("carries the mapping's vendor for the Models picker's vendor mark", () => {
