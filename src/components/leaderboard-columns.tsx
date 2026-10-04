@@ -17,7 +17,13 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "cn";
 import { VendorMark } from "@/components/vendor-mark";
-import { compareModel, type CostPair, type LeaderboardRow } from "@/data/leaderboard";
+import { vendorReportedNote } from "@/components/vendor-reported-note";
+import {
+  compareModel,
+  type CostPair,
+  type LeaderboardRow,
+  type VendorReportedProvenance,
+} from "@/data/leaderboard";
 
 // What the table reads to render a column beyond its header and cell.
 export type ColumnMeta = {
@@ -156,12 +162,34 @@ function modelCell(row: LeaderboardRow): ReactNode {
           <span className="ml-1 text-xs text-muted-foreground">{row.effort}</span>
         </>
       )}
+      {row.provenance.kind === "vendor-reported" && <> {vendorReportedMarker(row.provenance)}</>}
       {row.accessTag && (
         <Badge variant="outline" className={cn("ml-2", tagClassByFamily[row.accessTag.family])}>
           {row.accessTag.label}
         </Badge>
       )}
     </>
+  );
+}
+
+// Marks a vendor-reported entry's rows in the enhancement colour (ADR 0009):
+// the marker links to the vendor's source, and its tooltip cites it.
+function vendorReportedMarker(provenance: VendorReportedProvenance): ReactNode {
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <Badge
+            variant="outline"
+            className="ml-1 border-brand/40 text-brand [a]:hover:bg-brand/10 [a]:hover:text-brand"
+            render={<a href={provenance.sourceUrl} target="_blank" rel="noreferrer" />}
+          />
+        }
+      >
+        vendor-reported
+      </TooltipTrigger>
+      <TooltipContent>{vendorReportedNote(provenance)}</TooltipContent>
+    </Tooltip>
   );
 }
 

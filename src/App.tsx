@@ -9,6 +9,7 @@ import {
   leaderboardSources,
   throughputSnapshot,
   tiersSnapshot,
+  vendorReportedSnapshot,
 } from "@/data/sources";
 
 const leaderboard = createLeaderboard(leaderboardSources);
@@ -20,6 +21,12 @@ const utcDate = (timestamp: string) => new Date(timestamp).toISOString().slice(0
 const deepsweDate = utcDate(deepsweSnapshot.source_generated_at);
 const openrouterDate = utcDate(throughputSnapshot.capturedAt);
 const semianalysisDate = utcDate(tiersSnapshot.publishedAt);
+// The newest claim's date, or undefined while there are no vendor-reported
+// entries; ISO dates sort as strings.
+const vendorReportedDate = vendorReportedSnapshot.entries
+  .map((entry) => utcDate(entry.publishedAt))
+  .toSorted()
+  .at(-1);
 
 function SourceLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
@@ -56,14 +63,20 @@ function App() {
             time at the consumer API throughput, and the effective cost on a Claude or ChatGPT
             subscription.
           </p>
-          {/* Provenance: every figure on the page traces to one of these three,
-              listed in the order the sentence above mentions them. Each date is
+          {/* Provenance: every figure on the page traces to one of these,
+              listed in the order the sentence above mentions them, then the
+              vendor-reported scores once there are any. They are unlinked:
+              each row's marker cites its own source (ADR 0009). Each date is
               the upstream figure's own age, not when this project fetched it. */}
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
             Sources: <SourceLink href={deepsweSnapshot.sourceUrl}>DeepSWE</SourceLink> (
             {deepsweDate}), <SourceLink href={throughputSnapshot.sourceUrl}>OpenRouter</SourceLink>{" "}
             ({openrouterDate}), <SourceLink href={tiersSnapshot.sourceUrl}>SemiAnalysis</SourceLink>{" "}
-            ({semianalysisDate}).
+            ({semianalysisDate})
+            {vendorReportedDate !== undefined && (
+              <>, vendor-reported scores ({vendorReportedDate})</>
+            )}
+            .
           </p>
         </div>
         <ModeToggle />

@@ -167,6 +167,36 @@ describe("Model cell", () => {
   });
 });
 
+describe("vendor-reported marker", () => {
+  const claim = row({
+    effort: "max",
+    provenance: {
+      kind: "vendor-reported",
+      source: "Claude Opus 9 System Card §8.3",
+      sourceUrl: "https://www.anthropic.com/claude-opus-9",
+      publishedAt: "2026-09-22",
+      figureFrom: "text",
+    },
+  });
+
+  test("follows the effort on vendor-reported rows, before any access tag", () => {
+    expect(text("model", claim)).toBe("Test Model max vendor-reported");
+    expect(text("model", { ...claim, accessTag: { label: "Pro", family: "claude" } })).toBe(
+      "Test Model max vendor-reportedPro",
+    );
+  });
+
+  test("links to the vendor's source", () => {
+    expect(markup("model", claim)).toMatch(
+      /<a [^>]*href="https:\/\/www\.anthropic\.com\/claude-opus-9"[^>]*>vendor-reported<\/a>/,
+    );
+  });
+
+  test("is absent on DeepSWE rows", () => {
+    expect(markup("model", row({ effort: "max" }))).not.toMatch(/vendor-reported/);
+  });
+});
+
 describe("figure cells", () => {
   test("Pass@1 is a whole percent", () => {
     expect(text("passAt1", row({ passAt1: 0.7364864 }))).toBe("74%");

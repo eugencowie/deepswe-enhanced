@@ -30,6 +30,8 @@ export type Provenance =
   | { kind: "deepswe" }
   | ({ kind: "vendor-reported" } & Omit<VendorReportedEntry, keyof LeaderboardEntryFields>);
 
+export type VendorReportedProvenance = Extract<Provenance, { kind: "vendor-reported" }>;
+
 // API and effective figures in USD for the same cost measure.
 export type CostPair = { api: number; effective: number };
 
