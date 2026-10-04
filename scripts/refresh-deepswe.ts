@@ -32,6 +32,7 @@ import {
   openrouterModelsSchema,
   openrouterModelsUrl,
 } from "./mapping-generation.ts";
+import { supersedeVendorReported } from "./vendor-reported-supersession.ts";
 import {
   fetchBytes,
   fetchJson,
@@ -81,13 +82,24 @@ if (unmapped.length > 0) {
   generated.push(...result.generated);
 }
 
+// Vendor-reported models DeepSWE now publishes go, every effort level at once
+// (ADR 0009); an OpenRouter-id match also retires the model's mapping entry,
+// which the generated one would otherwise duplicate.
+const supersession = supersedeVendorReported({
+  publishedModels: new Set(artifact.rows.map((row) => row.model)),
+  vendorReported,
+  mapping,
+  generated,
+});
+const standing = [...new Set(supersession.vendorReported.entries.map((entry) => entry.model))];
+
 const { snapshot, warnings } = normalize(
   manifest,
   artifact,
-  [...mapping, ...generated],
+  supersession.mapping,
   revisions,
   rawSha256,
-  new Set(vendorReported.entries.map((entry) => entry.model)),
+  new Set(standing),
 );
 warnings.forEach(warn);
 
@@ -103,10 +115,21 @@ if (priceRevisionsChanged) {
   );
 }
 if (generated.length > 0) {
-  await writeDataFile("model-mapping.json", modelMappingSchema, [...mapping, ...generated]);
+  await writeDataFile("model-mapping.json", modelMappingSchema, supersession.mapping);
   console.log(
     `Generated mapping entries in data/model-mapping.json: ` +
       `${generated.map((entry) => entry.leaderboardModel).join(", ")}.`,
+  );
+}
+if (supersession.superseded.length > 0) {
+  await writeDataFile(
+    "vendor-reported.json",
+    vendorReportedSnapshotSchema,
+    supersession.vendorReported,
+  );
+  console.log(
+    `Superseded vendor-reported models in data/vendor-reported.json: ` +
+      `${supersession.superseded.map(({ model }) => model).join(", ")}.`,
   );
 }
 
@@ -133,5 +156,7 @@ await publishSummary(
     generated,
     changed,
     previousPriceRevisions: priceRevisionsFile.revisions,
+    superseded: supersession.superseded,
+    standing,
   }),
 );

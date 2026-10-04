@@ -10,6 +10,7 @@ import type {
   PriceRevision,
 } from "../src/data/schema.ts";
 import { costAdjustmentFactor } from "./deepswe-price-revisions.ts";
+import type { Supersession } from "./vendor-reported-supersession.ts";
 
 export const origin = "https://deepswe.datacurve.ai";
 export const benchmarkVersion = "v1.1";
@@ -199,8 +200,12 @@ export function summarizeRefresh(input: {
   changed: boolean;
   // The revisions data/price-revisions.json held before this run.
   previousPriceRevisions: Readonly<Record<string, PriceRevision>>;
+  superseded: Supersession[];
+  standing: string[]; // vendor-reported models left after supersession
 }): string {
   const { existing, snapshot, mappingCount, generated, changed, previousPriceRevisions } = input;
+  // An OpenRouter-id match retires the vendor-reported model's mapping entry.
+  const retired = input.superseded.filter((s) => s.match === "openrouter-id").length;
   const modelCount = (s: DeepsweSnapshot) => new Set(s.entries.map((entry) => entry.model)).size;
   const lines = [
     "### DeepSWE data summary",
@@ -209,7 +214,7 @@ export function summarizeRefresh(input: {
     "| --- | ---: | ---: |",
     `| Leaderboard entries | ${existing?.entries.length ?? "—"} | ${snapshot.entries.length} |`,
     `| Models | ${existing ? modelCount(existing) : "—"} | ${modelCount(snapshot)} |`,
-    `| Mapping entries | ${mappingCount} | ${mappingCount + generated.length} |`,
+    `| Mapping entries | ${mappingCount} | ${mappingCount + generated.length - retired} |`,
   ];
   if (!changed) {
     // Equal counts alone cannot distinguish an untouched snapshot from a
@@ -223,11 +228,50 @@ export function summarizeRefresh(input: {
       `Generated mapping entries: ${generated.map((entry) => entry.leaderboardModel).join(", ")}.`,
     );
   }
+  const vendorReportedLines = vendorReportedSection(existing, snapshot, input);
+  if (vendorReportedLines.length > 0) {
+    lines.push("", ...vendorReportedLines);
+  }
   const revisionLines = priceRevisionsSection(previousPriceRevisions, existing, snapshot);
   if (revisionLines.length > 0) {
     lines.push("", ...revisionLines);
   }
   return lines.join("\n");
+}
+
+// Vendor-reported models this run superseded, and the new DeepSWE models
+// beside those still standing: a generated mapping entry with a null
+// OpenRouter id can't be matched, so a model published under an id we didn't
+// guess shows up twice unless the reviewer spots it here (ADR 0009). Empty
+// when there is nothing to say.
+function vendorReportedSection(
+  existing: DeepsweSnapshot | null,
+  snapshot: DeepsweSnapshot,
+  { superseded, standing }: { superseded: Supersession[]; standing: string[] },
+): string[] {
+  const lines: string[] = [];
+  if (superseded.length > 0) {
+    const described = superseded.map((s) =>
+      s.match === "id"
+        ? `${s.model} (published under the same id)`
+        : `${s.model} (published as ${s.publishedAs}, same OpenRouter id)`,
+    );
+    lines.push(`Superseded vendor-reported models: ${described.join(", ")}.`);
+  }
+  // On a first run every model is new, so there is nothing to compare.
+  const before = new Set(existing?.entries.map((entry) => entry.model));
+  const added =
+    existing === null
+      ? []
+      : [...new Set(snapshot.entries.map((entry) => entry.model))].filter((m) => !before.has(m));
+  if (added.length > 0 && standing.length > 0) {
+    lines.push(
+      `New DeepSWE models: ${added.join(", ")}. ` +
+        `Vendor-reported models still standing: ${standing.join(", ")}. ` +
+        "Check none of them is one model under two ids.",
+    );
+  }
+  return lines;
 }
 
 // The site's price revisions differ from the checked-in file (ADR 0006): the

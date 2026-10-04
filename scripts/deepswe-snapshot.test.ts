@@ -330,6 +330,8 @@ describe("summarizeRefresh", () => {
       generated: [],
       changed: true,
       previousPriceRevisions: revisions,
+      superseded: [],
+      standing: [],
     });
     expect(text.startsWith("### DeepSWE data summary")).toBe(true);
   });
@@ -343,6 +345,8 @@ describe("summarizeRefresh", () => {
       generated: [],
       changed: true,
       previousPriceRevisions: revisions,
+      superseded: [],
+      standing: [],
     });
     expect(first).toContain(`| Leaderboard entries | — | ${snapshot.entries.length} |`);
     expect(first).toContain(`| Models | — | ${allModels.length} |`);
@@ -355,6 +359,8 @@ describe("summarizeRefresh", () => {
       generated: [generatedEntry],
       changed: true,
       previousPriceRevisions: revisions,
+      superseded: [],
+      standing: [],
     });
     expect(later).toContain(
       `| Leaderboard entries | ${snapshot.entries.length} | ${snapshot.entries.length} |`,
@@ -379,6 +385,8 @@ describe("summarizeRefresh", () => {
       generated: [],
       changed: true,
       previousPriceRevisions: {},
+      superseded: [],
+      standing: [],
     });
     expect(text).toContain("Price revisions");
     expect(text).toContain("| gpt-5-6-luna | — | 4 / 0.4 / 24 → 1 / 0.1 / 6 |");
@@ -396,6 +404,8 @@ describe("summarizeRefresh", () => {
       generated: [],
       changed: true,
       previousPriceRevisions: {},
+      superseded: [],
+      standing: [],
     });
     expect(text).toContain("| gpt-5-6-luna | — | 4 / 0.4 / 24 → 1 / 0.1 / 6 |");
     expect(text).not.toContain("Entries whose average cost moved");
@@ -410,6 +420,8 @@ describe("summarizeRefresh", () => {
       generated: [],
       changed: true,
       previousPriceRevisions: revisions,
+      superseded: [],
+      standing: [],
     });
     expect(text).not.toContain("Price revisions");
   });
@@ -423,6 +435,8 @@ describe("summarizeRefresh", () => {
       generated: [],
       changed: false,
       previousPriceRevisions: revisions,
+      superseded: [],
+      standing: [],
     });
     expect(text).toContain("No content change");
     expect(
@@ -433,7 +447,81 @@ describe("summarizeRefresh", () => {
         generated: [],
         changed: true,
         previousPriceRevisions: revisions,
+        superseded: [],
+        standing: [],
       }),
     ).not.toContain("No content change");
+  });
+
+  // Vendor-reported models DeepSWE has now published (ADR 0009). Opus 9 kept
+  // our id; GPT-9 Sol arrived under another, matched by OpenRouter id, so its
+  // hand-written mapping entry gave way to the generated one.
+  const withModels = (models: string[]) =>
+    normalize(
+      manifest,
+      artifact([...rows, ...models.map((model) => row(model))]),
+      mappingFor([...allModels, ...models]),
+      revisions,
+      "abc123",
+    ).snapshot;
+
+  it("lists superseded vendor-reported models with the match that superseded each", () => {
+    const text = summarizeRefresh({
+      existing: snapshotFrom(rows),
+      snapshot: withModels(["claude-opus-9", "gpt-9-sol-2026-10"]),
+      mappingCount: 25,
+      generated: mappingFor(["gpt-9-sol-2026-10"]),
+      changed: true,
+      previousPriceRevisions: revisions,
+      superseded: [
+        { model: "claude-opus-9", match: "id" },
+        { model: "gpt-9-sol", match: "openrouter-id", publishedAs: "gpt-9-sol-2026-10" },
+      ],
+      standing: [],
+    });
+    expect(text).toContain(
+      "Superseded vendor-reported models: claude-opus-9 (published under the same id), " +
+        "gpt-9-sol (published as gpt-9-sol-2026-10, same OpenRouter id).",
+    );
+    expect(text).toContain("| Mapping entries | 25 | 25 |");
+  });
+
+  it("lists new DeepSWE models beside the vendor-reported models still standing", () => {
+    const text = summarizeRefresh({
+      existing: snapshotFrom(rows),
+      snapshot: withModels(["gpt-9-sol-2026-10"]),
+      mappingCount: 25,
+      generated: [],
+      changed: true,
+      previousPriceRevisions: revisions,
+      superseded: [],
+      standing: ["gpt-9-sol", "grok-9"],
+    });
+    expect(text).toContain(
+      "New DeepSWE models: gpt-9-sol-2026-10. Vendor-reported models still standing: " +
+        "gpt-9-sol, grok-9. Check none of them is one model under two ids.",
+    );
+  });
+
+  it("says nothing about vendor-reported models when nothing could collide", () => {
+    const base = {
+      existing: snapshotFrom(rows),
+      mappingCount: 25,
+      generated: [],
+      changed: true,
+      previousPriceRevisions: revisions,
+      superseded: [],
+    };
+    const noNewModels = summarizeRefresh({
+      ...base,
+      snapshot: snapshotFrom(rows),
+      standing: ["grok-9"],
+    });
+    const noneStanding = summarizeRefresh({
+      ...base,
+      snapshot: withModels(["new-model"]),
+      standing: [],
+    });
+    for (const text of [noNewModels, noneStanding]) expect(text).not.toMatch(/[Vv]endor-reported/);
   });
 });

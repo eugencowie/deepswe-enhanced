@@ -1,7 +1,7 @@
 # 04: Refresh supersedes vendor-reported models
 
 Type: task
-Status: ready-for-agent
+Status: resolved
 Blocked by: 01
 
 ## What to build
@@ -17,8 +17,16 @@ The Refresh PR body gains two lists: the superseded models, with the match that 
 
 ## Acceptance criteria
 
-- [ ] Unit tests: id match, OpenRouter id match, a `null` generated id leaving the model standing, every effort level removed together, untouched models kept
-- [ ] The refreshed data passes every load-time invariant from ticket 01 in each case above
-- [ ] `.github/workflows/refresh.yml` stages `data/vendor-reported.json`
-- [ ] The PR body lists superseded models and the side-by-side lists
-- [ ] `vp check` and `vp test` pass
+- [x] Unit tests: id match, OpenRouter id match, a `null` generated id leaving the model standing, every effort level removed together, untouched models kept
+- [x] The refreshed data passes every load-time invariant from ticket 01 in each case above
+- [x] `.github/workflows/refresh.yml` stages `data/vendor-reported.json`
+- [x] The PR body lists superseded models and the side-by-side lists
+- [x] `vp check` and `vp test` pass
+
+## Comments
+
+**Implementation notes (2026-10-04):**
+
+- `supersedeVendorReported` in `scripts/vendor-reported-supersession.ts` takes the refreshed snapshot's models, the vendor-reported file, the mapping and this run's generated entries, and returns the new vendor-reported file, the combined mapping and a `Supersession` per superseded model. The shell passes its mapping to `normalize` and writes it, so a colliding generated entry never reaches `writeDataFile`.
+- The summary's side-by-side line appears only when the run added DeepSWE models and vendor-reported models still stand; on a first run every model is new, so it is skipped.
+- Verified against the live DeepSWE source with staged data: a claim for `gpt-6-astra` (id match), a claim for `glm-flash-guess` sharing `glm-5-3-flash`'s OpenRouter id with that model's mapping entry removed (OpenRouter-id match), and a claim for `claude-opus-5-5` (left standing). The refresh superseded the first two, swapped the mapping entry for the generated one, kept the third, and printed both kinds of match in the summary; the app's data tests passed on the result. The data was restored afterwards.
