@@ -30,6 +30,7 @@ A claim is admitted only when every rule holds.
    - `openrouterId`: the revision-pinned listing where OpenRouter has one, else its listing (ADR 0002), else `null`.
    - `vendor` and `family`: copied from the vendor's other entries.
    - `usageMultiplier`: 1 unless the vendor's subscription limits for the model are non-standard (Fable 5 is 0.5); cite the source.
+   - `excludedTiers`: only for tiers whose usage limits don't cover the model, where it runs on usage credits at API rates (Fable sets `["claude-pro"]`); cite the source.
 
    A vendor new to the mapping also needs a vendor-mapping entry, a vendor mark and a family (`none` unless its tiers are in `data/tiers.json`); see the [model-data spec](../planning/model-data/spec.md). _Done when_ every model in `data/vendor-reported.json` has a mapping entry.
 7. **Verify.** Run `mise run check` and `mise run test`; the load-time checks reject overlap with DeepSWE, duplicate OpenRouter ids, and uncovered models. Then look at each new row on `mise run dev`. _Done when_ both pass and every new row shows its vendor-reported marker, with a tooltip naming the right source and date, and "Read from a chart" on exactly the chart readings.

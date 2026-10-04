@@ -69,3 +69,5 @@ Write the [spec's initial entries](../spec.md#initial-entries) into `data/vendor
 **Review follow-up:** `figureFrom` now means "any figure on the entry was read off a chart". OpenAI's entries that carry a chart-read cost are marked `chart` and cite the post whose chart holds both figures, so GPT-6.1 Sol high cites the launch post instead of the X post; the figure is unchanged. Harness spellings are unified as `mini-swe-agent`. The picker tests now cover a short name shared at different multipliers.
 
 **Found in review, older than this ticket:** Anthropic's help article says Fable 5 and 5.1 "aren't included in your plan's usage limits" on Pro, yet the Subscriptions picker gives Pro a "Fable" discount note (−90%). Fable 5.1 now inherits that from Fable 5.
+
+**Rebased onto `main` (2026-10-04):** subscription-data ticket 02 landed on `main` first, adding `excludedTiers`. Claude Fable 5.1 takes `["claude-pro"]` like Fable 5, the checklist gains an `excludedTiers` line, and the one-note-per-label rule now keys notes by label and factor, so Pro reads "Fable: full price" once.
