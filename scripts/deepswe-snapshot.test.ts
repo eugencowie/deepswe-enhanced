@@ -192,6 +192,20 @@ describe("normalize", () => {
     expect(warnings).toEqual([expect.stringContaining("retired-model")]);
   });
 
+  // A vendor-reported model's mapping entry has no DeepSWE rows by
+  // definition: DeepSWE hasn't published it yet (ADR 0009).
+  it("doesn't warn about a vendor-reported model's mapping entry", () => {
+    const { warnings } = normalize(
+      manifest,
+      artifact(allModels.map((model) => row(model))),
+      mappingFor([...allModels, "claude-opus-5-5"]),
+      revisions,
+      "abc123",
+      new Set(["claude-opus-5-5"]),
+    );
+    expect(warnings).toEqual([]);
+  });
+
   it("warns when a price revision has no leaderboard rows", () => {
     const { warnings } = normalize(
       manifest,

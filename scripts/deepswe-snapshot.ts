@@ -96,6 +96,8 @@ export function normalize(
   mapping: ModelMappingEntry[],
   priceRevisions: Readonly<Record<string, PriceRevision>>,
   rawSha256: string,
+  // Mapped but not on DeepSWE yet, so never stale (ADR 0009).
+  vendorReportedModels: ReadonlySet<string> = new Set(),
 ): { snapshot: DeepsweSnapshot; warnings: string[] } {
   const warnings: string[] = [];
   const selected = pinnedVersion(manifest);
@@ -123,7 +125,9 @@ export function normalize(
         `Add mapping entries (family, OpenRouter id, usage multiplier) before refreshing.`,
     );
   }
-  const stale = [...mappedModels].filter((model) => !fetchedModels.has(model));
+  const stale = [...mappedModels].filter(
+    (model) => !fetchedModels.has(model) && !vendorReportedModels.has(model),
+  );
   if (stale.length > 0) {
     warnings.push(
       `Mapping entries with no leaderboard rows (model removed upstream?): ${stale.join(", ")}.`,

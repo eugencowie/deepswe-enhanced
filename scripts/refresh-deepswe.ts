@@ -9,6 +9,7 @@ import {
   deepsweSnapshotSchema,
   modelMappingSchema,
   priceRevisionsFileSchema,
+  vendorReportedSnapshotSchema,
 } from "../src/data/schema.ts";
 import {
   extractBundlePriceTable,
@@ -48,6 +49,7 @@ const artifact = leaderboardArtifactSchema.parse(JSON.parse(artifactBytes.toStri
 const rawSha256 = createHash("sha256").update(artifactBytes).digest("hex");
 
 const mapping = await readDataFile("model-mapping.json", modelMappingSchema);
+const vendorReported = await readDataFile("vendor-reported.json", vendorReportedSnapshotSchema);
 
 // The site's price revisions live only in its deployed bundle (ADR 0006), so
 // every run extracts them and the checked-in file follows the site; the
@@ -85,6 +87,7 @@ const { snapshot, warnings } = normalize(
   [...mapping, ...generated],
   revisions,
   rawSha256,
+  new Set(vendorReported.entries.map((entry) => entry.model)),
 );
 warnings.forEach(warn);
 

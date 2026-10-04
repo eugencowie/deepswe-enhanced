@@ -164,7 +164,7 @@ describe("assertMappingCoverage", () => {
 
   test("rejects a mapping entry matching no model in either file", () => {
     const orphaned = [...modelMapping, { ...modelMapping[0], leaderboardModel: "ghost-model" }];
-    expect(() => assertMappingCoverage(deepsweSnapshot, opusFiveFive, orphaned)).toThrowError(
+    expect(() => assertMappingCoverage(deepsweSnapshot, noVendorReported, orphaned)).toThrowError(
       /ghost-model/,
     );
   });

@@ -15,9 +15,10 @@ const nonEmpty = z.string().min(1);
 const nonNegative = z.number().nonnegative();
 const count = z.number().int().nonnegative();
 
-// Every data file carries this provenance pair: the human-facing citation
+// Every snapshot carries this provenance pair: the human-facing citation
 // whose URL the masthead's provenance line links (automated-refresh ticket 04;
-// a footer line at the time). Distinct from the DeepSWE snapshot's
+// a footer line at the time). Vendor-reported entries carry it per entry
+// instead, since each cites its own source. Distinct from the DeepSWE snapshot's
 // `source_url`, which is the fetched artifact itself.
 const provenanceFields = { source: nonEmpty, sourceUrl: z.url() };
 
@@ -122,9 +123,7 @@ const vendorReportedEntrySchema = z.strictObject({
   average_cost_usd: nonNegative.optional(),
   output_tokens: nonNegative.optional(),
   steps: nonNegative.optional(),
-  // Per entry, not per file: every claim has its own source.
-  source: nonEmpty,
-  sourceUrl: z.url(),
+  ...provenanceFields,
   publishedAt: nonEmpty, // the vendor's publication date
   figureFrom: z.enum(["text", "chart"]), // chart readings are checked by the maintainer
   harness: nonEmpty.optional(),

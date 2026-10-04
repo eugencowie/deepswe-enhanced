@@ -28,5 +28,5 @@ The refresh scripts that read the mapping use the same schemas, so `scripts/refr
 **Implementation notes (2026-10-04):**
 
 - The overlap check is `assertNoOverlap(snapshot, vendorReported)` in `src/data/schema.ts`, separate from `assertMappingCoverage`, which now takes both files.
-- `scripts/refresh-deepswe.ts` needed no change: the refresh only guards snapshot models missing from the mapping, never orphaned entries, so it reads no coverage the vendor-reported file affects. The unique-OpenRouter-id rule already applies to its mapping write through `writeDataFile`. Until ticket 04, a generated entry colliding with a vendor-reported model's mapping entry fails the refresh rather than superseding it.
+- `scripts/refresh-deepswe.ts` reads the vendor-reported file and passes its models to `normalize`, which leaves them out of its "mapping entries with no leaderboard rows" warning: their mapping entries have no DeepSWE rows by definition. The refresh guards no other coverage. The unique-OpenRouter-id rule already applies to its mapping write through `writeDataFile`. Until ticket 04, a generated entry colliding with a vendor-reported model's mapping entry fails the refresh rather than superseding it.
 - Duplicate `(model, effort)` detection is shared between the two snapshot schemas.
