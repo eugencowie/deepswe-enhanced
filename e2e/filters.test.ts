@@ -155,7 +155,7 @@ test("the vendor-reported toggle unlists those models and brings them back unsel
     name: "Anthropic Claude Opus 5.5",
     exact: true,
   });
-  const toggle = page.getByRole("menuitemcheckbox", { name: "Vendor-reported models" });
+  const toggle = page.getByRole("menuitemcheckbox", { name: "Include vendor-reported" });
 
   // On by default: listed and selected.
   await expect(toggle).toBeChecked();

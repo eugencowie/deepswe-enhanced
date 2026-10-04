@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Switch } from "@/components/ui/switch";
 import { VendorMark } from "@/components/vendor-mark";
 import { cn } from "cn";
 import {
@@ -72,13 +73,25 @@ export function ModelsPicker({
           Clear
         </DropdownMenuItem>
         <DropdownMenuSeparator />
+        {/* A checkbox item drawn as a switch: the item keeps the menu's
+            keyboard handling and role, and the switch, hidden from assistive
+            tech and inert, stands in for the tick. */}
         <DropdownMenuCheckboxItem
-          className={vendorReportedTint}
+          className={cn(
+            vendorReportedTint,
+            "pr-2 *:data-[slot=dropdown-menu-checkbox-item-indicator]:hidden",
+          )}
           checked={filters.vendorReported}
           closeOnClick={false}
           onCheckedChange={(checked) => onChange(setVendorReported(filters, checked, models))}
         >
-          Vendor-reported models
+          Include vendor-reported
+          <Switch
+            className="pointer-events-none ms-auto"
+            checked={filters.vendorReported}
+            tabIndex={-1}
+            aria-hidden
+          />
         </DropdownMenuCheckboxItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -22,9 +22,14 @@ of hiding them still holds.
   default. `setVendorReported` in `src/data/leaderboard.ts` deselects on the
   way off, so `visibleRows` needs no provenance check; `pickerModels` gives
   the listed models, which the picker, its count and Select all all use.
-- **Placement**: a checkbox item, "Vendor-reported models", under its own
-  separator below Select all / Clear, tinted like the vendor-reported items so
-  it also reads as their key.
+- **Placement**: "Include vendor-reported", under its own separator below
+  Select all / Clear, tinted like the vendor-reported items so it also reads
+  as their key.
+- **Control**: a switch, the vendored shadcn `Switch`, drawn inside a menu
+  checkbox item in place of its tick. The item keeps the menu's keyboard
+  handling and the `menuitemcheckbox` role; the switch is inert and hidden
+  from assistive tech, so a real switch nested in a menu item doesn't
+  announce twice or take focus.
 
 ## Acceptance criteria
 
