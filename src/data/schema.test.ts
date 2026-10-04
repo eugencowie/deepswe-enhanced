@@ -6,8 +6,10 @@ import rawThroughput from "../../data/openrouter-throughput.json" with { type: "
 import rawPriceRevisions from "../../data/price-revisions.json" with { type: "json" };
 import rawTiers from "../../data/tiers.json" with { type: "json" };
 import rawVendorMapping from "../../data/vendor-mapping.json" with { type: "json" };
+import rawVendorReported from "../../data/vendor-reported.json" with { type: "json" };
 import {
   assertMappingCoverage,
+  assertNoOverlap,
   familyVendors,
   deepsweSnapshotSchema,
   modelMappingSchema,
@@ -15,10 +17,11 @@ import {
   throughputSnapshotSchema,
   tiersSnapshotSchema,
   vendorMappingSchema,
+  vendorReportedSnapshotSchema,
 } from "./schema.ts";
 import { deepsweSnapshot, modelMapping } from "./sources.ts";
 
-// The app parses the four files it imports at load; the refresh shells parse
+// The app parses the five files it imports at load; the refresh shells parse
 // the other two. This is the one place every committed data file is parsed on
 // every run (architecture ticket 04).
 describe("every data file parses through its schema", () => {
@@ -29,6 +32,7 @@ describe("every data file parses through its schema", () => {
     ["price-revisions.json", priceRevisionsFileSchema, rawPriceRevisions],
     ["tiers.json", tiersSnapshotSchema, rawTiers],
     ["vendor-mapping.json", vendorMappingSchema, rawVendorMapping],
+    ["vendor-reported.json", vendorReportedSnapshotSchema, rawVendorReported],
   ])("%s", (_file, schema, raw) => {
     expect(() => schema.parse(raw)).not.toThrow();
   });
@@ -72,6 +76,41 @@ describe("deepsweSnapshotSchema", () => {
   });
 });
 
+// A Pass@1-only claim, the shape nearly every vendor publishes.
+const vendorEntry = {
+  model: "claude-opus-5-5",
+  effort: "max",
+  pass_at_1: 0.742,
+  source: "Claude Opus 5.5 System Card §8.3",
+  sourceUrl: "https://www.anthropic.com/claude-opus-5-5",
+  publishedAt: "2026-09-22",
+  figureFrom: "text",
+};
+const vendorReported = (...entries: object[]) => ({ benchmark_version: "v1.1", entries });
+
+describe("vendorReportedSnapshotSchema", () => {
+  test("accepts a Pass@1-only entry", () => {
+    expect(() => vendorReportedSnapshotSchema.parse(vendorReported(vendorEntry))).not.toThrow();
+  });
+
+  test("rejects a null effort", () => {
+    const tampered = vendorReported({ ...vendorEntry, effort: null });
+    expect(() => vendorReportedSnapshotSchema.parse(tampered)).toThrowError(/effort/);
+  });
+
+  test("rejects an unknown key", () => {
+    const tampered = vendorReported({ ...vendorEntry, colour: "purple" });
+    expect(() => vendorReportedSnapshotSchema.parse(tampered)).toThrowError(/colour/);
+  });
+
+  test("rejects a duplicate (model, effort) identity", () => {
+    const tampered = vendorReported(vendorEntry, { ...vendorEntry, pass_at_1: 0.75 });
+    expect(() => vendorReportedSnapshotSchema.parse(tampered)).toThrowError(
+      /duplicate vendor-reported entry: claude-opus-5-5 @ max/,
+    );
+  });
+});
+
 describe("modelMappingSchema", () => {
   test("rejects a duplicate mapping key", () => {
     const tampered = [...modelMapping, { ...modelMapping[0] }];
@@ -84,19 +123,76 @@ describe("modelMappingSchema", () => {
     );
     expect(() => modelMappingSchema.parse(tampered)).toThrowError(/excludedTiers/);
   });
+
+  // Catches a wrong guess at a vendor-reported model's id: DeepSWE's real id
+  // gets a generated entry with the same OpenRouter id as ours (ADR 0009).
+  test("rejects two entries sharing an OpenRouter id", () => {
+    const [first] = modelMapping;
+    const tampered = [...modelMapping, { ...first, leaderboardModel: "ghost-model" }];
+    expect(() => modelMappingSchema.parse(tampered)).toThrowError(
+      `duplicate OpenRouter id: ${first.openrouterId}`,
+    );
+  });
+
+  test("accepts two entries with no OpenRouter id", () => {
+    const [first] = modelMapping;
+    const grown = [
+      ...modelMapping,
+      { ...first, leaderboardModel: "ghost-a", openrouterId: null },
+      { ...first, leaderboardModel: "ghost-b", openrouterId: null },
+    ];
+    expect(() => modelMappingSchema.parse(grown)).not.toThrow();
+  });
 });
 
 describe("assertMappingCoverage", () => {
+  const noVendorReported = vendorReportedSnapshotSchema.parse(vendorReported());
+  const opusFiveFive = vendorReportedSnapshotSchema.parse(vendorReported(vendorEntry));
+  const opusFiveFiveMapping = {
+    ...modelMapping[0],
+    leaderboardModel: "claude-opus-5-5",
+    displayName: "Claude Opus 5.5",
+    openrouterId: "anthropic/claude-opus-5.5",
+  };
+
   test("rejects a snapshot model missing from the mapping", () => {
     const [dropped, ...rest] = modelMapping;
-    expect(() => assertMappingCoverage(deepsweSnapshot, rest)).toThrowError(
+    expect(() => assertMappingCoverage(deepsweSnapshot, noVendorReported, rest)).toThrowError(
       dropped.leaderboardModel,
     );
   });
 
-  test("rejects a mapping entry matching no snapshot model", () => {
+  test("rejects a mapping entry matching no model in either file", () => {
     const orphaned = [...modelMapping, { ...modelMapping[0], leaderboardModel: "ghost-model" }];
-    expect(() => assertMappingCoverage(deepsweSnapshot, orphaned)).toThrowError(/ghost-model/);
+    expect(() => assertMappingCoverage(deepsweSnapshot, opusFiveFive, orphaned)).toThrowError(
+      /ghost-model/,
+    );
+  });
+
+  test("rejects a vendor-reported model missing from the mapping", () => {
+    expect(() => assertMappingCoverage(deepsweSnapshot, opusFiveFive, modelMapping)).toThrowError(
+      /claude-opus-5-5/,
+    );
+  });
+
+  test("accepts a mapping entry matching only a vendor-reported model", () => {
+    const mapping = [...modelMapping, opusFiveFiveMapping];
+    expect(() => assertMappingCoverage(deepsweSnapshot, opusFiveFive, mapping)).not.toThrow();
+  });
+});
+
+describe("assertNoOverlap", () => {
+  test("rejects a model in both the DeepSWE snapshot and the vendor-reported entries", () => {
+    const published = { ...vendorEntry, model: deepsweSnapshot.entries[0].model };
+    const tampered = vendorReportedSnapshotSchema.parse(vendorReported(published));
+    expect(() => assertNoOverlap(deepsweSnapshot, tampered)).toThrowError(
+      `vendor-reported models DeepSWE has published: ${published.model}`,
+    );
+  });
+
+  test("accepts a vendor-reported model DeepSWE hasn't published", () => {
+    const unpublished = vendorReportedSnapshotSchema.parse(vendorReported(vendorEntry));
+    expect(() => assertNoOverlap(deepsweSnapshot, unpublished)).not.toThrow();
   });
 });
 

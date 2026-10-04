@@ -1,6 +1,6 @@
 // One schema per data file (docs/context.md), with each file's type inferred
-// from it. The app parses the four files it imports (sources.ts), the refresh
-// shells parse the rest, and schema.test.ts parses all six. Every file schema
+// from it. The app parses the five files it imports (sources.ts), the refresh
+// shells parse the rest, and schema.test.ts parses all seven. Every file schema
 // is strict with uniform value constraints: we own every byte of these files,
 // so an unknown key or an impossible value is drift, never something to strip.
 //
@@ -62,6 +62,20 @@ export const priceRevisionsFileSchema = z.strictObject({
 });
 export type PriceRevisionsFile = z.infer<typeof priceRevisionsFileSchema>;
 
+// An entry's identity is its (model, effort level) pair (docs/context.md).
+function rejectDuplicateEntries(kind: string) {
+  return (entries: { model: string; effort: string | null }[], ctx: z.RefinementCtx) => {
+    const seen = new Set<string>();
+    for (const entry of entries) {
+      const identity = `${entry.model} @ ${entry.effort ?? "default"}`;
+      if (seen.has(identity)) {
+        ctx.addIssue({ code: "custom", message: `duplicate ${kind}: ${identity}` });
+      }
+      seen.add(identity);
+    }
+  };
+}
+
 const deepsweEntrySchema = z.strictObject({
   model: nonEmpty, // site model id, e.g. "claude-fable-5"
   effort: nonEmpty.nullable(), // null = model's default effort
@@ -96,18 +110,38 @@ export const deepsweSnapshotSchema = z.strictObject({
   // The site's price revisions the entries were adjusted with, resolved for
   // the pinned version (ADR 0006).
   price_revisions: z.record(nonEmpty, priceRevisionSchema),
-  entries: z.array(deepsweEntrySchema).superRefine((entries, ctx) => {
-    const seen = new Set<string>();
-    for (const entry of entries) {
-      const identity = `${entry.model} @ ${entry.effort ?? "default"}`;
-      if (seen.has(identity)) {
-        ctx.addIssue({ code: "custom", message: `duplicate leaderboard entry: ${identity}` });
-      }
-      seen.add(identity);
-    }
-  }),
+  entries: z.array(deepsweEntrySchema).superRefine(rejectDuplicateEntries("leaderboard entry")),
 });
 export type DeepsweSnapshot = z.infer<typeof deepsweSnapshotSchema>;
+
+const vendorReportedEntrySchema = z.strictObject({
+  model: nonEmpty, // best guess at DeepSWE's id, so supersession is an id match (ADR 0009)
+  effort: nonEmpty, // never null: a claim with no named effort is not admitted
+  pass_at_1: z.number().min(0).max(1), // fraction
+  // Only when the vendor states them; none do today.
+  average_cost_usd: nonNegative.optional(),
+  output_tokens: nonNegative.optional(),
+  steps: nonNegative.optional(),
+  // Per entry, not per file: every claim has its own source.
+  source: nonEmpty,
+  sourceUrl: z.url(),
+  publishedAt: nonEmpty, // the vendor's publication date
+  figureFrom: z.enum(["text", "chart"]), // chart readings are checked by the maintainer
+  harness: nonEmpty.optional(),
+  trials: count.optional(),
+});
+export type VendorReportedEntry = z.infer<typeof vendorReportedEntrySchema>;
+
+// data/vendor-reported.json: vendors' own DeepSWE v1.1 claims for models the
+// DeepSWE leaderboard hasn't published (ADR 0009). No file-level provenance
+// pair: no single page covers the file.
+export const vendorReportedSnapshotSchema = z.strictObject({
+  benchmark_version: z.literal("v1.1"),
+  entries: z
+    .array(vendorReportedEntrySchema)
+    .superRefine(rejectDuplicateEntries("vendor-reported entry")),
+});
+export type VendorReportedSnapshot = z.infer<typeof vendorReportedSnapshotSchema>;
 
 const modelMappingEntrySchema = z.strictObject({
   leaderboardModel: nonEmpty,
@@ -126,8 +160,12 @@ const modelMappingEntrySchema = z.strictObject({
 export type ModelMappingEntry = z.infer<typeof modelMappingEntrySchema>;
 
 // data/model-mapping.json: the model mapping.
+// OpenRouter ids are unique too: two models on one listing would share
+// throughput, and a vendor-reported model whose id we guessed wrong collides
+// with DeepSWE's generated entry here (ADR 0009). Null ids never collide.
 export const modelMappingSchema = z.array(modelMappingEntrySchema).superRefine((mapping, ctx) => {
   const seen = new Set<string>();
+  const seenOpenrouterIds = new Set<string>();
   for (const entry of mapping) {
     if (seen.has(entry.leaderboardModel)) {
       ctx.addIssue({
@@ -136,6 +174,11 @@ export const modelMappingSchema = z.array(modelMappingEntrySchema).superRefine((
       });
     }
     seen.add(entry.leaderboardModel);
+    if (entry.openrouterId === null) continue;
+    if (seenOpenrouterIds.has(entry.openrouterId)) {
+      ctx.addIssue({ code: "custom", message: `duplicate OpenRouter id: ${entry.openrouterId}` });
+    }
+    seenOpenrouterIds.add(entry.openrouterId);
   }
 });
 
@@ -182,26 +225,48 @@ export const tiersSnapshotSchema = z.strictObject({
 });
 export type TiersSnapshot = z.infer<typeof tiersSnapshotSchema>;
 
-// Coverage must hold in both directions: an uncovered snapshot model would
-// throw deep in createLeaderboard, and an orphaned mapping entry is refresh output
-// pointing at nothing.
+// Coverage must hold in both directions, across the DeepSWE snapshot and the
+// vendor-reported entries together: an uncovered model would throw deep in
+// createLeaderboard, and an orphaned mapping entry is refresh output pointing
+// at nothing.
 export function assertMappingCoverage(
   snapshot: DeepsweSnapshot,
+  vendorReported: VendorReportedSnapshot,
   mapping: ModelMappingEntry[],
 ): void {
-  const models = new Set(snapshot.entries.map((entry) => entry.model));
+  const models = new Set(
+    [...snapshot.entries, ...vendorReported.entries].map((entry) => entry.model),
+  );
   const mapped = new Set(mapping.map((entry) => entry.leaderboardModel));
   const missing = [...models].filter((model) => !mapped.has(model));
   const orphaned = [...mapped].filter((model) => !models.has(model));
   const parts: string[] = [];
   if (missing.length > 0) {
-    parts.push(`snapshot models missing from the mapping: ${missing.join(", ")}`);
+    parts.push(`models missing from the mapping: ${missing.join(", ")}`);
   }
   if (orphaned.length > 0) {
-    parts.push(`mapping entries matching no snapshot model: ${orphaned.join(", ")}`);
+    parts.push(`mapping entries matching no model: ${orphaned.join(", ")}`);
   }
   if (parts.length > 0) {
     throw new Error(parts.join("; "));
+  }
+}
+
+// A vendor-reported model lives only until DeepSWE publishes it; the refresh
+// deletes it then, so a healthy Refresh PR never trips this (ADR 0009). Both
+// sources at once would put two harnesses inside one model's Best entry.
+export function assertNoOverlap(
+  snapshot: DeepsweSnapshot,
+  vendorReported: VendorReportedSnapshot,
+): void {
+  const published = new Set(snapshot.entries.map((entry) => entry.model));
+  const overlap = [
+    ...new Set(
+      vendorReported.entries.map((entry) => entry.model).filter((model) => published.has(model)),
+    ),
+  ];
+  if (overlap.length > 0) {
+    throw new Error(`vendor-reported models DeepSWE has published: ${overlap.join(", ")}`);
   }
 }
 

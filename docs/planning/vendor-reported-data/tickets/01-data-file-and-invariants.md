@@ -1,7 +1,7 @@
 # 01: Vendor-reported data file and load-time invariants
 
 Type: task
-Status: ready-for-agent
+Status: resolved
 Blocked by: none
 
 ## What to build
@@ -18,7 +18,15 @@ The refresh scripts that read the mapping use the same schemas, so `scripts/refr
 
 ## Acceptance criteria
 
-- [ ] `data/vendor-reported.json` exists with no entries and parses at load
-- [ ] Unit tests reject: a null effort, an unknown key, a duplicate `(model, effort)`, a model in both files, a duplicated non-null `openrouterId`, a vendor-reported model missing from the mapping, a mapping entry matching neither file
-- [ ] `schema.test.ts` parses the new file with the other six
-- [ ] `vp check` and `vp test` pass
+- [x] `data/vendor-reported.json` exists with no entries and parses at load
+- [x] Unit tests reject: a null effort, an unknown key, a duplicate `(model, effort)`, a model in both files, a duplicated non-null `openrouterId`, a vendor-reported model missing from the mapping, a mapping entry matching neither file
+- [x] `schema.test.ts` parses the new file with the other six
+- [x] `vp check` and `vp test` pass
+
+## Comments
+
+**Implementation notes (2026-10-04):**
+
+- The overlap check is `assertNoOverlap(snapshot, vendorReported)` in `src/data/schema.ts`, separate from `assertMappingCoverage`, which now takes both files.
+- `scripts/refresh-deepswe.ts` needed no change: the refresh only guards snapshot models missing from the mapping, never orphaned entries, so it reads no coverage the vendor-reported file affects. The unique-OpenRouter-id rule already applies to its mapping write through `writeDataFile`. Until ticket 04, a generated entry colliding with a vendor-reported model's mapping entry fails the refresh rather than superseding it.
+- Duplicate `(model, effort)` detection is shared between the two snapshot schemas.
