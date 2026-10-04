@@ -21,9 +21,10 @@ import {
   type ModelOption,
 } from "@/data/leaderboard";
 
-// Vendor-reported models take their rows' enhancement tint, deepening on
-// focus as a row does on hover (ADR 0009).
-const vendorReportedTint = "bg-brand/5 focus:bg-brand/10 dark:bg-brand/8 dark:focus:bg-brand/15";
+// Vendor-reported models take the enhancement tint (ADR 0009) at the
+// Subscriptions trigger's pair, deepening on focus as it does on hover. The
+// rows' fainter pair barely reads as purple on the popover's dark grey.
+const vendorReportedTint = "bg-brand/8 focus:bg-brand/15 dark:bg-brand/12 dark:focus:bg-brand/20";
 
 // The Models picker ("Models menu" in UI copy): a checkbox per listed model,
 // with select-all and clear under a separator, then the toggle listing
