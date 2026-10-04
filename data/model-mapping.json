@@ -14,6 +14,7 @@
     "openrouterId": "anthropic/claude-fable-5",
     "family": "claude",
     "usageMultiplier": 0.5,
+    "excludedTiers": ["claude-pro"],
     "shortName": "Fable"
   },
   {

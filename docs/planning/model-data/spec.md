@@ -34,7 +34,7 @@ One entry per leaderboard model (effort levels share it), written by hand or gen
 | muse-spark-1-1 | Muse Spark 1.1 | Meta | meta/muse-spark-1.1 | none | 1.0 |
 | muse-spark-1-2 | Muse Spark 1.2 | Meta | meta/muse-spark-1.2 | none | 1.0 |
 
-Entry shape: `{ "leaderboardModel": string, "displayName": string, "vendor": string, "openrouterId": string | null, "family": "claude" | "chatgpt" | "none", "usageMultiplier": number, "shortName"?: string }`. The `openrouterId` field is specified by [average time data](../avg-time-data/spec.md), `family` and `usageMultiplier` by [subscription data](../subscription-data/spec.md), and `shortName` by [subscription filter](../subscription-filter/spec.md). A leaderboard model missing from the mapping makes derive throw, and a unit test enforces full coverage — the failure surfaces through `vp run validate` and CI (don't silently drop rows).
+Entry shape: `{ "leaderboardModel": string, "displayName": string, "vendor": string, "openrouterId": string | null, "family": "claude" | "chatgpt" | "none", "usageMultiplier": number, "excludedTiers"?: TierId[], "shortName"?: string }`. The `openrouterId` field is specified by [average time data](../avg-time-data/spec.md), `family`, `usageMultiplier` and `excludedTiers` by [subscription data](../subscription-data/spec.md), and `shortName` by [subscription filter](../subscription-filter/spec.md). A leaderboard model missing from the mapping makes derive throw, and a unit test enforces full coverage — the failure surfaces through `vp run validate` and CI (don't silently drop rows).
 
 ## App
 

@@ -51,7 +51,8 @@ export type LeaderboardRow = {
 export type ModelOption = { model: string; displayName: string; vendor: string };
 
 // A family model with a non-standard usage limit, badged per tier in the
-// Subscriptions picker because its discount differs from the tier-wide one.
+// Subscriptions picker because its discount differs from the tier-wide one;
+// 0 on a tier that excludes it.
 export type UsageLimitNote = { name: string; tierDiscount: number };
 
 export type PickerTier = {
@@ -124,16 +125,13 @@ export function createLeaderboard({
         shortLabel: tier.shortLabel,
         priceUsdPerMonth: tier.priceUsdPerMonth,
         tierDiscount: tierDiscount(tier, 1),
-        notes: mapping.flatMap((entry) =>
-          entry.family !== family || entry.usageMultiplier === 1
+        // A non-standard usage multiplier, or a tier that excludes the model.
+        notes: mapping.flatMap((entry) => {
+          const factor = entrySubsidisationFactor(tier, entry);
+          return entry.family !== family || factor === subsidisationFactor(tier, 1)
             ? []
-            : [
-                {
-                  name: entry.shortName ?? entry.displayName,
-                  tierDiscount: tierDiscount(tier, entry.usageMultiplier),
-                },
-              ],
-        ),
+            : [{ name: entry.shortName ?? entry.displayName, tierDiscount: 1 - factor }];
+        }),
       })),
   }));
   return {
@@ -220,7 +218,7 @@ function deriveRows(
         row(
           tier.id,
           { label: tier.shortLabel, family: tier.family },
-          entry.average_cost_usd * subsidisationFactor(tier, mapped.usageMultiplier),
+          entry.average_cost_usd * entrySubsidisationFactor(tier, mapped),
         ),
       ),
     ];
@@ -294,6 +292,14 @@ function effortRank(effort: string | null | undefined): number {
 // equivalent API spend for models with non-standard usage limits.
 function subsidisationFactor(tier: Tier, usageMultiplier: number): number {
   return tier.priceUsdPerMonth / (tier.equivalentApiSpendUsdPerMonth * usageMultiplier);
+}
+
+// A mapped model's subsidisation factor on a tier: 1 on a tier that excludes
+// it, whose subscribers pay usage credits at API rates.
+function entrySubsidisationFactor(tier: Tier, entry: ModelMappingEntry): number {
+  return entry.excludedTiers?.includes(tier.id)
+    ? 1
+    : subsidisationFactor(tier, entry.usageMultiplier);
 }
 
 // A subsidisation factor as the discount it amounts to.

@@ -70,6 +70,27 @@ test("tier rows show the API cost struck out beside the effective cost", async (
   await expect(fableRow.locator("s").first()).toHaveText(/^\$/);
 });
 
+// Pro excludes Fable: it runs on usage credits at API rates, so its rows
+// show the API cost once and the rung notes it at full price.
+test("Fable's Pro rows show the API cost unstruck", async ({ page }) => {
+  await page.goto("./");
+  await page.getByRole("button", { name: /^Subscriptions/ }).click();
+  const pro = page.getByRole("menuitemradio", { name: /^Pro\b/ }).first();
+  await expect(pro).toContainText("Fable: full price");
+  await pro.click();
+  await page.keyboard.press("Escape");
+
+  const fableRow = page.getByRole("row", { name: /Claude Fable 5 xhigh/ });
+  await expect(fableRow).toContainText("Pro");
+  await expect(fableRow.locator("s")).toHaveCount(0);
+  await expect(
+    page
+      .getByRole("row", { name: /Claude Opus 5 / })
+      .first()
+      .locator("s"),
+  ).toHaveCount(2);
+});
+
 test("changing filters never resets the sort and both picks surface in the trigger", async ({
   page,
 }) => {

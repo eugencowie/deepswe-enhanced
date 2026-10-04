@@ -15,4 +15,4 @@ Derivation: `openrouterId` by matching the leaderboard model id against OpenRout
 - Merging the Refresh PR is the only human act for a new model from a known vendor; a refresh failure email now signals a genuinely new vendor or upstream breakage, not routine growth.
 - The displayName derivation becomes the definition for all entries: `GLM-5.3`/`GLM-5.2` were renamed `GLM 5.3`/`GLM 5.2` to match it. DeepSeek names stay revision-free.
 - A generated `openrouterId` of `null` shows as blank throughput and is the reviewer's cue to pin an id by hand.
-- A default that happens to be wrong (a future half-rate Anthropic model at multiplier 1.0) merges unless the reviewer catches it in the diff.
+- A default that happens to be wrong merges unless the reviewer catches it in the diff: a future half-rate Anthropic model at multiplier 1.0, or one a tier excludes generated without `excludedTiers` (a new Fable on Pro).

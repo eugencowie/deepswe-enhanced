@@ -149,15 +149,52 @@ describe("rows", () => {
     }
   });
 
-  test("the usage multiplier scales the factor: Fable 5 claude-pro rows are 0.10", () => {
-    // 20 / (400 × 0.5) = 0.10, not 0.05.
+  test("the usage multiplier scales the factor: Fable 5 Max rows are 0.10 and 0.05", () => {
+    // claude-max-5x: 100 / (2000 × 0.5) = 0.10; claude-max-20x: 200 / (8000 × 0.5)
+    // = 0.05, not 0.05 and 0.025.
+    for (const [accessRoute, factor] of [
+      ["claude-max-5x", 0.1],
+      ["claude-max-20x", 0.05],
+    ] as const) {
+      const maxRows = rows.filter(
+        (row) => row.accessRoute === accessRoute && row.model === "claude-fable-5",
+      );
+      expect(maxRows.length, accessRoute).toBeGreaterThan(0);
+      for (const row of maxRows) {
+        expect(row.cost.effective).toBeCloseTo(sourceEntry(row).average_cost_usd * factor, 10);
+      }
+    }
+  });
+
+  // Pro runs Fable on usage credits, billed at standard API rates.
+  test("Fable 5 claude-pro rows are at API cost: Pro excludes it", () => {
     const proRows = rows.filter(
       (row) => row.accessRoute === "claude-pro" && row.model === "claude-fable-5",
     );
     expect(proRows.length).toBeGreaterThan(0);
     for (const row of proRows) {
-      expect(row.cost.effective).toBeCloseTo(sourceEntry(row).average_cost_usd * 0.1, 10);
+      expect(row.cost.effective).toBe(sourceEntry(row).average_cost_usd);
+      expect(row.costPerSolvedTask?.effective).toBe(row.costPerSolvedTask?.api);
     }
+  });
+
+  test("a tier in the mapping's excludedTiers uses factor 1, other tiers are unchanged", () => {
+    const snapshot = {
+      ...deepsweSnapshot,
+      entries: [{ ...deepsweSnapshot.entries[0], model: "excluded", average_cost_usd: 4 }],
+    };
+    const mapping = mappingFixture(["excluded"]).map((e) => ({
+      ...e,
+      family: "claude" as const,
+      excludedTiers: ["claude-max-5x" as const],
+    }));
+    const { rows } = createLeaderboard({ ...sources, snapshot, mapping });
+    expect(rows.map((row) => [row.accessRoute, row.cost.effective])).toEqual([
+      ["api", 4],
+      ["claude-pro", expect.closeTo(4 * 0.05, 10)],
+      ["claude-max-5x", 4],
+      ["claude-max-20x", expect.closeTo(4 * 0.025, 10)],
+    ]);
   });
 
   test("ChatGPT tier rows use their own tier figures", () => {
@@ -413,12 +450,33 @@ describe("pickerFamilies", () => {
   });
 
   test("models with non-standard usage limits get their own note per tier", () => {
-    // Fable 5 at multiplier 0.5: 1 − 20/(400 × 0.5) = 0.90 on Pro,
+    // Fable 5 at multiplier 0.5: 1 − 100/(2000 × 0.5) = 0.90 on Max 5x,
     // 1 − 200/(8000 × 0.5) = 0.95 on Max 20x.
-    const pro = family("claude").tiers.find((tier) => tier.id === "claude-pro");
-    expect(pro?.notes).toEqual([{ name: "Fable", tierDiscount: expect.closeTo(0.9, 10) }]);
+    const max5 = family("claude").tiers.find((tier) => tier.id === "claude-max-5x");
+    expect(max5?.notes).toEqual([{ name: "Fable", tierDiscount: expect.closeTo(0.9, 10) }]);
     const max20 = family("claude").tiers.find((tier) => tier.id === "claude-max-20x");
     expect(max20?.notes).toEqual([{ name: "Fable", tierDiscount: expect.closeTo(0.95, 10) }]);
+  });
+
+  test("a tier excluding a model notes it at no discount", () => {
+    // Pro excludes Fable 5: its note reads at full price.
+    const pro = family("claude").tiers.find((tier) => tier.id === "claude-pro");
+    expect(pro?.notes).toEqual([{ name: "Fable", tierDiscount: 0 }]);
+  });
+
+  test("an excluded model gets a note even at the standard usage multiplier", () => {
+    const mapping = modelMapping.map((entry) =>
+      entry.leaderboardModel === "gpt-5-5"
+        ? { ...entry, excludedTiers: ["chatgpt-plus" as const] }
+        : entry,
+    );
+    const { pickerFamilies } = createLeaderboard({ ...sources, mapping });
+    const tiers = pickerFamilies.find((f) => f.family === "chatgpt")!.tiers;
+    expect(tiers.map((tier) => [tier.id, tier.notes])).toEqual([
+      ["chatgpt-plus", [{ name: "GPT-5.5", tierDiscount: 0 }]],
+      ["chatgpt-pro-5x", []],
+      ["chatgpt-pro-20x", []],
+    ]);
   });
 
   test("standard-limit families have no notes", () => {

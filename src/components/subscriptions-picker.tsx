@@ -28,9 +28,11 @@ const familyLabels = { claude: "Claude", chatgpt: "ChatGPT" } as const;
 // rule protects.
 
 // A tier discount (0.95 for 95% off) as a percentage: one decimal where
-// needed ("−95%", "−97.5%"), minus sign U+2212.
+// needed ("−95%", "−97.5%"), minus sign U+2212. No discount reads "full
+// price", like the API rung: a tier that excludes a model notes it so.
 // oxlint-disable-next-line react/only-export-components
 export function formatTierDiscount(discount: number): string {
+  if (discount === 0) return "full price";
   const percent = Math.round(discount * 1000) / 10;
   return `−${percent}%`;
 }

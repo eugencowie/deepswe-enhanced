@@ -58,17 +58,21 @@ SemiAnalysis's approximation of the monthly API-priced usage a tier allows.
 _Avoid_: max possible spend, usage allowance
 
 **Usage multiplier**:
-A per-model factor scaling equivalent API spend, capturing models with non-standard usage limits. Default 1.0; Fable 5 is 0.5 because its subscription limits are halved.
+A per-model factor scaling equivalent API spend, capturing models with non-standard usage limits. Default 1.0; Fable 5 is 0.5 because Max caps Fable at 50% of weekly limits. Equivalent API spend is in dollars, so a model's higher token rates already account for it using limits faster.
+
+**Excluded tier**:
+A tier whose usage limits don't cover a model, so its subscribers run the model on usage credits at API rates. The model's subsidisation factor there is 1. Pro excludes Fable.
+_Avoid_: unsupported tier (the model still runs)
 
 **Subsidisation factor**:
-Tier price ÷ (equivalent API spend × usage multiplier). What a dollar of API cost becomes on that tier.
+Tier price ÷ (equivalent API spend × usage multiplier), or 1 on an excluded tier. What a dollar of API cost becomes on that tier.
 
 **Tier discount**:
 A subsidisation factor expressed as a percentage discount: 1 − factor. Shown in the Subscriptions picker per tier, at usage multiplier 1.0 unless labelled with a specific model.
 _Avoid_: discount multiplier
 
 **API cost**:
-The entry's average cost at direct API pricing. On tier rows it appears struck out beside the effective cost.
+The entry's average cost at direct API pricing. On tier rows it appears struck out beside the effective cost, except on an excluded tier, where the two are equal.
 _Avoid_: API price, list price
 
 **Effective cost**:
@@ -115,7 +119,7 @@ _Avoid_: extra, add-on, custom column
 A leaderboard column this project computes rather than takes from the DeepSWE leaderboard (cost per solved task, average time, throughput). The distinction is per-column, not per-cell: effective cost on tier rows is computed, but the Cost column is still a source column.
 
 **Model mapping**:
-The reviewed link from a leaderboard model to its display name, vendor, OpenRouter id, subscription family, usage multiplier, and optional short name (falling back to the display name). Entries are written by hand or generated, always landing through human review.
+The reviewed link from a leaderboard model to its display name, vendor, OpenRouter id, subscription family, usage multiplier, optional excluded tiers, and optional short name (falling back to the display name). Entries are written by hand or generated, always landing through human review.
 _Avoid_: hand-curated (entries for known vendors are generated)
 
 **Display name**:
