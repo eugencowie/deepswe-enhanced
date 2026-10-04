@@ -17,6 +17,11 @@ describe("formatTierDiscount", () => {
     expect(formatTierDiscount(1 - 20 / 700)).toBe("−97.1%");
     expect(formatTierDiscount(1 - 200 / 14000)).toBe("−98.6%");
   });
+
+  // A model the tier excludes (Fable on Pro) runs at API rates.
+  test("renders no discount as full price, matching the API rung", () => {
+    expect(formatTierDiscount(0)).toBe("full price");
+  });
 });
 
 describe("formatUsdPerMonth", () => {

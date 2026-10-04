@@ -17,12 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "cn";
 import { VendorMark } from "@/components/vendor-mark";
-import {
-  compareModel,
-  type AccessRoute,
-  type CostPair,
-  type LeaderboardRow,
-} from "@/data/leaderboard";
+import { compareModel, type CostPair, type LeaderboardRow } from "@/data/leaderboard";
 
 // What the table reads to render a column beyond its header and cell.
 export type ColumnMeta = {
@@ -74,7 +69,7 @@ const columns = helper.columns([
     id: "avgCost",
     header: "Cost",
     ...figure(),
-    cell: ({ row }) => costCell({ cost: row.original.cost, accessRoute: row.original.accessRoute }),
+    cell: ({ row }) => costCell(row.original.cost),
   }),
   helper.accessor("outputTokens", {
     id: "outTok",
@@ -92,8 +87,7 @@ const columns = helper.columns([
     id: "costPerf",
     header: "Cost/perf",
     ...figure({ derived: true, tooltip: "Cost ÷ Pass@1: what you pay per task actually solved" }),
-    cell: ({ row }) =>
-      costCell({ cost: row.original.costPerSolvedTask, accessRoute: row.original.accessRoute }),
+    cell: ({ row }) => costCell(row.original.costPerSolvedTask),
   }),
   helper.accessor("averageTimeSeconds", {
     id: "avgTime",
@@ -171,20 +165,16 @@ function modelCell(row: LeaderboardRow): ReactNode {
   );
 }
 
-function costCell({
-  cost,
-  accessRoute,
-}: {
-  cost: CostPair | undefined;
-  accessRoute: AccessRoute;
-}): ReactNode {
+// The API cost is struck out only where the route discounts it: API rows, and
+// tier rows on a tier that excludes the model, have nothing to strike.
+function costCell(cost: CostPair | undefined): ReactNode {
   if (cost === undefined) return BLANK;
-  return accessRoute === "api"
+  return cost.effective === cost.api
     ? formatUsd(cost.effective)
     : struckCost({ apiUsd: cost.api, effectiveUsd: cost.effective });
 }
 
-// A tier row's cost: the API cost struck out beside the effective cost.
+// A discounted cost: the API cost struck out beside the effective cost.
 function struckCost({ apiUsd, effectiveUsd }: { apiUsd: number; effectiveUsd: number }): ReactNode {
   return (
     <>

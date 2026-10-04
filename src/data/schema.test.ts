@@ -77,6 +77,13 @@ describe("modelMappingSchema", () => {
     const tampered = [...modelMapping, { ...modelMapping[0] }];
     expect(() => modelMappingSchema.parse(tampered)).toThrowError(/duplicate mapping key/);
   });
+
+  test("rejects an excluded tier that isn't in tiers.json", () => {
+    const tampered = modelMapping.map((entry, i) =>
+      i === 0 ? { ...entry, excludedTiers: ["claude-team"] } : entry,
+    );
+    expect(() => modelMappingSchema.parse(tampered)).toThrowError(/excludedTiers/);
+  });
 });
 
 describe("assertMappingCoverage", () => {

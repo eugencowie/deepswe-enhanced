@@ -22,7 +22,9 @@ The SemiAnalysis figures, verbatim from the user:
 
 ## Model mapping fields
 
-`family` and `usageMultiplier` in the [model mapping](../model-data/spec.md). Family membership asserts genuine subscription access (user's best knowledge of the plans, not research-verified). If a mapped model turns out to be API-only, flip its family to `none` — one-line fix.
+`family`, `usageMultiplier` and `excludedTiers` in the [model mapping](../model-data/spec.md). Family membership asserts genuine subscription access (user's best knowledge of the plans, not research-verified). If a mapped model turns out to be API-only, flip its family to `none` — one-line fix.
+
+`excludedTiers` is optional: the ids of tiers whose usage limits don't cover the model, validated against the tier ids. Fable 5 sets `["claude-pro"]`: Anthropic's [Claude Fable models on your plan](https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan) says Pro runs Fable on usage credits, which [are billed at standard API rates](https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans). The same page caps Fable at 50% of Max's weekly limits, which the 0.5 multiplier encodes. (Added in ticket 02.)
 
 ## Derivation rules
 
@@ -30,23 +32,24 @@ Row expansion: entries whose family is claude or chatgpt get one row per tier of
 
 Per row:
 
-- `subsidisationFactor` = `tier.priceUsdPerMonth / (tier.equivalentApiSpendUsdPerMonth × usageMultiplier)` (tier rows only). E.g. claude-pro = 0.05; for Fable 5, 20 / (400 × 0.5) = 0.10.
+- `subsidisationFactor` = `tier.priceUsdPerMonth / (tier.equivalentApiSpendUsdPerMonth × usageMultiplier)` (tier rows only). E.g. claude-pro = 0.05; for Fable 5 on claude-max-5x, 100 / (2000 × 0.5) = 0.10. On a tier in the entry's `excludedTiers` the factor is 1. The excluded tier keeps its row, because the picker changes pricing, never row count (ticket 02).
 - `effectiveCost` = `average_cost_usd` (API rows) or `average_cost_usd × subsidisationFactor` (tier rows). [Cost per task data](../cost-per-task-data/spec.md) divides the effective cost, so tier rows recompute it.
 
 ## App
 
 - Access route is **not** a column — it renders inside the Model cell as a tag on tier rows (exact styling decided in ticket 01).
-- Tier-row Cost and Cost/perf cells show the API cost first, struck through and muted, then the effective value in normal weight (the Cost/perf struck value is API cost ÷ Pass@1; Pass@1 = 0 renders one blank cell, no struck blank). No per-cell "(e)" marker — the estimate caveat lives in the Subscriptions picker's disclaimer instead. Both columns sort by effective values. API-row Avg cost is the unadjusted average cost. (Strikeout added in subscription-filter ticket 01's grilling; the "(e)" removed in the same ticket's follow-up.)
+- Tier-row Cost and Cost/perf cells show the API cost first, struck through and muted, then the effective value in normal weight (the Cost/perf struck value is API cost ÷ Pass@1; Pass@1 = 0 renders one blank cell, no struck blank). Where the two are equal (an excluded tier) the cell shows the cost once, unstruck, and the access tag stays (ticket 02). No per-cell "(e)" marker — the estimate caveat lives in the Subscriptions picker's disclaimer instead. Both columns sort by effective values. API-row Avg cost is the unadjusted average cost. (Strikeout added in subscription-filter ticket 01's grilling; the "(e)" removed in the same ticket's follow-up.)
 - Sub-cent costs collapse to $0.01 or $0.00, which is deliberate — tiny tier costs should read as "effectively free" rather than invite comparison of raw values.
 - Masthead provenance line: SemiAnalysis linked with the figures' publication date, as "SemiAnalysis (2026-06-10)" in the Sources list. The estimate caveat lives in the Subscriptions picker only (ticket 01 had "Subscription costs are rough estimates from SemiAnalysis figures" in the masthead; shortened in [design ticket 02](../design/tickets/02-ledger-page-layout.md)).
 
 ## Acceptance criteria
 
-- The dataset derives 185 rows. Spot-checked maths: a Fable 5 tier row uses the halved equivalent spend (claude-pro factor 0.10, not 0.05).
-- Unit tests cover row expansion and subsidisation (incl. multiplier).
+- The dataset derives 185 rows. Spot-checked maths: Fable 5's Max tier rows use half the equivalent spend (claude-max-5x factor 0.10, not 0.05), and its claude-pro rows use factor 1.
+- Unit tests cover row expansion and subsidisation (incl. multiplier and excluded tiers).
 
 ## Tickets
 
 - [01: Tier rows and subsidisation](tickets/01-tier-rows-subsidisation.md)
+- [02: Fable models on Claude Pro](tickets/02-fable-excluded-from-pro.md)
 
 The struck-out API cost was built in [subscription-filter ticket 01](../subscription-filter/tickets/01-strikeout-api-cost-exclusive-picker.md).

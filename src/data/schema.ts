@@ -118,6 +118,9 @@ const modelMappingEntrySchema = z.strictObject({
   openrouterId: nonEmpty.nullable(),
   family: subscriptionFamilySchema,
   usageMultiplier: z.number().positive(), // scales equivalent API spend; zero would divide the subsidisation factor by nothing
+  // Tiers whose usage limits don't cover the model, so it runs on usage
+  // credits at API rates there: Pro excludes Fable (subscription-data ticket 02).
+  excludedTiers: z.array(tierIdSchema).min(1).optional(),
   shortName: nonEmpty.optional(), // UI short label, falling back to displayName (subscription-filter ticket 01)
 });
 export type ModelMappingEntry = z.infer<typeof modelMappingEntrySchema>;

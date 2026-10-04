@@ -190,6 +190,18 @@ describe("figure cells", () => {
     expect(markup("avgCost", row())).not.toContain("<s");
   });
 
+  // Fable on Pro: the tier excludes it, so there is nothing to strike.
+  test("tier rows at the API cost show it once, unstruck", () => {
+    const excluded = row({
+      accessRoute: "claude-pro",
+      accessTag: { label: "Pro", family: "claude" },
+      cost: { api: 11.8375, effective: 11.8375 },
+      costPerSolvedTask: { api: 16, effective: 16 },
+    });
+    expect(markup("avgCost", excluded)).toBe("$11.84");
+    expect(markup("costPerf", excluded)).toBe("$16.00");
+  });
+
   test("Cost/perf blanks both values when Pass@1 is zero", () => {
     const zero = row({
       accessRoute: "claude-pro",
