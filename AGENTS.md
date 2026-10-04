@@ -14,9 +14,9 @@ Default canonical labels. See `docs/agents/triage-labels.md`.
 
 Single-context layout: `docs/context.md` and ADRs in `docs/architecture/`. See `docs/agents/domain.md`.
 
-### Vendor-reported entries
+## Vendor-reported entries
 
-Adding a vendor's own DeepSWE score for a model DeepSWE hasn't published: follow `docs/agents/vendor-reported-entries.md`.
+Adding, correcting or reviewing a vendor-reported entry: follow `docs/agents/vendor-reported-entries.md`.
 
 ## Development environment
 

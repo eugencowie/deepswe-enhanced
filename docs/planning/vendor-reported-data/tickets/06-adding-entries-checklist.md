@@ -27,6 +27,7 @@ A recurring agent task that scans vendor launches can come later on top of this 
 
 **Implementation notes (2026-10-04):**
 
-- The doc is the single source of truth for the admission rules; the spec's Admission rules section now summarises them in one sentence and points to it, so the two can't drift. The spec's rule 3 (text or chart) became a note under the rules plus the maintainer-check step.
+- The doc is the single source of truth for the admission rules; the spec's Admission rules section points to it, so the two can't drift. The spec's rule 3 (text or chart) became a note under the rules plus the maintainer-check step.
 - Field shapes stay in `vendorReportedEntrySchema`; the doc covers only the fields that take judgement.
-- AGENTS.md points to the doc under Agent skills.
+- AGENTS.md points to the doc in its own section.
+- Review follow-up: every step ends on a completion criterion; step 5 covers the fields that take judgement (`source`, `sourceUrl`, `effort`) instead of restating the schema; step 4 states that the OpenRouter-id match needs both ids non-null; the spec's section is now a bare pointer.

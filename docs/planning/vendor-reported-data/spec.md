@@ -4,7 +4,7 @@ Adds vendor-reported entries to the [leaderboard](../leaderboard-table/spec.md):
 
 ## Admission rules
 
-A vendor claim becomes a vendor-reported entry only if it is a DeepSWE v1.1 Pass@1 figure, from the vendor's own publication, at a named effort level, by a method not known to differ; figures read off a chart are checked by the maintainer before they are committed. The rules, with the reason for each, live in [docs/agents/vendor-reported-entries.md](../../agents/vendor-reported-entries.md) (ticket 06), the single source of truth for adding an entry.
+The rules a vendor claim must meet, with the reason for each, live in [docs/agents/vendor-reported-entries.md](../../agents/vendor-reported-entries.md) (ticket 06), the single source of truth for adding, correcting or reviewing an entry.
 
 ## Data file: `data/vendor-reported.json`
 
@@ -17,7 +17,7 @@ type VendorReportedSnapshot = {
   benchmark_version: "v1.1";      // pinned like the DeepSWE snapshot; moving the pin clears or replaces this file
   entries: {
     model: string;                // our best guess at DeepSWE's id: "claude-opus-5-5", "gpt-6-1-sol"
-    effort: string;               // never null (rule 4)
+    effort: string;               // never null (admission rules: a named effort level)
     pass_at_1: number;            // fraction, 0..1
     average_cost_usd?: number;    // only if the vendor states it; none do today
     output_tokens?: number;
