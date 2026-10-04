@@ -326,7 +326,7 @@ describe("summarizeRefresh", () => {
     const text = summarizeRefresh({
       existing: null,
       snapshot: snapshotFrom(rows),
-      mappingCount: 25,
+      mappingCounts: { before: 25, after: 25 },
       generated: [],
       changed: true,
       previousPriceRevisions: revisions,
@@ -341,7 +341,7 @@ describe("summarizeRefresh", () => {
     const first = summarizeRefresh({
       existing: null,
       snapshot,
-      mappingCount: 25,
+      mappingCounts: { before: 25, after: 25 },
       generated: [],
       changed: true,
       previousPriceRevisions: revisions,
@@ -355,7 +355,7 @@ describe("summarizeRefresh", () => {
     const later = summarizeRefresh({
       existing: snapshot,
       snapshot,
-      mappingCount: 25,
+      mappingCounts: { before: 25, after: 26 },
       generated: [generatedEntry],
       changed: true,
       previousPriceRevisions: revisions,
@@ -381,7 +381,7 @@ describe("summarizeRefresh", () => {
     const text = summarizeRefresh({
       existing: before,
       snapshot,
-      mappingCount: 25,
+      mappingCounts: { before: 25, after: 25 },
       generated: [],
       changed: true,
       previousPriceRevisions: {},
@@ -400,7 +400,7 @@ describe("summarizeRefresh", () => {
     const text = summarizeRefresh({
       existing: snapshot,
       snapshot,
-      mappingCount: 25,
+      mappingCounts: { before: 25, after: 25 },
       generated: [],
       changed: true,
       previousPriceRevisions: {},
@@ -416,7 +416,7 @@ describe("summarizeRefresh", () => {
     const text = summarizeRefresh({
       existing: snapshot,
       snapshot,
-      mappingCount: 25,
+      mappingCounts: { before: 25, after: 25 },
       generated: [],
       changed: true,
       previousPriceRevisions: revisions,
@@ -431,7 +431,7 @@ describe("summarizeRefresh", () => {
     const text = summarizeRefresh({
       existing: snapshot,
       snapshot,
-      mappingCount: 25,
+      mappingCounts: { before: 25, after: 25 },
       generated: [],
       changed: false,
       previousPriceRevisions: revisions,
@@ -443,7 +443,7 @@ describe("summarizeRefresh", () => {
       summarizeRefresh({
         existing: snapshot,
         snapshot,
-        mappingCount: 25,
+        mappingCounts: { before: 25, after: 25 },
         generated: [],
         changed: true,
         previousPriceRevisions: revisions,
@@ -469,7 +469,7 @@ describe("summarizeRefresh", () => {
     const text = summarizeRefresh({
       existing: snapshotFrom(rows),
       snapshot: withModels(["claude-opus-9", "gpt-9-sol-2026-10"]),
-      mappingCount: 25,
+      mappingCounts: { before: 25, after: 25 },
       generated: mappingFor(["gpt-9-sol-2026-10"]),
       changed: true,
       previousPriceRevisions: revisions,
@@ -490,7 +490,7 @@ describe("summarizeRefresh", () => {
     const text = summarizeRefresh({
       existing: snapshotFrom(rows),
       snapshot: withModels(["gpt-9-sol-2026-10"]),
-      mappingCount: 25,
+      mappingCounts: { before: 25, after: 25 },
       generated: [],
       changed: true,
       previousPriceRevisions: revisions,
@@ -503,10 +503,26 @@ describe("summarizeRefresh", () => {
     );
   });
 
+  it("on a first run lists every DeepSWE model beside the vendor-reported models still standing", () => {
+    const text = summarizeRefresh({
+      existing: null,
+      snapshot: withModels(["gpt-9-sol-2026-10"]),
+      mappingCounts: { before: 25, after: 25 },
+      generated: [],
+      changed: true,
+      previousPriceRevisions: revisions,
+      superseded: [],
+      standing: ["gpt-9-sol"],
+    });
+    expect(text).toContain(
+      `New DeepSWE models: ${[...allModels, "gpt-9-sol-2026-10"].join(", ")}.`,
+    );
+  });
+
   it("says nothing about vendor-reported models when nothing could collide", () => {
     const base = {
       existing: snapshotFrom(rows),
-      mappingCount: 25,
+      mappingCounts: { before: 25, after: 25 },
       generated: [],
       changed: true,
       previousPriceRevisions: revisions,

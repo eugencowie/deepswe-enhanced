@@ -91,7 +91,6 @@ const supersession = supersedeVendorReported({
   mapping,
   generated,
 });
-const standing = [...new Set(supersession.vendorReported.entries.map((entry) => entry.model))];
 
 const { snapshot, warnings } = normalize(
   manifest,
@@ -99,9 +98,12 @@ const { snapshot, warnings } = normalize(
   supersession.mapping,
   revisions,
   rawSha256,
-  new Set(standing),
+  new Set(supersession.standing),
 );
 warnings.forEach(warn);
+// Validated before any write, so a generated entry colliding with an ordinary
+// mapping entry's OpenRouter id fails the run with every file untouched.
+modelMappingSchema.parse(supersession.mapping);
 
 // Written only after normalize succeeds, so a tripped guard rail still leaves
 // everything untouched.
@@ -152,11 +154,11 @@ await publishSummary(
   summarizeRefresh({
     existing,
     snapshot,
-    mappingCount: mapping.length,
+    mappingCounts: { before: mapping.length, after: supersession.mapping.length },
     generated,
     changed,
     previousPriceRevisions: priceRevisionsFile.revisions,
     superseded: supersession.superseded,
-    standing,
+    standing: supersession.standing,
   }),
 );

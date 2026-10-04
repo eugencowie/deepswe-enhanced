@@ -195,17 +195,16 @@ export function normalize(
 export function summarizeRefresh(input: {
   existing: DeepsweSnapshot | null;
   snapshot: DeepsweSnapshot;
-  mappingCount: number;
+  mappingCounts: { before: number; after: number };
   generated: ModelMappingEntry[];
   changed: boolean;
   // The revisions data/price-revisions.json held before this run.
   previousPriceRevisions: Readonly<Record<string, PriceRevision>>;
   superseded: Supersession[];
-  standing: string[]; // vendor-reported models left after supersession
+  // Vendor-reported models left after supersession.
+  standing: string[];
 }): string {
-  const { existing, snapshot, mappingCount, generated, changed, previousPriceRevisions } = input;
-  // An OpenRouter-id match retires the vendor-reported model's mapping entry.
-  const retired = input.superseded.filter((s) => s.match === "openrouter-id").length;
+  const { existing, snapshot, mappingCounts, generated, changed, previousPriceRevisions } = input;
   const modelCount = (s: DeepsweSnapshot) => new Set(s.entries.map((entry) => entry.model)).size;
   const lines = [
     "### DeepSWE data summary",
@@ -214,7 +213,7 @@ export function summarizeRefresh(input: {
     "| --- | ---: | ---: |",
     `| Leaderboard entries | ${existing?.entries.length ?? "—"} | ${snapshot.entries.length} |`,
     `| Models | ${existing ? modelCount(existing) : "—"} | ${modelCount(snapshot)} |`,
-    `| Mapping entries | ${mappingCount} | ${mappingCount + generated.length - retired} |`,
+    `| Mapping entries | ${mappingCounts.before} | ${mappingCounts.after} |`,
   ];
   if (!changed) {
     // Equal counts alone cannot distinguish an untouched snapshot from a
@@ -258,12 +257,11 @@ function vendorReportedSection(
     );
     lines.push(`Superseded vendor-reported models: ${described.join(", ")}.`);
   }
-  // On a first run every model is new, so there is nothing to compare.
+  // On a first run every model is new.
   const before = new Set(existing?.entries.map((entry) => entry.model));
-  const added =
-    existing === null
-      ? []
-      : [...new Set(snapshot.entries.map((entry) => entry.model))].filter((m) => !before.has(m));
+  const added = [...new Set(snapshot.entries.map((entry) => entry.model))].filter(
+    (model) => !before.has(model),
+  );
   if (added.length > 0 && standing.length > 0) {
     lines.push(
       `New DeepSWE models: ${added.join(", ")}. ` +

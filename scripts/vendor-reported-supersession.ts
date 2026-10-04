@@ -20,6 +20,7 @@ export function supersedeVendorReported(input: {
   vendorReported: VendorReportedSnapshot;
   mapping: ModelMappingEntry[]; // checked-in and generated entries, superseded ones removed
   superseded: Supersession[];
+  standing: string[]; // vendor-reported models left
 } {
   const { publishedModels, vendorReported, mapping, generated } = input;
   const claimed = [...new Set(vendorReported.entries.map((entry) => entry.model))];
@@ -52,5 +53,6 @@ export function supersedeVendorReported(input: {
     },
     mapping: [...mapping.filter((entry) => !retired.has(entry.leaderboardModel)), ...generated],
     superseded,
+    standing: claimed.filter((model) => !gone.has(model)),
   };
 }

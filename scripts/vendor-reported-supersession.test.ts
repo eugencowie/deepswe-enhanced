@@ -8,6 +8,7 @@ import {
   assertMappingCoverage,
   assertNoOverlap,
   modelMappingSchema,
+  vendorReportedSnapshotSchema,
 } from "../src/data/schema.ts";
 import { deepsweSnapshot } from "../src/data/sources.ts";
 import { supersedeVendorReported } from "./vendor-reported-supersession.ts";
@@ -49,6 +50,7 @@ const vendorReported: VendorReportedSnapshot = {
     claim("claude-opus-9", "max"),
     claim("claude-opus-9", "high"),
     claim("gpt-9-sol", "high"),
+    claim("gpt-9-sol", "max"),
     claim("grok-9", "high"),
   ],
 };
@@ -65,6 +67,7 @@ describe("supersedeVendorReported", () => {
       generated: [],
     });
     expect(models(result.vendorReported)).toEqual(["gpt-9-sol", "grok-9"]);
+    expect(result.standing).toEqual(["gpt-9-sol", "grok-9"]);
     expect(result.mapping).toEqual(mapping);
     expect(result.superseded).toEqual([{ model: "claude-opus-9", match: "id" }]);
   });
@@ -111,7 +114,12 @@ describe("supersedeVendorReported", () => {
       mapping,
       generated: [],
     });
-    expect(result).toEqual({ vendorReported, mapping, superseded: [] });
+    expect(result).toEqual({
+      vendorReported,
+      mapping,
+      superseded: [],
+      standing: ["claude-opus-9", "gpt-9-sol", "grok-9"],
+    });
   });
 });
 
@@ -146,6 +154,7 @@ describe("supersedeVendorReported output passes the load-time checks", () => {
     });
     const snapshot = snapshotOf(published);
     expect(() => modelMappingSchema.parse(result.mapping)).not.toThrow();
+    expect(() => vendorReportedSnapshotSchema.parse(result.vendorReported)).not.toThrow();
     expect(() => assertNoOverlap(snapshot, result.vendorReported)).not.toThrow();
     expect(() =>
       assertMappingCoverage(snapshot, result.vendorReported, result.mapping),
