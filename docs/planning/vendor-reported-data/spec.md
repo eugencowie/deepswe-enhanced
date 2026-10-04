@@ -19,7 +19,7 @@ type VendorReportedSnapshot = {
     model: string;                // our best guess at DeepSWE's id: "claude-opus-5-5", "gpt-6-1-sol"
     effort: string;               // never null (admission rules: a named effort level)
     pass_at_1: number;            // fraction, 0..1
-    average_cost_usd?: number;    // only if the vendor states it; none do today
+    average_cost_usd?: number;    // only if the vendor states it; OpenAI's DeepSWE charts do
     output_tokens?: number;
     steps?: number;
     source: string;               // e.g. "Claude Opus 5.5 System Card §8.3"
@@ -73,14 +73,14 @@ Admitted under the rules above, from research on 2026-10-04:
 | Claude Sonnet 5.5 | max | 71.0% | text, system card §8.3 |
 | Claude Fable 5.1 | max | 67.4% | text, system card §8.3 |
 | GPT-6.1 Sol | high | 75.2% | text, OpenAI Devs |
-| GPT-6.1 Sol | max, xhigh, medium, low | to be read | chart, launch post |
-| GPT-6 Sol / GPT-6 Luna | max | 68.8% / 66.6% | launch post |
+| GPT-6.1 Sol | max, xhigh, medium, low | 71.9%, 71.9%, 73.0%, 64.4% | chart, launch post |
+| GPT-6 Sol / GPT-6 Luna | max | 68.8% / 66.6% | text, launch post |
+| GPT-6 Sol / GPT-6 Luna | xhigh, high, medium, low | see the data file | chart, launch post |
 | Grok 4.7 | high | 71.0% | x.ai news |
 | DeepSeek V4.1 Flash | max | 74.2% | HF model card |
 | Muse Spark 1.3 | max | 75.4% | dev.meta.ai |
-| Gemini 4 Argon | highest thinking level | 77.9% | only if Google's docs name that level |
 
-Not admitted: MiMo-V2.6 Pro/Flash (no effort stated, and Xiaomi has no vendor mark yet); Qwen3.8-Flash-Next (best of two harnesses). Every admitted vendor already has a vendor mark. Figures are re-checked against the sources when the entries are written (ticket 05).
+Not admitted: Gemini 4 Argon (77.9% at its "highest thinking settings", but no Google doc names Argon's thinking levels: it is available only to a closed group of trusted security teams); MiMo-V2.6 Pro/Flash (no effort stated, and Xiaomi has no vendor mark yet); Qwen3.8-Flash-Next (best of two harnesses). Every admitted vendor already has a vendor mark. Figures were re-checked against the sources when the entries were written (ticket 05). OpenAI's charts also state cost per task, recorded on its entries: they give DeepSWE's own figures for GPT-6 Astra and Claude Opus 5 exactly, so the measure matches the Cost column.
 
 ## Acceptance criteria
 

@@ -224,5 +224,79 @@
     "openrouterId": "openai/gpt-6-astra",
     "family": "chatgpt",
     "usageMultiplier": 1
+  },
+  {
+    "leaderboardModel": "claude-opus-5-5",
+    "displayName": "Claude Opus 5.5",
+    "vendor": "Anthropic",
+    "openrouterId": "anthropic/claude-opus-5.5",
+    "family": "claude",
+    "usageMultiplier": 1
+  },
+  {
+    "leaderboardModel": "claude-sonnet-5-5",
+    "displayName": "Claude Sonnet 5.5",
+    "vendor": "Anthropic",
+    "openrouterId": "anthropic/claude-sonnet-5.5",
+    "family": "claude",
+    "usageMultiplier": 1
+  },
+  {
+    "leaderboardModel": "claude-fable-5-1",
+    "displayName": "Claude Fable 5.1",
+    "vendor": "Anthropic",
+    "openrouterId": "anthropic/claude-fable-5.1",
+    "family": "claude",
+    "usageMultiplier": 0.5,
+    "excludedTiers": ["claude-pro"],
+    "shortName": "Fable"
+  },
+  {
+    "leaderboardModel": "gpt-6-1-sol",
+    "displayName": "GPT-6.1 Sol",
+    "vendor": "OpenAI",
+    "openrouterId": "openai/gpt-6.1-sol",
+    "family": "chatgpt",
+    "usageMultiplier": 1
+  },
+  {
+    "leaderboardModel": "gpt-6-sol",
+    "displayName": "GPT-6 Sol",
+    "vendor": "OpenAI",
+    "openrouterId": "openai/gpt-6-sol",
+    "family": "chatgpt",
+    "usageMultiplier": 1
+  },
+  {
+    "leaderboardModel": "gpt-6-luna",
+    "displayName": "GPT-6 Luna",
+    "vendor": "OpenAI",
+    "openrouterId": "openai/gpt-6-luna",
+    "family": "chatgpt",
+    "usageMultiplier": 1
+  },
+  {
+    "leaderboardModel": "grok-4-7",
+    "displayName": "Grok 4.7",
+    "vendor": "xAI",
+    "openrouterId": "x-ai/grok-4.7",
+    "family": "none",
+    "usageMultiplier": 1
+  },
+  {
+    "leaderboardModel": "deepseek-v4-1-flash",
+    "displayName": "DeepSeek V4.1 Flash",
+    "vendor": "DeepSeek",
+    "openrouterId": "deepseek/deepseek-v4.1-flash",
+    "family": "none",
+    "usageMultiplier": 1
+  },
+  {
+    "leaderboardModel": "muse-spark-1-3",
+    "displayName": "Muse Spark 1.3",
+    "vendor": "Meta",
+    "openrouterId": "meta/muse-spark-1.3",
+    "family": "none",
+    "usageMultiplier": 1
   }
 ]

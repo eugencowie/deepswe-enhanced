@@ -207,7 +207,7 @@ describe("rows", () => {
       family: "claude" as const,
       excludedTiers: ["claude-max-5x" as const],
     }));
-    const { rows } = createLeaderboard({ ...sources, snapshot, mapping });
+    const { rows } = createLeaderboard({ ...fixtureSources, snapshot, mapping });
     expect(rows.map((row) => [row.accessRoute, row.cost?.effective])).toEqual([
       ["api", 4],
       ["claude-pro", expect.closeTo(4 * 0.05, 10)],
@@ -647,7 +647,7 @@ describe("pickerFamilies", () => {
         ? { ...entry, excludedTiers: ["chatgpt-plus" as const] }
         : entry,
     );
-    const { pickerFamilies } = createLeaderboard({ ...sources, mapping });
+    const { pickerFamilies } = createLeaderboard({ ...fixtureSources, mapping });
     const tiers = pickerFamilies.find((f) => f.family === "chatgpt")!.tiers;
     expect(tiers.map((tier) => [tier.id, tier.notes])).toEqual([
       ["chatgpt-plus", [{ name: "GPT-5.5", tierDiscount: 0 }]],

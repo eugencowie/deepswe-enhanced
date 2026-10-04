@@ -119,7 +119,7 @@ const vendorReportedEntrySchema = z.strictObject({
   model: nonEmpty, // best guess at DeepSWE's id, so supersession is an id match (ADR 0009)
   effort: nonEmpty, // never null: a claim with no named effort is not admitted
   pass_at_1: z.number().min(0).max(1), // fraction
-  // Only when the vendor states them; none do today.
+  // Only when the vendor states them; OpenAI's DeepSWE charts state cost.
   average_cost_usd: nonNegative.optional(),
   output_tokens: nonNegative.optional(),
   steps: nonNegative.optional(),
