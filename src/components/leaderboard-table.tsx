@@ -15,11 +15,20 @@ import { cn } from "cn";
 import { leaderboardTableOptions, type ColumnMeta } from "@/components/leaderboard-columns";
 import type { LeaderboardRow } from "@/data/leaderboard";
 
-// Classes shared by a column's header and cells, keyed by column id. Both
-// are tinted and ruled the same way so the two cannot drift apart. The rule
-// marks where the derived block starts, so it needs the previous column too.
-// The tint is fainter than the Subscriptions trigger's because it covers a
-// large area. Column meta and order are static, so this is computed once.
+// The enhancement tint, shared by the derived columns and vendor-reported rows
+// (ADR 0009). Fainter than the Subscriptions trigger's because it covers a
+// large area.
+const tint = "bg-brand/5 dark:bg-brand/8";
+
+// A vendor-reported row's tint, and its hover: the tint doubled, as it would
+// look stacked on itself, in place of the grey hover other rows take.
+const vendorReportedRowTint = cn(tint, "hover:bg-brand/10 dark:hover:bg-brand/15");
+
+// Classes shared by a column's header and cells, keyed by column id: alignment
+// and the rule that marks where the derived block starts, which needs the
+// previous column too. The derived tint is applied per cell, since a
+// vendor-reported row already carries it. Column meta and order are static,
+// so this is computed once.
 const columnClasses = Object.fromEntries(
   leaderboardTableOptions.columns.map((column, index, columns) => {
     const meta: ColumnMeta | undefined = column.meta;
@@ -28,7 +37,6 @@ const columnClasses = Object.fromEntries(
       column.id,
       cn(
         meta?.align === "end" && "text-right",
-        meta?.derived && "bg-brand/5 dark:bg-brand/8",
         meta?.derived && !previous?.derived && "border-l border-brand/30",
       ),
     ];
@@ -70,7 +78,7 @@ export function LeaderboardTable({ rows, empty }: { rows: LeaderboardRow[]; empt
                   aria-sort={
                     sorted === false ? undefined : sorted === "asc" ? "ascending" : "descending"
                   }
-                  className={cn(classes, meta?.bar && "w-40")}
+                  className={cn(classes, meta?.derived && tint, meta?.bar && "w-40")}
                 >
                   <button
                     type="button"
@@ -105,37 +113,47 @@ export function LeaderboardTable({ rows, empty }: { rows: LeaderboardRow[]; empt
             </TableCell>
           </TableRow>
         )}
-        {table.getRowModel().rows.map((row) => (
-          <TableRow key={row.id}>
-            {row.getAllCells().map((cell) => {
-              const { meta } = cell.column.columnDef;
-              const classes = columnClasses[cell.column.id];
-              const value = cell.getValue();
-              const bar = meta?.bar && typeof value === "number" ? value : undefined;
-              return (
-                <TableCell
-                  key={cell.id}
-                  className={cn("py-1.5", classes, meta?.align === "end" && "tabular-nums")}
-                >
-                  {bar === undefined ? (
-                    <table.FlexRender cell={cell} />
-                  ) : (
-                    <span className="relative block h-5 leading-5">
-                      <span
-                        aria-hidden
-                        className="absolute inset-y-0 left-0 rounded-r-sm bg-foreground/10 dark:bg-foreground/15"
-                        style={{ width: `${bar * 100}%` }}
-                      />
-                      <span className="relative pr-1 font-medium">
-                        <table.FlexRender cell={cell} />
+        {table.getRowModel().rows.map((row) => {
+          // A vendor-reported row is tinted whole, so its derived cells add
+          // nothing on top: the tint never stacks.
+          const vendorReported = row.original.provenance.kind === "vendor-reported";
+          return (
+            <TableRow key={row.id} className={cn(vendorReported && vendorReportedRowTint)}>
+              {row.getAllCells().map((cell) => {
+                const { meta } = cell.column.columnDef;
+                const classes = columnClasses[cell.column.id];
+                const value = cell.getValue();
+                const bar = meta?.bar && typeof value === "number" ? value : undefined;
+                return (
+                  <TableCell
+                    key={cell.id}
+                    className={cn(
+                      "py-1.5",
+                      classes,
+                      meta?.derived && !vendorReported && tint,
+                      meta?.align === "end" && "tabular-nums",
+                    )}
+                  >
+                    {bar === undefined ? (
+                      <table.FlexRender cell={cell} />
+                    ) : (
+                      <span className="relative block h-5 leading-5">
+                        <span
+                          aria-hidden
+                          className="absolute inset-y-0 left-0 rounded-r-sm bg-foreground/10 dark:bg-foreground/15"
+                          style={{ width: `${bar * 100}%` }}
+                        />
+                        <span className="relative pr-1 font-medium">
+                          <table.FlexRender cell={cell} />
+                        </span>
                       </span>
-                    </span>
-                  )}
-                </TableCell>
-              );
-            })}
-          </TableRow>
-        ))}
+                    )}
+                  </TableCell>
+                );
+              })}
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );
