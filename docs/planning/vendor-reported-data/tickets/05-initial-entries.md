@@ -54,7 +54,7 @@ Write the [spec's initial entries](../spec.md#initial-entries) into `data/vendor
 
 **For review:**
 
-- DeepSeek's card also tabulates 8 harnesses, and mini-SWE-agent, whose figure the headline reports, is the best of them (74.2 against 72.6 and lower). Admitted under rule 4 on the card's stated reason for the choice: "To align with official setup requirements, the mini-SWE harness is used for DeepSWE v1.1". This is for the maintainer to confirm.
+- DeepSeek's card also tabulates 8 harnesses, and mini-SWE-agent, whose figure the headline reports, is the best of them (74.2 against 72.6 and lower). Admitted under rule 4 on the card's stated reason for the choice: "To align with official setup requirements, the mini-SWE harness is used for DeepSWE v1.1". The maintainer confirmed it: the harness matches DeepSWE's official setup.
 - Meta's methods page picks a source per model for its comparison table; Meta ran Muse Spark 1.3 itself ("We run Muse Spark 1.3 max with a mini-swe agent"). That page isn't the cited source, so the entry records no harness.
 
 **Mapping facts:**
