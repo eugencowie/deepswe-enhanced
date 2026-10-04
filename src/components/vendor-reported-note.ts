@@ -17,7 +17,7 @@ export function vendorReportedNote({
     `${source}, ${publishedAt}.`,
     harness !== undefined && `Harness: ${harness}.`,
     trials !== undefined && `${trials} ${trials === 1 ? "trial" : "trials"}.`,
-    figureFrom === "chart" && "Figure read from a chart.",
+    figureFrom === "chart" && "Read from a chart.",
   ]
     .filter((sentence) => sentence !== false)
     .join(" ");

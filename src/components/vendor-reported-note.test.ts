@@ -26,9 +26,8 @@ describe("vendorReportedNote", () => {
     expect(vendorReportedNote({ ...claim, trials: 1 })).toMatch(/ 1 trial\.$/);
   });
 
-  test("says when the figure was read from a chart", () => {
-    expect(vendorReportedNote({ ...claim, figureFrom: "chart" })).toMatch(
-      / Figure read from a chart\.$/,
-    );
+  // Any figure on the entry: the Pass@1 or a stated cost.
+  test("says when a figure was read from a chart", () => {
+    expect(vendorReportedNote({ ...claim, figureFrom: "chart" })).toMatch(/ Read from a chart\.$/);
   });
 });

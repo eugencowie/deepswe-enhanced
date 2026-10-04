@@ -119,13 +119,15 @@ const vendorReportedEntrySchema = z.strictObject({
   model: nonEmpty, // best guess at DeepSWE's id, so supersession is an id match (ADR 0009)
   effort: nonEmpty, // never null: a claim with no named effort is not admitted
   pass_at_1: z.number().min(0).max(1), // fraction
-  // Only when the vendor states them; OpenAI's DeepSWE charts state cost.
+  // Only when the vendor states them.
   average_cost_usd: nonNegative.optional(),
   output_tokens: nonNegative.optional(),
   steps: nonNegative.optional(),
   ...provenanceFields,
   publishedAt: z.iso.date(), // the vendor's publication date, YYYY-MM-DD
-  figureFrom: z.enum(["text", "chart"]), // chart readings are checked by the maintainer
+  // "chart" when any figure on the entry was read off a chart, which the
+  // maintainer checks before it is committed.
+  figureFrom: z.enum(["text", "chart"]),
   harness: nonEmpty.optional(),
   trials: count.optional(),
 });

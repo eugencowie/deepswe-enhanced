@@ -666,13 +666,34 @@ describe("pickerFamilies", () => {
   // covers both.
   test("models sharing a short name and usage multiplier share one note", () => {
     const fable = modelMapping.find((entry) => entry.leaderboardModel === "claude-fable-5")!;
-    const mapping = [...modelMapping, { ...fable, leaderboardModel: "claude-fable-9" }];
+    const fable9 = { ...fable, leaderboardModel: "claude-fable-9", openrouterId: null };
+    const mapping = [...modelMapping, fable9];
     const { pickerFamilies } = createLeaderboard({ ...fixtureSources, mapping });
     // Max 5x, not Pro: Pro excludes Fable. 1 − 100/(2000 × 0.5)
     const maxFive = pickerFamilies
       .find((f) => f.family === "claude")!
       .tiers.find((tier) => tier.id === "claude-max-5x");
     expect(maxFive?.notes).toEqual([{ name: "Fable", tierDiscount: expect.closeTo(0.9, 10) }]);
+  });
+
+  test("models sharing a short name at different multipliers get a note each", () => {
+    const fable = modelMapping.find((entry) => entry.leaderboardModel === "claude-fable-5")!;
+    const fable9 = {
+      ...fable,
+      leaderboardModel: "claude-fable-9",
+      openrouterId: null,
+      usageMultiplier: 0.25,
+    };
+    const mapping = [...modelMapping.filter((e) => e.shortName !== "Fable"), fable, fable9];
+    const { pickerFamilies } = createLeaderboard({ ...fixtureSources, mapping });
+    const maxFive = pickerFamilies
+      .find((f) => f.family === "claude")!
+      .tiers.find((tier) => tier.id === "claude-max-5x");
+    // 1 − 100/(2000 × 0.5) and 1 − 100/(2000 × 0.25)
+    expect(maxFive?.notes).toEqual([
+      { name: "Fable", tierDiscount: expect.closeTo(0.9, 10) },
+      { name: "Fable", tierDiscount: expect.closeTo(0.8, 10) },
+    ]);
   });
 
   test("a note uses the mapping's short name, falling back to the display name", () => {

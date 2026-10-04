@@ -19,7 +19,7 @@ Write the [spec's initial entries](../spec.md#initial-entries) into `data/vendor
 - [x] Every entry meets the admission rules and cites a primary source
 - [x] The maintainer has signed off every chart reading
 - [x] Live data parses, and every vendor-reported row shows its marker and citation on the site
-- [x] The PR body lists the mapping facts with sources
+- [ ] The PR body lists the mapping facts with sources (no PR opened yet; the material is under Comments)
 - [x] `vp check` and `vp test` pass
 
 ## Comments
@@ -40,22 +40,22 @@ Write the [spec's initial entries](../spec.md#initial-entries) into `data/vendor
 | Claude Opus 5.5 | max | 74.2% | – | text, 5 trials | System Card §8.3, 2026-09-22 |
 | Claude Sonnet 5.5 | max | 71.0% | – | text, 5 trials | System Card §8.3, 2026-09-28 |
 | Claude Fable 5.1 | max | 67.4% | – | text, 5 trials | Fable 5.1 & Mythos 5.1 System Card §8.3, 2026-09-01 |
-| GPT-6.1 Sol | high | 75.2% | $0.65 | text (cost from chart) | OpenAI Developers on X, 2026-09-29 |
+| GPT-6.1 Sol | high | 75.2% | $0.65 | chart (75.2% also stated by OpenAI Developers on X) | Introducing GPT-6.1 Sol, 2026-09-29 |
 | GPT-6.1 Sol | max / xhigh / medium / low | 71.9 / 71.9 / 73.0 / 64.4% | $1.57 / $0.79 / $0.42 / $0.17 | chart | Introducing GPT-6.1 Sol, 2026-09-29 |
-| GPT-6 Sol | max | 68.8% | $2.74 | text (cost from chart) | Introducing GPT-6 Sol and Luna, 2026-09-22 |
+| GPT-6 Sol | max | 68.8% | $2.74 | chart (68.8% also in the post's text) | Introducing GPT-6 Sol and Luna, 2026-09-22 |
 | GPT-6 Sol | xhigh / high / medium / low | 66.6 / 65.3 / 56.6 / 37.2% | $1.00 / $0.64 / $0.38 / $0.16 | chart | same |
-| GPT-6 Luna | max | 66.6% | $0.22 | text (cost from chart) | same |
+| GPT-6 Luna | max | 66.6% | $0.22 | chart (66.6% also in the post's text) | same |
 | GPT-6 Luna | xhigh / high / medium / low | 61.28 / 59.29 / 44.47 / 2.43% | $0.11 / $0.084 / $0.052 / $0.0057 | chart | same |
 | Grok 4.7 | high | 71.0% | – | table (footnoted high) | x.ai/news/grok-4-7, 2026-09-21 |
 | DeepSeek V4.1 Flash | max | 74.2% | – | table; mini-SWE-agent, 8 samples | HF model card, 2026-09-10 |
-| Muse Spark 1.3 | max | 75.4% | – | table; mini-swe-agent | dev.meta.ai model page; launch 2026-09-02 |
+| Muse Spark 1.3 | max | 75.4% | – | table | dev.meta.ai model page (undated; launch post 2026-09-02) |
 
 **Rejected:** Gemini 4 Argon (rule 3, a named effort level): Google's thinking docs don't list Argon, which is available only to a closed group of trusted security teams.
 
 **For review:**
 
-- DeepSeek's card also tabulates 8 harnesses and reports the best one, mini-SWE-agent, but says it chose that harness in advance; admitted under rule 4.
-- Meta's methods page picks a source per model for its comparison table; Meta ran Muse Spark 1.3 itself.
+- DeepSeek's card also tabulates 8 harnesses, and mini-SWE-agent, whose figure the headline reports, is the best of them (74.2 against 72.6 and lower). Admitted under rule 4 on the card's stated reason for the choice: "To align with official setup requirements, the mini-SWE harness is used for DeepSWE v1.1". This is for the maintainer to confirm.
+- Meta's methods page picks a source per model for its comparison table; Meta ran Muse Spark 1.3 itself ("We run Muse Spark 1.3 max with a mini-swe agent"). That page isn't the cited source, so the entry records no harness.
 
 **Mapping facts:**
 
@@ -64,4 +64,8 @@ Write the [spec's initial entries](../spec.md#initial-entries) into `data/vendor
 - **Families:** Claude for Anthropic, ChatGPT for OpenAI, none for the rest, copied from each vendor's existing entries.
 - **Usage multipliers:** Claude Fable 5.1 is 0.5. Source: https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan, which says "Fable 5 and Fable 5.1 work the same way on your plan" and allows up to 50% of weekly Max limits on Fable models. Every other model is 1.
 
-**Verified:** `vp check` and `vp test` pass on the live data. On the built site, all 21 rows show their marker; a chart reading's tooltip ends "Figure read from a chart."; the masthead reads "vendor-reported scores (2026-09-29)"; and the Subscriptions picker shows one "Fable" note per Claude tier.
+**Verified:** `vp check` and `vp test` pass on the live data. On the built site, all 21 rows show their marker; a chart reading's tooltip ends "Read from a chart."; the masthead reads "vendor-reported scores (2026-09-29)"; and the Subscriptions picker shows one "Fable" note per Claude tier.
+
+**Review follow-up:** `figureFrom` now means "any figure on the entry was read off a chart". OpenAI's entries that carry a chart-read cost are marked `chart` and cite the post whose chart holds both figures, so GPT-6.1 Sol high cites the launch post instead of the X post; the figure is unchanged. Harness spellings are unified as `mini-swe-agent`. The picker tests now cover a short name shared at different multipliers.
+
+**Found in review, older than this ticket:** Anthropic's help article says Fable 5 and 5.1 "aren't included in your plan's usage limits" on Pro, yet the Subscriptions picker gives Pro a "Fable" discount note (−90%). Fable 5.1 now inherits that from Fable 5.

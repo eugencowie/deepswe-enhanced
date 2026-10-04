@@ -200,7 +200,7 @@ describe("vendor-reported marker", () => {
     };
     expect(markup("model", chart)).toContain(
       'aria-label="vendor-reported: Reported by the vendor, not run by DeepSWE. ' +
-        'Claude Opus 9 System Card §8.3, 2026-09-22. Figure read from a chart."',
+        'Claude Opus 9 System Card §8.3, 2026-09-22. Read from a chart."',
     );
   });
 
