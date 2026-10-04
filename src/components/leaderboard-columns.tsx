@@ -173,8 +173,10 @@ function modelCell(row: LeaderboardRow): ReactNode {
 }
 
 // Marks a vendor-reported entry's rows in the enhancement colour (ADR 0009):
-// the marker links to the vendor's source, and its tooltip cites it.
+// the marker links to the vendor's source, and its tooltip cites it. The
+// tooltip is hover-only, so the accessible name carries the same note.
 function vendorReportedMarker(provenance: VendorReportedProvenance): ReactNode {
+  const note = vendorReportedNote(provenance);
   return (
     <Tooltip>
       <TooltipTrigger
@@ -182,13 +184,13 @@ function vendorReportedMarker(provenance: VendorReportedProvenance): ReactNode {
           <Badge
             variant="outline"
             className="ml-1 border-brand/40 text-brand [a]:hover:bg-brand/10 [a]:hover:text-brand"
-            render={<a href={provenance.sourceUrl} target="_blank" rel="noreferrer" />}
+            render={<a href={provenance.sourceUrl} aria-label={`vendor-reported: ${note}`} />}
           />
         }
       >
         vendor-reported
       </TooltipTrigger>
-      <TooltipContent>{vendorReportedNote(provenance)}</TooltipContent>
+      <TooltipContent>{note}</TooltipContent>
     </Tooltip>
   );
 }

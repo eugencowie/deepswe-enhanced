@@ -124,7 +124,7 @@ const vendorReportedEntrySchema = z.strictObject({
   output_tokens: nonNegative.optional(),
   steps: nonNegative.optional(),
   ...provenanceFields,
-  publishedAt: nonEmpty, // the vendor's publication date
+  publishedAt: z.iso.date(), // the vendor's publication date, YYYY-MM-DD
   figureFrom: z.enum(["text", "chart"]), // chart readings are checked by the maintainer
   harness: nonEmpty.optional(),
   trials: count.optional(),

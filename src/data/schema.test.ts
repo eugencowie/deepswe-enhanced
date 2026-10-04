@@ -103,6 +103,12 @@ describe("vendorReportedSnapshotSchema", () => {
     expect(() => vendorReportedSnapshotSchema.parse(tampered)).toThrowError(/colour/);
   });
 
+  // The masthead dates the newest claim by sorting these as strings.
+  test("rejects a publication date that isn't an ISO date", () => {
+    const tampered = vendorReported({ ...vendorEntry, publishedAt: "22 September 2026" });
+    expect(() => vendorReportedSnapshotSchema.parse(tampered)).toThrowError(/publishedAt/);
+  });
+
   test("rejects a duplicate (model, effort) identity", () => {
     const tampered = vendorReported(vendorEntry, { ...vendorEntry, pass_at_1: 0.75 });
     expect(() => vendorReportedSnapshotSchema.parse(tampered)).toThrowError(

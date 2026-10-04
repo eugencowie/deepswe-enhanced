@@ -22,9 +22,9 @@ const deepsweDate = utcDate(deepsweSnapshot.source_generated_at);
 const openrouterDate = utcDate(throughputSnapshot.capturedAt);
 const semianalysisDate = utcDate(tiersSnapshot.publishedAt);
 // The newest claim's date, or undefined while there are no vendor-reported
-// entries; ISO dates sort as strings.
+// entries; the schema keeps them ISO dates, which sort as strings.
 const vendorReportedDate = vendorReportedSnapshot.entries
-  .map((entry) => utcDate(entry.publishedAt))
+  .map((entry) => entry.publishedAt)
   .toSorted()
   .at(-1);
 
@@ -65,8 +65,8 @@ function App() {
           </p>
           {/* Provenance: every figure on the page traces to one of these,
               listed in the order the sentence above mentions them, then the
-              vendor-reported scores once there are any. They are unlinked:
-              each row's marker cites its own source (ADR 0009). Each date is
+              vendor-reported scores once there are any. That item alone is
+              unlinked: each row's marker links its own source (ADR 0009). Each date is
               the upstream figure's own age, not when this project fetched it. */}
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
             Sources: <SourceLink href={deepsweSnapshot.sourceUrl}>DeepSWE</SourceLink> (

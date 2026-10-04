@@ -30,7 +30,7 @@ type VendorReportedSnapshot = {
     steps?: number;
     source: string;               // e.g. "Claude Opus 5.5 System Card §8.3"
     sourceUrl: string;
-    publishedAt: string;          // the vendor's publication date
+    publishedAt: string;          // the vendor's publication date, YYYY-MM-DD
     figureFrom: "text" | "chart";
     harness?: string;             // when stated, e.g. "mini-swe-agent"
     trials?: number;              // when stated
@@ -66,7 +66,7 @@ A generated `openrouterId` falls back to `null` when the revision is ambiguous (
 
 ## App
 
-- **Marker.** A vendor-reported row carries a purple "vendor-reported" marker in its Model cell. It is an enhancement, so it gets the enhancement colour. The marker's tooltip gives the source (linked), its publication date, the harness and trials when stated, and "read from a chart" when `figureFrom` is `chart`.
+- **Marker.** A vendor-reported row carries a purple "vendor-reported" marker in its Model cell. It is an enhancement, so it gets the enhancement colour. The marker links to the source, in the same tab like the masthead's sources. Its tooltip, and its accessible name for readers who can't hover, give the source, its publication date, the harness and trials when stated, and "read from a chart" when `figureFrom` is `chart`. (Revised in ticket 03: a link inside a hover tooltip is unreachable on touch and by keyboard, so the marker itself is the link.)
 - **Masthead.** The Sources line gains a fourth item, "vendor-reported scores", unlinked (each row cites its own source) and dated by the newest entry's `publishedAt`. The comment that every figure traces to the masthead's sources stays true.
 
 ## Initial entries

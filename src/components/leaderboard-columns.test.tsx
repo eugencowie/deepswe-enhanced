@@ -186,9 +186,21 @@ describe("vendor-reported marker", () => {
     );
   });
 
-  test("links to the vendor's source", () => {
-    expect(markup("model", claim)).toMatch(
-      /<a [^>]*href="https:\/\/www\.anthropic\.com\/claude-opus-9"[^>]*>vendor-reported<\/a>/,
+  test("links to the vendor's source in the same tab, like the masthead's sources", () => {
+    const link = markup("model", claim).match(/<a [^>]*>vendor-reported<\/a>/)?.[0];
+    expect(link).toContain('href="https://www.anthropic.com/claude-opus-9"');
+    expect(link).not.toContain("target=");
+  });
+
+  // The tooltip is hover-only, so the accessible name carries the same note.
+  test("names itself with the citation for screen readers", () => {
+    const chart = {
+      ...claim,
+      provenance: { ...claim.provenance, figureFrom: "chart" as const },
+    };
+    expect(markup("model", chart)).toContain(
+      'aria-label="vendor-reported: Reported by the vendor, not run by DeepSWE. ' +
+        'Claude Opus 9 System Card §8.3, 2026-09-22. Figure read from a chart."',
     );
   });
 
