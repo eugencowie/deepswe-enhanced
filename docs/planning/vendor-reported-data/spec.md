@@ -61,7 +61,7 @@ A generated `openrouterId` falls back to `null` when the revision is ambiguous (
 ## App
 
 - **Marker.** A vendor-reported row carries a purple "vendor-reported" marker in its Model cell. It is an enhancement, so it gets the enhancement colour. The marker links to the source, in the same tab like the masthead's sources. Its tooltip, and its accessible name for readers who can't hover, give the source, its publication date, the harness and trials when stated, and "read from a chart" when `figureFrom` is `chart`. (Revised in ticket 03: a link inside a hover tooltip is unreachable on touch and by keyboard, so the marker itself is the link.)
-- **Row tint.** A vendor-reported row carries the derived columns' enhancement tint across its whole width, without stacking where it meets them; on hover the tint deepens to roughly double, in place of the grey hover other rows take. Vendor-reported models in the Models picker, and its vendor-reported toggle, take the same tint, deepening on focus. (Added after ticket 05.)
+- **Row tint.** A vendor-reported row carries the derived columns' enhancement tint across its whole width, without stacking where it meets them; on hover the tint deepens to roughly double, in place of the grey hover other rows take. Vendor-reported models in the Models picker take the same tint, deepening on focus, and its vendor-reported toggle is purple when on. (Added after ticket 05.)
 - **Masthead.** The Sources line gains a fourth item, "vendor-reported scores", unlinked (each row cites its own source) and dated by the newest entry's `publishedAt`. The comment that every figure traces to the masthead's sources stays true.
 
 ## Initial entries

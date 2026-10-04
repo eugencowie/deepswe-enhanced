@@ -23,8 +23,10 @@ of hiding them still holds.
   way off, so `visibleRows` needs no provenance check; `pickerModels` gives
   the listed models, which the picker, its count and Select all all use.
 - **Placement**: "Include vendor-reported", under its own separator below
-  Select all / Clear, tinted like the vendor-reported items so it also reads
-  as their key.
+  Select all / Clear. The switch is purple when on, the enhancement colour,
+  so it also reads as the key to the tinted items; the line itself is
+  untinted and takes no hover highlight, though keyboard focus still shows
+  the menu's grey.
 - **Control**: a switch, the vendored shadcn `Switch`, drawn inside a menu
   checkbox item in place of its tick. The item keeps the menu's keyboard
   handling and the `menuitemcheckbox` role; the switch is inert and hidden
