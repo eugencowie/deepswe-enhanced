@@ -19,7 +19,7 @@ Write the [spec's initial entries](../spec.md#initial-entries) into `data/vendor
 - [x] Every entry meets the admission rules and cites a primary source
 - [x] The maintainer has signed off every chart reading
 - [x] Live data parses, and every vendor-reported row shows its marker and citation on the site
-- [ ] The PR body lists the mapping facts with sources (no PR opened yet; the material is under Comments)
+- [x] The PR body lists the mapping facts with sources ([#95](https://github.com/eugencowie/deepswe-enhanced/pull/95))
 - [x] `vp check` and `vp test` pass
 
 ## Comments
