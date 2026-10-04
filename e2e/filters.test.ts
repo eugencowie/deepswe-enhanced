@@ -142,3 +142,42 @@ test("the models picker removes a model everywhere and can clear to empty", asyn
   await page.getByRole("menuitem", { name: "Select all" }).click();
   await expect(bodyRows(page)).toHaveCount(modelCount);
 });
+
+test("the vendor-reported toggle unlists those models and brings them back unselected", async ({
+  page,
+}) => {
+  const vendorReportedCount = new Set(vendorReportedSnapshot.entries.map(({ model }) => model))
+    .size;
+  const deepsweCount = modelCount - vendorReportedCount;
+  await page.goto("./");
+  await page.getByRole("button", { name: /^Models/ }).click();
+  const opus = page.getByRole("menuitemcheckbox", {
+    name: "Anthropic Claude Opus 5.5",
+    exact: true,
+  });
+  const toggle = page.getByRole("menuitemcheckbox", { name: "Vendor-reported models" });
+
+  // On by default: listed and selected.
+  await expect(toggle).toBeChecked();
+  await expect(opus).toBeChecked();
+
+  // Off: unlisted, deselected, their rows gone.
+  await toggle.click();
+  await expect(opus).toBeHidden();
+  await expect(
+    page.getByRole("button", { name: `Models (${deepsweCount}/${deepsweCount})` }),
+  ).toBeVisible();
+  await expect(bodyRows(page)).toHaveCount(deepsweCount);
+
+  // On again: listed but left unselected until Select all.
+  await toggle.click();
+  await expect(opus).not.toBeChecked();
+  await expect(
+    page.getByRole("button", { name: `Models (${deepsweCount}/${modelCount})` }),
+  ).toBeVisible();
+  await expect(bodyRows(page)).toHaveCount(deepsweCount);
+
+  await page.getByRole("menuitem", { name: "Select all" }).click();
+  await expect(opus).toBeChecked();
+  await expect(bodyRows(page)).toHaveCount(modelCount);
+});

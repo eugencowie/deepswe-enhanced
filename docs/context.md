@@ -44,7 +44,7 @@ A toolbar control that sets one filter: the effort buttons, the Models picker, t
 _Avoid_: filter (for the control), selector, dropdown (as a name)
 
 **Models picker**:
-The toolbar control that sets the model filter: a checkbox per model with select-all and clear. UI copy says "Models menu"; internal vocabulary stays "Models picker".
+The toolbar control that sets the model filter: a checkbox per model with select-all and clear, and a toggle that lists or unlists the vendor-reported models. UI copy says "Models menu"; internal vocabulary stays "Models picker".
 _Avoid_: model dropdown, model selector
 
 **Subscriptions picker**:

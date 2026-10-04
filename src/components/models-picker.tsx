@@ -12,14 +12,21 @@ import {
 import { VendorMark } from "@/components/vendor-mark";
 import { cn } from "cn";
 import {
+  pickerModels,
   setModels,
+  setVendorReported,
   toggleModel,
   type LeaderboardFilters,
   type ModelOption,
 } from "@/data/leaderboard";
 
-// The Models picker ("Models menu" in UI copy): a checkbox per model, with
-// select-all and clear under a separator. The trigger counts the selection.
+// Vendor-reported models, and the toggle that lists them, take their rows'
+// enhancement tint, deepening on focus as a row does on hover (ADR 0009).
+const vendorReportedTint = "bg-brand/5 focus:bg-brand/10 dark:bg-brand/8 dark:focus:bg-brand/15";
+
+// The Models picker ("Models menu" in UI copy): a checkbox per listed model,
+// with select-all and clear under a separator, then the toggle listing
+// vendor-reported models. The trigger counts the selection.
 export function ModelsPicker({
   filters,
   onChange,
@@ -29,23 +36,19 @@ export function ModelsPicker({
   onChange: (filters: LeaderboardFilters) => void;
   models: ModelOption[];
 }) {
+  const listed = pickerModels(filters, models);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="outline" size="sm" />}>
-        Models ({filters.models.size}/{models.length})
+        Models ({filters.models.size}/{listed.length})
         <ChevronDown data-icon="inline-end" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-60">
         <div className="max-h-72 overflow-y-auto">
-          {models.map(({ model, displayName, vendor, vendorReported }) => (
+          {listed.map(({ model, displayName, vendor, vendorReported }) => (
             <DropdownMenuCheckboxItem
               key={model}
-              // Vendor-reported models take their rows' enhancement tint,
-              // deepening on focus as a row does on hover (ADR 0009).
-              className={cn(
-                vendorReported &&
-                  "bg-brand/5 focus:bg-brand/10 dark:bg-brand/8 dark:focus:bg-brand/15",
-              )}
+              className={cn(vendorReported && vendorReportedTint)}
               checked={filters.models.has(model)}
               closeOnClick={false}
               onCheckedChange={() => onChange(toggleModel(filters, model))}
@@ -58,7 +61,7 @@ export function ModelsPicker({
         <DropdownMenuSeparator />
         <DropdownMenuItem
           closeOnClick={false}
-          onClick={() => onChange(setModels(filters, new Set(models.map(({ model }) => model))))}
+          onClick={() => onChange(setModels(filters, new Set(listed.map(({ model }) => model))))}
         >
           Select all
         </DropdownMenuItem>
@@ -68,6 +71,15 @@ export function ModelsPicker({
         >
           Clear
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuCheckboxItem
+          className={vendorReportedTint}
+          checked={filters.vendorReported}
+          closeOnClick={false}
+          onCheckedChange={(checked) => onChange(setVendorReported(filters, checked, models))}
+        >
+          Vendor-reported models
+        </DropdownMenuCheckboxItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

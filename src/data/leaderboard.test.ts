@@ -11,9 +11,11 @@ import {
 import {
   compareModel,
   createLeaderboard,
+  pickerModels,
   setEffortView,
   setModels,
   setRoute,
+  setVendorReported,
   toggleModel,
   type AccessRoute,
   type Leaderboard,
@@ -885,6 +887,58 @@ describe("filter transitions", () => {
     const none = setModels(all, new Set());
     expect(none.models.size).toBe(0);
     expect(none.effortView).toBe("all");
+  });
+});
+
+// The Models picker's vendor-reported toggle: off removes those models from
+// the picker and the selection; on brings them back unselected.
+describe("vendor-reported toggle", () => {
+  const leaderboard = vendorReportedLeaderboard(opusNineClaim);
+  const { modelOptions } = leaderboard;
+  const listed = (filters: LeaderboardFilters) =>
+    pickerModels(filters, modelOptions).map(({ model }) => model);
+  const initial = leaderboard.defaultFilters();
+  const off = setVendorReported(initial, false, modelOptions);
+
+  test("is on by default, listing and selecting vendor-reported models", () => {
+    expect(initial.vendorReported).toBe(true);
+    expect(listed(initial)).toContain("claude-opus-9");
+    expect(initial.models.has("claude-opus-9")).toBe(true);
+  });
+
+  test("off unlists and deselects vendor-reported models, leaving the rest", () => {
+    expect(off.vendorReported).toBe(false);
+    expect(listed(off)).not.toContain("claude-opus-9");
+    expect(listed(off)).toHaveLength(modelOptions.length - 1);
+    expect(off.models.has("claude-opus-9")).toBe(false);
+    expect(off.models.size).toBe(initial.models.size - 1);
+    expect(leaderboard.visibleRows(off).some((row) => row.model === "claude-opus-9")).toBe(false);
+  });
+
+  test("off keeps a DeepSWE model's deselection", () => {
+    const fewer = setVendorReported(toggleModel(initial, "claude-fable-5"), false, modelOptions);
+    expect(fewer.models.has("claude-fable-5")).toBe(false);
+  });
+
+  test("on again lists vendor-reported models without selecting them", () => {
+    const on = setVendorReported(off, true, modelOptions);
+    expect(on.vendorReported).toBe(true);
+    expect(listed(on)).toContain("claude-opus-9");
+    expect(on.models).toEqual(off.models);
+  });
+
+  test("select all over the listed models selects them once listed", () => {
+    const selectAll = (filters: LeaderboardFilters) => setModels(filters, new Set(listed(filters)));
+    expect(selectAll(off).models.has("claude-opus-9")).toBe(false);
+    const on = setVendorReported(off, true, modelOptions);
+    expect(selectAll(on).models.has("claude-opus-9")).toBe(true);
+  });
+
+  test("never mutates its input", () => {
+    const before = new Set(initial.models);
+    setVendorReported(initial, false, modelOptions);
+    expect(initial.models).toEqual(before);
+    expect(initial.vendorReported).toBe(true);
   });
 });
 

@@ -97,6 +97,9 @@ export type LeaderboardFilters = {
   effortView: "best" | "all";
   subscriptions: SubscriptionSelection;
   models: ReadonlySet<string>;
+  // Whether the Models picker lists vendor-reported models. While off, none
+  // is selected, so their rows are hidden too.
+  vendorReported: boolean;
 };
 
 export type Leaderboard = {
@@ -106,7 +109,7 @@ export type Leaderboard = {
   // The Subscriptions picker's sections: Claude first, tiers in tiers.json
   // (ascending price) order.
   pickerFamilies: PickerFamily[];
-  // Best view, API routes, every model selected.
+  // Best view, API routes, every model listed and selected.
   defaultFilters: () => LeaderboardFilters;
   visibleRows: (filters: LeaderboardFilters) => LeaderboardRow[];
 };
@@ -159,6 +162,7 @@ export function createLeaderboard({
       effortView: "best",
       subscriptions: { claude: "api", chatgpt: "api" },
       models: new Set(modelOptions.map(({ model }) => model)),
+      vendorReported: true,
     }),
     visibleRows: (filters) =>
       rows.filter(
@@ -318,6 +322,30 @@ export function toggleModel(filters: LeaderboardFilters, model: string): Leaderb
     models.add(model);
   }
   return setModels(filters, models);
+}
+
+// Turning vendor-reported models off deselects them; turning them back on
+// lists them unselected, for the user to tick or select all.
+export function setVendorReported(
+  filters: LeaderboardFilters,
+  vendorReported: boolean,
+  modelOptions: ModelOption[],
+): LeaderboardFilters {
+  const unlisted = new Set(
+    modelOptions.filter((option) => option.vendorReported).map(({ model }) => model),
+  );
+  const models = vendorReported
+    ? filters.models
+    : new Set([...filters.models].filter((model) => !unlisted.has(model)));
+  return { ...filters, models, vendorReported };
+}
+
+// The models the Models picker lists, which select-all selects.
+export function pickerModels(
+  filters: LeaderboardFilters,
+  modelOptions: ModelOption[],
+): ModelOption[] {
+  return modelOptions.filter((option) => filters.vendorReported || !option.vendorReported);
 }
 
 // Each model's best entry: the highest Pass@1 on the raw fraction, with the
