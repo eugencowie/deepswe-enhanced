@@ -16,6 +16,7 @@ import {
   setRoute,
   toggleModel,
   type AccessRoute,
+  type Leaderboard,
   type LeaderboardFilters,
   type LeaderboardSources,
   type LeaderboardRow,
@@ -419,7 +420,7 @@ const vendorReportedLeaderboard = (...entries: VendorReportedEntry[]) => {
     },
   });
 };
-const opusNineRows = (leaderboard: ReturnType<typeof createLeaderboard>) =>
+const opusNineRows = (leaderboard: Leaderboard) =>
   leaderboard.rows.filter((row) => row.model === "claude-opus-9");
 
 describe("vendor-reported entries", () => {
@@ -455,9 +456,9 @@ describe("vendor-reported entries", () => {
   });
 
   test("rows carry the claim's provenance on every access route", () => {
-    const claim = {
+    const claim: VendorReportedEntry = {
       ...opusNineClaim,
-      figureFrom: "chart" as const,
+      figureFrom: "chart",
       harness: "mini-swe-agent",
       trials: 5,
     };
@@ -471,6 +472,44 @@ describe("vendor-reported entries", () => {
         harness: "mini-swe-agent",
         trials: 5,
       });
+    }
+  });
+
+  test("unstated harness and trials stay out of the provenance", () => {
+    const [row] = opusNineRows(vendorReportedLeaderboard(opusNineClaim));
+    expect(row.provenance).toStrictEqual({
+      kind: "vendor-reported",
+      source: "Claude Opus 9 System Card §8.3",
+      sourceUrl: "https://www.anthropic.com/claude-opus-9",
+      publishedAt: "2026-09-22",
+      figureFrom: "text",
+    });
+  });
+
+  test("a claim leaves every DeepSWE row unchanged", () => {
+    const withClaim = vendorReportedLeaderboard(opusNineClaim).rows.filter(
+      (row) => row.model !== "claude-opus-9",
+    );
+    expect(withClaim).toEqual(vendorReportedLeaderboard().rows);
+  });
+
+  test("a claim shows once per effort view on any route, so the picker never changes row count", () => {
+    const leaderboard = vendorReportedLeaderboard(
+      { ...opusNineClaim, effort: "max", pass_at_1: 0.71 },
+      { ...opusNineClaim, effort: "high", pass_at_1: 0.752 },
+    );
+    for (const claude of familyRoutes("claude")) {
+      const subscriptions = { claude, chatgpt: "api" as const };
+      const shown = (effortView: "best" | "all") =>
+        leaderboard
+          .visibleRows({ ...leaderboard.defaultFilters(), effortView, subscriptions })
+          .filter((row) => row.model === "claude-opus-9")
+          .map((row) => [row.effort, row.accessRoute]);
+      expect(shown("all")).toEqual([
+        ["max", claude],
+        ["high", claude],
+      ]);
+      expect(shown("best")).toEqual([["high", claude]]);
     }
   });
 

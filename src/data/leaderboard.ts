@@ -28,10 +28,7 @@ export type AccessTag = { label: string; family: PickerFamilyId };
 // claim, which the UI marks and cites (ADR 0009).
 export type Provenance =
   | { kind: "deepswe" }
-  | ({ kind: "vendor-reported" } & Pick<
-      VendorReportedEntry,
-      "source" | "sourceUrl" | "publishedAt" | "figureFrom" | "harness" | "trials"
-    >);
+  | ({ kind: "vendor-reported" } & Omit<VendorReportedEntry, keyof LeaderboardEntryFields>);
 
 // API and effective figures in USD for the same cost measure.
 export type CostPair = { api: number; effective: number };
@@ -175,46 +172,46 @@ export function compareModel(a: LeaderboardRow, b: LeaderboardRow): number {
   return effortRank(a.effort) - effortRank(b.effort);
 }
 
+// An entry's identity and figures, in the vendor-reported shape: DeepSWE
+// entries state every figure, vendor-reported ones leave unstated figures
+// absent (ADR 0009). Everything else on a vendor-reported entry is its
+// provenance.
+type LeaderboardEntryFields = Pick<
+  VendorReportedEntry,
+  "model" | "effort" | "pass_at_1" | "average_cost_usd" | "output_tokens" | "steps"
+>;
+
 // A leaderboard entry from either source, in the one shape rows derive from.
-// Vendor-reported entries leave unstated figures absent (ADR 0009).
-type Entry = {
-  model: string;
-  effort: string | null; // null = model's default effort
-  pass_at_1: number;
-  average_cost_usd?: number;
-  output_tokens?: number;
-  steps?: number;
+type LeaderboardEntry = Omit<LeaderboardEntryFields, "effort"> & {
+  effort: string | null; // null = model's default effort, DeepSWE only
   provenance: Provenance;
 };
 
 function leaderboardEntries(
   snapshot: DeepsweSnapshot,
   vendorReported: VendorReportedSnapshot,
-): Entry[] {
+): LeaderboardEntry[] {
   return [
     ...snapshot.entries.map((entry) => ({
       ...entry,
       provenance: { kind: "deepswe" } satisfies Provenance,
     })),
     ...vendorReported.entries.map(
-      ({ source, sourceUrl, publishedAt, figureFrom, harness, trials, ...entry }) => ({
-        ...entry,
-        provenance: {
-          kind: "vendor-reported",
-          source,
-          sourceUrl,
-          publishedAt,
-          figureFrom,
-          harness,
-          trials,
-        } satisfies Provenance,
+      ({ model, effort, pass_at_1, average_cost_usd, output_tokens, steps, ...claim }) => ({
+        model,
+        effort,
+        pass_at_1,
+        average_cost_usd,
+        output_tokens,
+        steps,
+        provenance: { kind: "vendor-reported", ...claim } satisfies Provenance,
       }),
     ),
   ];
 }
 
 function deriveRows(
-  entries: Entry[],
+  entries: LeaderboardEntry[],
   mapping: ModelMappingEntry[],
   throughput: ThroughputSnapshot,
   tiers: Tier[],
@@ -320,8 +317,8 @@ export function toggleModel(filters: LeaderboardFilters, model: string): Leaderb
 // higher effort level winning an exact tie. This is the DeepSWE site's rule;
 // for claude-fable-5 it picks xhigh over max. Chosen per model, so every
 // access route of the entry is best together.
-function bestEntries(entries: Entry[]): Map<string, Entry> {
-  const best = new Map<string, Entry>();
+function bestEntries(entries: LeaderboardEntry[]): Map<string, LeaderboardEntry> {
+  const best = new Map<string, LeaderboardEntry>();
   for (const entry of entries) {
     const incumbent = best.get(entry.model);
     if (incumbent === undefined || outscores(entry, incumbent)) best.set(entry.model, entry);
@@ -329,7 +326,7 @@ function bestEntries(entries: Entry[]): Map<string, Entry> {
   return best;
 }
 
-function outscores(entry: Entry, incumbent: Entry): boolean {
+function outscores(entry: LeaderboardEntry, incumbent: LeaderboardEntry): boolean {
   if (entry.pass_at_1 !== incumbent.pass_at_1) return entry.pass_at_1 > incumbent.pass_at_1;
   return effortRank(entry.effort) > effortRank(incumbent.effort);
 }
