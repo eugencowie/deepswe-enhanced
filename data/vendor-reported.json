@@ -209,6 +209,15 @@
       "sourceUrl": "https://dev.meta.ai/models/muse-spark/",
       "publishedAt": "2026-09-02",
       "figureFrom": "text"
+    },
+    {
+      "model": "gemini-4-argon",
+      "effort": "high",
+      "pass_at_1": 0.779,
+      "source": "Gemini 4 Argon announcement",
+      "sourceUrl": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/",
+      "publishedAt": "2026-09-30",
+      "figureFrom": "text"
     }
   ]
 }

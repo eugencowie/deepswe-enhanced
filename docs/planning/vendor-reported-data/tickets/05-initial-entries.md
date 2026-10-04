@@ -24,7 +24,7 @@ Write the [spec's initial entries](../spec.md#initial-entries) into `data/vendor
 
 ## Comments
 
-**Implementation notes (2026-10-04):** 21 entries for 9 models, plus 9 hand-written mapping entries. No PR was opened in this session, so the PR-body material is recorded here.
+**Implementation notes (2026-10-04):** 22 entries for 10 models, plus 10 hand-written mapping entries. No PR was opened in this session, so the PR-body material is recorded here.
 
 **Maintainer decisions:**
 
@@ -50,7 +50,7 @@ Write the [spec's initial entries](../spec.md#initial-entries) into `data/vendor
 | DeepSeek V4.1 Flash | max | 74.2% | – | table; mini-SWE-agent, 8 samples | HF model card, 2026-09-10 |
 | Muse Spark 1.3 | max | 75.4% | – | table | dev.meta.ai model page (undated; launch post 2026-09-02) |
 
-**Rejected:** Gemini 4 Argon (rule 3, a named effort level): Google's thinking docs don't list Argon, which is available only to a closed group of trusted security teams.
+**Gemini 4 Argon, admitted after review:** 77.9% "with the highest thinking settings", from the [Gemini 4 Argon announcement](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/) (2026-09-30), text. Google's thinking docs don't list Argon, which is only available to a closed group of trusted security teams. The maintainer settled the effort at `high`, the highest level DeepSWE writes for Google's models (every Gemini entry on the board tops out at `high`), and rule 3 now says so. There is no OpenRouter listing, so `openrouterId` is `null` and Tok/s and Time stay blank.
 
 **For review:**
 
@@ -64,7 +64,7 @@ Write the [spec's initial entries](../spec.md#initial-entries) into `data/vendor
 - **Families:** Claude for Anthropic, ChatGPT for OpenAI, none for the rest, copied from each vendor's existing entries.
 - **Usage multipliers:** Claude Fable 5.1 is 0.5. Source: https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan, which says "Fable 5 and Fable 5.1 work the same way on your plan" and allows up to 50% of weekly Max limits on Fable models. Every other model is 1.
 
-**Verified:** `vp check` and `vp test` pass on the live data. On the built site, all 21 rows show their marker; a chart reading's tooltip ends "Read from a chart."; the masthead reads "vendor-reported scores (2026-09-29)"; and the Subscriptions picker shows one "Fable" note per Claude tier.
+**Verified:** `vp check` and `vp test` pass on the live data. On the built site, all 21 rows show their marker (22 with Gemini 4 Argon, added after review); a chart reading's tooltip ends "Read from a chart."; the masthead reads "vendor-reported scores (2026-09-29)"; and the Subscriptions picker shows one "Fable" note per Claude tier.
 
 **Review follow-up:** `figureFrom` now means "any figure on the entry was read off a chart". OpenAI's entries that carry a chart-read cost are marked `chart` and cite the post whose chart holds both figures, so GPT-6.1 Sol high cites the launch post instead of the X post; the figure is unchanged. Harness spellings are unified as `mini-swe-agent`. The picker tests now cover a short name shared at different multipliers.
 

@@ -80,7 +80,7 @@ Admitted under the rules above, from research on 2026-10-04:
 | DeepSeek V4.1 Flash | max | 74.2% | HF model card |
 | Muse Spark 1.3 | max | 75.4% | dev.meta.ai |
 
-Not admitted: Gemini 4 Argon (77.9% at its "highest thinking settings", but no Google doc names Argon's thinking levels: it is available only to a closed group of trusted security teams); MiMo-V2.6 Pro/Flash (no effort stated, and Xiaomi has no vendor mark yet); Qwen3.8-Flash-Next (best of two harnesses). Every admitted vendor already has a vendor mark. Figures were re-checked against the sources when the entries were written (ticket 05). OpenAI's charts also state cost per task, recorded on its entries: they give DeepSWE's own figures for GPT-6 Astra and Claude Opus 5 exactly, so the measure matches the Cost column.
+Gemini 4 Argon (77.9% at its "highest thinking settings") is admitted at `high`. No Google doc names Argon's levels, because Argon is only available to a closed group of trusted security teams; `high` is the highest level DeepSWE writes for Google's models, and the maintainer settled it (rule 3 now allows this). Not admitted: MiMo-V2.6 Pro/Flash (no effort stated, and Xiaomi has no vendor mark yet); Qwen3.8-Flash-Next (best of two harnesses). Every admitted vendor already has a vendor mark. Figures were re-checked against the sources when the entries were written (ticket 05). OpenAI's charts also state cost per task, recorded on its entries: they give DeepSWE's own figures for GPT-6 Astra and Claude Opus 5 exactly, so the measure matches the Cost column.
 
 ## Acceptance criteria
 
