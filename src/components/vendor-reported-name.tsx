@@ -1,11 +1,11 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { vendorReportedMethod } from "@/components/vendor-reported-note";
 import type { VendorReportedProvenance } from "@/data/leaderboard";
 
 // A vendor-reported row's model name, which is its marker (ADR 0009): a
 // button underlined dotted in grey, as the column headers mark their
-// tooltips, on a row in the enhancement tint, opening a popover that
-// cites the source and links it, in the same tab like the masthead's sources.
+// tooltips, on a row in the enhancement tint, opening a popover that says
+// the vendor reported it and links the source, in the same tab like the
+// masthead's sources, over its date.
 // A popover rather than a tooltip, because it opens on tap as well as hover,
 // and Enter moves keyboard focus into it, so the link is reachable everywhere
 // (vendor-reported-data ticket 07).
@@ -16,7 +16,6 @@ export function VendorReportedName({
   displayName: string;
   provenance: VendorReportedProvenance;
 }) {
-  const method = vendorReportedMethod(provenance);
   return (
     <Popover>
       <PopoverTrigger
@@ -33,7 +32,7 @@ export function VendorReportedName({
         {displayName}
       </PopoverTrigger>
       <PopoverContent side="top" className="w-auto max-w-xs gap-1.5 rounded-2xl p-3 text-xs">
-        <p>Reported by the vendor, not run by DeepSWE.</p>
+        <p>Vendor reported.</p>
         <p>
           <a
             href={provenance.sourceUrl}
@@ -41,9 +40,8 @@ export function VendorReportedName({
           >
             {provenance.source}
           </a>
-          , {provenance.publishedAt}.
         </p>
-        {method !== undefined && <p className="text-muted-foreground">{method}</p>}
+        <p className="text-muted-foreground">{provenance.publishedAt}</p>
       </PopoverContent>
     </Popover>
   );

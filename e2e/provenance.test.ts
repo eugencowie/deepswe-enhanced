@@ -38,6 +38,7 @@ test("every vendor-reported row's name opens a popover linking its source", asyn
       cell: `${displayName(entry.model)} ${entry.effort}`,
       href: entry.sourceUrl,
       source: entry.source,
+      date: entry.publishedAt,
     }))
     .toSorted((a, b) => a.cell.localeCompare(b.cell));
 
@@ -52,13 +53,14 @@ test("every vendor-reported row's name opens a popover linking its source", asyn
     await name.focus();
     await page.keyboard.press("Enter");
     const popover = page.getByRole("dialog");
-    await expect(popover).toContainText("Reported by the vendor, not run by DeepSWE.");
+    await expect(popover).toContainText("Vendor reported.");
     const link = popover.getByRole("link");
     await expect(link).toBeFocused();
     shown.push({
       cell: cell.trim(),
       href: await link.getAttribute("href"),
       source: await link.innerText(),
+      date: await popover.locator("p").last().innerText(),
     });
     await page.keyboard.press("Escape");
     await expect(popover).toBeHidden();
