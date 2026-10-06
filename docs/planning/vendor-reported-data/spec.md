@@ -97,3 +97,4 @@ Gemini 4 Argon (77.9% at its "highest thinking settings") is admitted at `high`.
 - [05: Initial vendor-reported entries](tickets/05-initial-entries.md)
 - [06: Checklist for adding a vendor-reported entry](tickets/06-adding-entries-checklist.md)
 - [07: Review follow-ups](tickets/07-review-follow-ups.md)
+- [08: Second review follow-ups](tickets/08-second-review-follow-ups.md)
