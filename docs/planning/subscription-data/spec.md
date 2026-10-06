@@ -51,5 +51,10 @@ Per row:
 
 - [01: Tier rows and subsidisation](tickets/01-tier-rows-subsidisation.md)
 - [02: Fable models on Claude Pro](tickets/02-fable-excluded-from-pro.md)
+- [03: Transcribe the Oct 5 SemiAnalysis figures](tickets/03-transcribe-semianalysis-2026-10-05.md)
+- [04: Price tier rows from measured per-model values](tickets/04-per-model-api-equivalent-values.md)
+- [05: Flagship note in the Subscriptions picker](tickets/05-flagship-note.md)
+- [06: ChatGPT Plus / Pro 100 / Pro 200 / Pro 500](tickets/06-chatgpt-tier-lineup.md)
+- [07: Coding plans from other labs](tickets/07-other-labs-coding-plans.md)
 
 The struck-out API cost was built in [subscription-filter ticket 01](../subscription-filter/tickets/01-strikeout-api-cost-exclusive-picker.md).
