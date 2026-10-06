@@ -10,7 +10,7 @@ import type {
   PriceRevision,
 } from "../src/data/schema.ts";
 import { costAdjustmentFactor } from "./deepswe-price-revisions.ts";
-import type { Supersession } from "./vendor-reported-supersession.ts";
+import type { Supersession, SupersessionResult } from "./vendor-reported-supersession.ts";
 
 export const origin = "https://deepswe.datacurve.ai";
 export const benchmarkVersion = "v1.1";
@@ -98,7 +98,7 @@ export function normalize(
   priceRevisions: Readonly<Record<string, PriceRevision>>,
   rawSha256: string,
   // Mapped but not on DeepSWE yet, so never stale (ADR 0009).
-  vendorReportedModels: ReadonlySet<string> = new Set(),
+  vendorReportedModels: ReadonlySet<string>,
 ): { snapshot: DeepsweSnapshot; warnings: string[] } {
   const warnings: string[] = [];
   const selected = pinnedVersion(manifest);
@@ -195,16 +195,17 @@ export function normalize(
 export function summarizeRefresh(input: {
   existing: DeepsweSnapshot | null;
   snapshot: DeepsweSnapshot;
-  mappingCounts: { before: number; after: number };
+  // The entries data/model-mapping.json held before this run.
+  previousMappingCount: number;
   generated: ModelMappingEntry[];
   changed: boolean;
   // The revisions data/price-revisions.json held before this run.
   previousPriceRevisions: Readonly<Record<string, PriceRevision>>;
-  superseded: Supersession[];
-  // Vendor-reported models left after supersession.
-  standing: string[];
+  supersession: Pick<SupersessionResult, "mapping" | "superseded" | "standing">;
 }): string {
-  const { existing, snapshot, mappingCounts, generated, changed, previousPriceRevisions } = input;
+  const { existing, snapshot, previousMappingCount, generated, changed, previousPriceRevisions } =
+    input;
+  const { supersession } = input;
   const modelCount = (s: DeepsweSnapshot) => new Set(s.entries.map((entry) => entry.model)).size;
   const lines = [
     "### DeepSWE data summary",
@@ -213,7 +214,7 @@ export function summarizeRefresh(input: {
     "| --- | ---: | ---: |",
     `| Leaderboard entries | ${existing?.entries.length ?? "—"} | ${snapshot.entries.length} |`,
     `| Models | ${existing ? modelCount(existing) : "—"} | ${modelCount(snapshot)} |`,
-    `| Mapping entries | ${mappingCounts.before} | ${mappingCounts.after} |`,
+    `| Mapping entries | ${previousMappingCount} | ${supersession.mapping.length} |`,
   ];
   if (!changed) {
     // Equal counts alone cannot distinguish an untouched snapshot from a
@@ -227,7 +228,7 @@ export function summarizeRefresh(input: {
       `Generated mapping entries: ${generated.map((entry) => entry.leaderboardModel).join(", ")}.`,
     );
   }
-  const vendorReportedLines = vendorReportedSection(existing, snapshot, input);
+  const vendorReportedLines = vendorReportedSection(existing, snapshot, supersession);
   if (vendorReportedLines.length > 0) {
     lines.push("", ...vendorReportedLines);
   }

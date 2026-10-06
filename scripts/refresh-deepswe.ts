@@ -5,7 +5,6 @@
 
 import { createHash } from "node:crypto";
 import {
-  type ModelMappingEntry,
   deepsweSnapshotSchema,
   modelMappingSchema,
   priceRevisionsFileSchema,
@@ -21,18 +20,13 @@ import {
   benchmarkVersion,
   hasMeaningfulChange,
   leaderboardArtifactSchema,
-  normalize,
   origin,
   summarizeRefresh,
   unmappedModels,
   versionManifestSchema,
 } from "./deepswe-snapshot.ts";
-import {
-  generateMappingEntries,
-  openrouterModelsSchema,
-  openrouterModelsUrl,
-} from "./mapping-generation.ts";
-import { supersedeVendorReported } from "./vendor-reported-supersession.ts";
+import { openrouterModelsSchema, openrouterModelsUrl } from "./mapping-generation.ts";
+import { planDeepsweRefresh } from "./deepswe-refresh-plan.ts";
 import {
   fetchBytes,
   fetchJson,
@@ -69,43 +63,27 @@ const revisions = resolvePriceRevisions(extractBundlePriceTable(bundles), benchm
 const priceRevisionsChanged =
   JSON.stringify(priceRevisionsFile.revisions) !== JSON.stringify(revisions);
 
-// New models from known vendors get generated mapping entries (ADR 0003);
-// anything still unmapped afterwards fails normalize's guard as before.
-const unmapped = unmappedModels(artifact.rows, mapping);
-const generated: ModelMappingEntry[] = [];
-if (unmapped.length > 0) {
-  // An unreachable models API fails the run like any other fetch error; the
-  // failure email is the alert and a manual re-run the retry.
-  const listings = (await fetchJson(openrouterModelsUrl, openrouterModelsSchema)).data;
-  const result = generateMappingEntries(unmapped, mapping, listings);
-  result.warnings.forEach(warn);
-  generated.push(...result.generated);
-}
+// The OpenRouter listings are fetched only when a model is unmapped. An
+// unreachable models API fails the run like any other fetch error; the
+// failure email is the alert and a manual re-run the retry.
+const listings =
+  unmappedModels(artifact.rows, mapping).length > 0
+    ? (await fetchJson(openrouterModelsUrl, openrouterModelsSchema)).data
+    : [];
 
-// Vendor-reported models DeepSWE now publishes go, every effort level at once
-// (ADR 0009); an OpenRouter-id match also retires the model's mapping entry,
-// which the generated one would otherwise duplicate.
-const supersession = supersedeVendorReported({
-  publishedModels: new Set(artifact.rows.map((row) => row.model)),
-  vendorReported,
-  mapping,
-  generated,
-});
-
-const { snapshot, warnings } = normalize(
+// Throws before anything is written when a guard rail trips.
+const { snapshot, generated, supersession, warnings } = planDeepsweRefresh({
   manifest,
   artifact,
-  supersession.mapping,
-  revisions,
   rawSha256,
-  new Set(supersession.standing),
-);
+  mapping,
+  vendorReported,
+  revisions,
+  listings,
+});
 warnings.forEach(warn);
-// Validated before any write, so a generated entry colliding with an ordinary
-// mapping entry's OpenRouter id fails the run with every file untouched.
-modelMappingSchema.parse(supersession.mapping);
 
-// Written only after normalize succeeds, so a tripped guard rail still leaves
+// Written only after the plan succeeds, so a tripped guard rail still leaves
 // everything untouched.
 if (priceRevisionsChanged) {
   await writeDataFile("price-revisions.json", priceRevisionsFileSchema, {
@@ -154,11 +132,10 @@ await publishSummary(
   summarizeRefresh({
     existing,
     snapshot,
-    mappingCounts: { before: mapping.length, after: supersession.mapping.length },
+    previousMappingCount: mapping.length,
     generated,
     changed,
     previousPriceRevisions: priceRevisionsFile.revisions,
-    superseded: supersession.superseded,
-    standing: supersession.standing,
+    supersession,
   }),
 );

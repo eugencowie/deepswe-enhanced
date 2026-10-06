@@ -11,17 +11,19 @@ export type Supersession =
   | { model: string; match: "id" }
   | { model: string; match: "openrouter-id"; publishedAs: string };
 
+export type SupersessionResult = {
+  vendorReported: VendorReportedSnapshot;
+  mapping: ModelMappingEntry[]; // checked-in and generated entries, superseded ones removed
+  superseded: Supersession[];
+  standing: string[]; // vendor-reported models left
+};
+
 export function supersedeVendorReported(input: {
   publishedModels: ReadonlySet<string>; // every model in the refreshed snapshot
   vendorReported: VendorReportedSnapshot;
   mapping: ModelMappingEntry[]; // the checked-in mapping
   generated: ModelMappingEntry[]; // this run's generated entries (ADR 0003)
-}): {
-  vendorReported: VendorReportedSnapshot;
-  mapping: ModelMappingEntry[]; // checked-in and generated entries, superseded ones removed
-  superseded: Supersession[];
-  standing: string[]; // vendor-reported models left
-} {
+}): SupersessionResult {
   const { publishedModels, vendorReported, mapping, generated } = input;
   const claimed = [...new Set(vendorReported.entries.map((entry) => entry.model))];
   const openrouterIdOf = new Map(
