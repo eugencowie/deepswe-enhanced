@@ -14,16 +14,10 @@ import {
 } from "@tanstack/react-table";
 
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "cn";
 import { VendorMark } from "@/components/vendor-mark";
-import { vendorReportedNote } from "@/components/vendor-reported-note";
-import {
-  compareModel,
-  type CostPair,
-  type LeaderboardRow,
-  type VendorReportedProvenance,
-} from "@/data/leaderboard";
+import { VendorReportedName } from "@/components/vendor-reported-name";
+import { compareModel, type CostPair, type LeaderboardRow } from "@/data/leaderboard";
 
 // What the table reads to render a column beyond its header and cell.
 export type ColumnMeta = {
@@ -147,13 +141,10 @@ function modelCell(row: LeaderboardRow): ReactNode {
   return (
     <>
       <VendorMark vendor={row.vendor} className="mr-1.5" />
-      {row.openrouterId === undefined ? (
-        row.displayName
+      {row.provenance.kind === "vendor-reported" ? (
+        <VendorReportedName displayName={row.displayName} provenance={row.provenance} />
       ) : (
-        <Tooltip>
-          <TooltipTrigger render={<span />}>{row.displayName}</TooltipTrigger>
-          <TooltipContent>{row.openrouterId}</TooltipContent>
-        </Tooltip>
+        row.displayName
       )}
       {row.effort !== undefined && (
         // A real space, so copied text and the accessible name stay readable.
@@ -162,7 +153,6 @@ function modelCell(row: LeaderboardRow): ReactNode {
           <span className="ml-1 text-xs text-muted-foreground">{row.effort}</span>
         </>
       )}
-      {row.provenance.kind === "vendor-reported" && <> {vendorReportedMarker(row.provenance)}</>}
       {row.accessTag && (
         <Badge variant="outline" className={cn("ml-2", tagClassByFamily[row.accessTag.family])}>
           {row.accessTag.label}
@@ -172,31 +162,6 @@ function modelCell(row: LeaderboardRow): ReactNode {
   );
 }
 
-// Marks a vendor-reported entry's rows in the enhancement colour (ADR 0009):
-// the marker links to the vendor's source, and its tooltip cites it. The
-// tooltip is hover-only, so the accessible name carries the same note.
-function vendorReportedMarker(provenance: VendorReportedProvenance): ReactNode {
-  const note = vendorReportedNote(provenance);
-  return (
-    <Tooltip>
-      <TooltipTrigger
-        render={
-          <Badge
-            variant="outline"
-            className="ml-1 border-brand/40 text-brand [a]:hover:bg-brand/10 [a]:hover:text-brand"
-            render={<a href={provenance.sourceUrl} aria-label={`vendor-reported: ${note}`} />}
-          />
-        }
-      >
-        vendor-reported
-      </TooltipTrigger>
-      <TooltipContent>{note}</TooltipContent>
-    </Tooltip>
-  );
-}
-
-// The API cost is struck out only where the route discounts it: API rows, and
-// tier rows on a tier that excludes the model, have nothing to strike.
 function costCell(cost: CostPair | undefined): ReactNode {
   if (cost === undefined) return BLANK;
   return cost.effective === cost.api

@@ -66,8 +66,9 @@ function App() {
           {/* Provenance: every figure on the page traces to one of these,
               listed in the order the sentence above mentions them, then the
               vendor-reported scores once there are any. That item alone is
-              unlinked: each row's marker links its own source (ADR 0009). Each date is
-              the upstream figure's own age, not when this project fetched it. */}
+              unlinked: each row's name links its own source (ADR 0009). Each
+              date is the upstream figure's own age, not when this project
+              fetched it. */}
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
             Sources: <SourceLink href={deepsweSnapshot.sourceUrl}>DeepSWE</SourceLink> (
             {deepsweDate}), <SourceLink href={throughputSnapshot.sourceUrl}>OpenRouter</SourceLink>{" "}

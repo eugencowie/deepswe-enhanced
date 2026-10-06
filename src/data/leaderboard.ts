@@ -53,7 +53,6 @@ export type LeaderboardRow = {
   costPerSolvedTask: CostPair | undefined; // absent when passAt1 is 0 or cost is absent
   outputTokens?: number; // absent when the vendor-reported entry states none
   steps?: number; // likewise
-  openrouterId?: string; // shown in the model-name tooltip
   throughputTokPerSec?: number; // absent when unmapped or absent from the snapshot
   averageTimeSeconds?: number; // absent whenever throughput or output tokens are
 };
@@ -270,7 +269,6 @@ function deriveRows(
           : { api: cost.api / entry.pass_at_1, effective: cost.effective / entry.pass_at_1 },
       outputTokens: entry.output_tokens,
       steps: entry.steps,
-      openrouterId: mapped.openrouterId ?? undefined,
       throughputTokPerSec,
       averageTimeSeconds:
         throughputTokPerSec === undefined || entry.output_tokens === undefined

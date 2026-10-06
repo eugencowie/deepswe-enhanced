@@ -159,15 +159,17 @@ describe("Model cell", () => {
     ).toBe("Test Model xhighMax 20x");
   });
 
-  test("exposes the pinned OpenRouter id in a tooltip only when mapped", () => {
-    expect(markup("model", row())).toBe("Test Model");
-    expect(markup("model", row({ openrouterId: "test/test-model" }))).toMatch(
-      /^<span [^>]*data-slot="tooltip-trigger"[^>]*>Test Model<\/span>$/,
+  // Display names omit revisions, but nobody needed the pinned id on hover.
+  test("a DeepSWE row's name is plain text, with no tooltip", () => {
+    expect(markup("model", row({ effort: "max" }))).toBe(
+      'Test Model <span class="ml-1 text-xs text-muted-foreground">max</span>',
     );
   });
 });
 
-describe("vendor-reported marker", () => {
+// The marker is the name itself: a link to the vendor's source, its note as
+// the tooltip and the accessible description (ticket 07).
+describe("vendor-reported name", () => {
   const claim = row({
     effort: "max",
     provenance: {
@@ -177,30 +179,39 @@ describe("vendor-reported marker", () => {
       publishedAt: "2026-09-22",
     },
   });
+  const note =
+    "Reported by the vendor, not run by DeepSWE. Claude Opus 9 System Card §8.3, 2026-09-22.";
+  const link = (r: LeaderboardRow) => markup("model", r).match(/<a [^>]*>([^<]*)<\/a>/);
 
-  test("follows the effort on vendor-reported rows, before any access tag", () => {
-    expect(text("model", claim)).toBe("Test Model max vendor-reported");
-    expect(text("model", { ...claim, accessTag: { label: "Pro", family: "claude" } })).toBe(
-      "Test Model max vendor-reportedPro",
+  test("links the display name to the vendor's source in the same tab", () => {
+    const [anchor, name] = link(claim)!;
+    expect(name).toBe("Test Model");
+    expect(anchor).toContain('href="https://www.anthropic.com/claude-opus-9"');
+    expect(anchor).not.toContain("target=");
+    expect(anchor).toContain('data-slot="tooltip-trigger"');
+  });
+
+  test("underlines the name dashed in the enhancement colour", () => {
+    const classes = link(claim)![0]
+      .match(/class="([^"]*)"/)![1]
+      .split(" ");
+    expect(classes).toEqual(expect.arrayContaining(["decoration-dashed", "decoration-brand"]));
+  });
+
+  // The tooltip is hover-only; the description reaches screen readers, and
+  // the hidden copy stays out of the cell's name and copied text.
+  test("describes itself with the note, from a hidden copy", () => {
+    const html = markup("model", claim);
+    const id = link(claim)![0].match(/aria-describedby="([^"]+)"/)?.[1];
+    expect(id).toBeDefined();
+    expect(html).toContain(`<span id="${id}" hidden="">${note}</span>`);
+  });
+
+  test("leaves no badge: the cell reads as name, effort and access tag", () => {
+    const tagged = { ...claim, accessTag: { label: "Pro", family: "claude" as const } };
+    expect(markup("model", tagged).replace(/<span [^>]*hidden[^>]*>.*?<\/span>/, "")).toMatch(
+      /Test Model<\/a> <span[^>]*>max<\/span><span[^>]*>Pro<\/span>$/,
     );
-  });
-
-  test("links to the vendor's source in the same tab, like the masthead's sources", () => {
-    const link = markup("model", claim).match(/<a [^>]*>vendor-reported<\/a>/)?.[0];
-    expect(link).toContain('href="https://www.anthropic.com/claude-opus-9"');
-    expect(link).not.toContain("target=");
-  });
-
-  // The tooltip is hover-only, so the accessible name carries the same note.
-  test("names itself with the citation for screen readers", () => {
-    expect(markup("model", claim)).toContain(
-      'aria-label="vendor-reported: Reported by the vendor, not run by DeepSWE. ' +
-        'Claude Opus 9 System Card §8.3, 2026-09-22."',
-    );
-  });
-
-  test("is absent on DeepSWE rows", () => {
-    expect(markup("model", row({ effort: "max" }))).not.toMatch(/vendor-reported/);
   });
 });
 

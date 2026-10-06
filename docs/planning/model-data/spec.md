@@ -38,7 +38,7 @@ Entry shape: `{ "leaderboardModel": string, "displayName": string, "vendor": str
 
 ## App
 
-- The Model cell shows the mapping `displayName` in place of the leaderboard model id. It carries a tooltip with the mapped OpenRouter id, since display names omit revisions. It also leads with the vendor mark (see [vendor mark research](../product-spec/research/vendor-marks.md) and [ticket 01](tickets/01-vendor-marks.md)): a small inline SVG from `@lobehub/icons-static-svg`, `aria-label`led with the vendor name, monochrome marks following the theme via `currentColor`.
+- The Model cell shows the mapping `displayName` in place of the leaderboard model id. It also leads with the vendor mark (see [vendor mark research](../product-spec/research/vendor-marks.md) and [ticket 01](tickets/01-vendor-marks.md)): a small inline SVG from `@lobehub/icons-static-svg`, `aria-label`led with the vendor name, monochrome marks following the theme via `currentColor`.
 
 ## Acceptance criteria
 

@@ -953,7 +953,6 @@ describe("compareModel", () => {
     costPerSolvedTask: { api: 2, effective: 2 },
     outputTokens: 100,
     steps: 10,
-    openrouterId: "test/model",
     throughputTokPerSec: 50,
     averageTimeSeconds: 2,
   });

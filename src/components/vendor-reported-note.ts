@@ -1,7 +1,7 @@
-// The vendor-reported marker's tooltip and accessible name: whose claim the
+// A vendor-reported name's tooltip and accessible description: whose claim the
 // row is, where it was published, and under what method (ADR 0009).
 // Its own module, unlike the column module's private formatters (ADR 0007),
-// because a closed tooltip never reaches the static markup the cell tests read.
+// because a component module exports only components (fast refresh).
 
 import type { VendorReportedProvenance } from "@/data/leaderboard";
 
