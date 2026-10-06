@@ -25,7 +25,6 @@ type VendorReportedSnapshot = {
     source: string;               // e.g. "Claude Opus 5.5 System Card §8.3"
     sourceUrl: string;
     publishedAt: string;          // the vendor's publication date, YYYY-MM-DD
-    figureFrom: "text" | "chart";
     harness?: string;             // when stated, e.g. "mini-swe-agent"
     trials?: number;              // when stated
   }[];
@@ -60,7 +59,7 @@ A generated `openrouterId` falls back to `null` when the revision is ambiguous (
 
 ## App
 
-- **Marker.** A vendor-reported row carries a purple "vendor-reported" marker in its Model cell. It is an enhancement, so it gets the enhancement colour. The marker links to the source, in the same tab like the masthead's sources. Its tooltip, and its accessible name for readers who can't hover, give the source, its publication date, the harness and trials when stated, and "read from a chart" when `figureFrom` is `chart`. (Revised in ticket 03: a link inside a hover tooltip is unreachable on touch and by keyboard, so the marker itself is the link.)
+- **Marker.** A vendor-reported row carries a purple "vendor-reported" marker in its Model cell. It is an enhancement, so it gets the enhancement colour. The marker links to the source, in the same tab like the masthead's sources. Its tooltip, and its accessible name for readers who can't hover, give the source, its publication date, and the harness and trials when stated. (Ticket 07 dropped "read from a chart": the maintainer checks every chart reading, and for some entries only the cost came from a chart.) (Revised in ticket 03: a link inside a hover tooltip is unreachable on touch and by keyboard, so the marker itself is the link.)
 - **Row tint.** A vendor-reported row carries the derived columns' enhancement tint across its whole width, without stacking where it meets them; on hover the tint deepens to roughly double, in place of the grey hover other rows take. Vendor-reported models in the Models picker take the tint at the Subscriptions trigger's stronger pair (8%, 15% on focus; 12% and 20% dark), since the rows' pair barely reads as purple on the popover, and its vendor-reported toggle is purple when on. (Added after ticket 05.)
 - **Masthead.** The Sources line gains a fourth item, "vendor-reported scores", unlinked (each row cites its own source) and dated by the newest entry's `publishedAt`. The comment that every figure traces to the masthead's sources stays true.
 
@@ -73,9 +72,9 @@ Admitted under the rules above, from research on 2026-10-04:
 | Claude Opus 5.5 | max | 74.2% | text, system card §8.3 |
 | Claude Sonnet 5.5 | max | 71.0% | text, system card §8.3 |
 | Claude Fable 5.1 | max | 67.4% | text, system card §8.3 |
-| GPT-6.1 Sol | high | 75.2% | text, OpenAI Devs |
+| GPT-6.1 Sol | high | 75.2% | chart, launch post; also in text on OpenAI Developers' X account |
 | GPT-6.1 Sol | max, xhigh, medium, low | 71.9%, 71.9%, 73.0%, 64.4% | chart, launch post |
-| GPT-6 Sol / GPT-6 Luna | max | 68.8% / 66.6% | text, launch post |
+| GPT-6 Sol / GPT-6 Luna | max | 68.8% / 66.6% | text and chart, launch post |
 | GPT-6 Sol / GPT-6 Luna | xhigh, high, medium, low | see the data file | chart, launch post |
 | Grok 4.7 | high | 71.0% | x.ai news |
 | DeepSeek V4.1 Flash | max | 74.2% | HF model card |

@@ -32,7 +32,6 @@ function claim(model: string, effort: string): VendorReportedEntry {
     source: `${model} launch post`,
     sourceUrl: "https://example.com/launch",
     publishedAt: "2026-09-30",
-    figureFrom: "text",
   };
 }
 

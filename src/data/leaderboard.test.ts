@@ -408,7 +408,6 @@ const opusNineClaim: VendorReportedEntry = {
   source: "Claude Opus 9 System Card §8.3",
   sourceUrl: "https://www.anthropic.com/claude-opus-9",
   publishedAt: "2026-09-22",
-  figureFrom: "text",
 };
 const vendorReportedLeaderboard = (...entries: VendorReportedEntry[]) => {
   const vendorReported: VendorReportedSnapshot = { benchmark_version: "v1.1", entries };
@@ -460,7 +459,6 @@ describe("vendor-reported entries", () => {
   test("rows carry the claim's provenance on every access route", () => {
     const claim: VendorReportedEntry = {
       ...opusNineClaim,
-      figureFrom: "chart",
       harness: "mini-swe-agent",
       trials: 5,
     };
@@ -470,7 +468,6 @@ describe("vendor-reported entries", () => {
         source: "Claude Opus 9 System Card §8.3",
         sourceUrl: "https://www.anthropic.com/claude-opus-9",
         publishedAt: "2026-09-22",
-        figureFrom: "chart",
         harness: "mini-swe-agent",
         trials: 5,
       });
@@ -484,7 +481,6 @@ describe("vendor-reported entries", () => {
       source: "Claude Opus 9 System Card §8.3",
       sourceUrl: "https://www.anthropic.com/claude-opus-9",
       publishedAt: "2026-09-22",
-      figureFrom: "text",
     });
   });
 

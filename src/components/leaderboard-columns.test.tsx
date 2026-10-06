@@ -175,7 +175,6 @@ describe("vendor-reported marker", () => {
       source: "Claude Opus 9 System Card §8.3",
       sourceUrl: "https://www.anthropic.com/claude-opus-9",
       publishedAt: "2026-09-22",
-      figureFrom: "text",
     },
   });
 
@@ -194,13 +193,9 @@ describe("vendor-reported marker", () => {
 
   // The tooltip is hover-only, so the accessible name carries the same note.
   test("names itself with the citation for screen readers", () => {
-    const chart = {
-      ...claim,
-      provenance: { ...claim.provenance, figureFrom: "chart" as const },
-    };
-    expect(markup("model", chart)).toContain(
+    expect(markup("model", claim)).toContain(
       'aria-label="vendor-reported: Reported by the vendor, not run by DeepSWE. ' +
-        'Claude Opus 9 System Card §8.3, 2026-09-22. Read from a chart."',
+        'Claude Opus 9 System Card §8.3, 2026-09-22."',
     );
   });
 

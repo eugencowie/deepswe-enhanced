@@ -8,7 +8,6 @@ const claim: VendorReportedProvenance = {
   source: "Claude Opus 9 System Card §8.3",
   sourceUrl: "https://www.anthropic.com/claude-opus-9",
   publishedAt: "2026-09-22",
-  figureFrom: "text",
 };
 
 describe("vendorReportedNote", () => {
@@ -24,10 +23,5 @@ describe("vendorReportedNote", () => {
         "Harness: mini-swe-agent. 5 trials.",
     );
     expect(vendorReportedNote({ ...claim, trials: 1 })).toMatch(/ 1 trial\.$/);
-  });
-
-  // Any figure on the entry: the Pass@1 or a stated cost.
-  test("says when a figure was read from a chart", () => {
-    expect(vendorReportedNote({ ...claim, figureFrom: "chart" })).toMatch(/ Read from a chart\.$/);
   });
 });

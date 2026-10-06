@@ -84,7 +84,6 @@ const vendorEntry = {
   source: "Claude Opus 9 System Card §8.3",
   sourceUrl: "https://www.anthropic.com/claude-opus-9",
   publishedAt: "2026-09-22",
-  figureFrom: "text",
 };
 const vendorReported = (...entries: object[]) => ({ benchmark_version: "v1.1", entries });
 

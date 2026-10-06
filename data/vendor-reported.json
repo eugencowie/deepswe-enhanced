@@ -8,7 +8,6 @@
       "source": "Claude Opus 5.5 System Card §8.3",
       "sourceUrl": "https://www-cdn.anthropic.com/fc1b44717c85dc068bc6ba5024219938094694bd/Claude%20Opus%205.5%20System%20Card.pdf",
       "publishedAt": "2026-09-22",
-      "figureFrom": "text",
       "trials": 5
     },
     {
@@ -18,7 +17,6 @@
       "source": "Claude Sonnet 5.5 System Card §8.3",
       "sourceUrl": "https://www-cdn.anthropic.com/870c8f525702625d2c62fc6dd04c857e3250bec1/Claude%20Sonnet%205.5%20System%20Card.pdf",
       "publishedAt": "2026-09-28",
-      "figureFrom": "text",
       "trials": 5
     },
     {
@@ -28,7 +26,6 @@
       "source": "Claude Fable 5.1 & Claude Mythos 5.1 System Card §8.3",
       "sourceUrl": "https://www-cdn.anthropic.com/0339e6a7c5c7b87f5c07798616dc32c215d14235/Claude%20Fable%205.1%20&%20Claude%20Mythos%205.1%20System%20Card.pdf",
       "publishedAt": "2026-09-01",
-      "figureFrom": "text",
       "trials": 5
     },
     {
@@ -38,8 +35,7 @@
       "average_cost_usd": 0.65,
       "source": "Introducing GPT-6.1 Sol, DeepSWE chart",
       "sourceUrl": "https://openai.com/index/introducing-gpt-6-1-sol/#deepswe",
-      "publishedAt": "2026-09-29",
-      "figureFrom": "chart"
+      "publishedAt": "2026-09-29"
     },
     {
       "model": "gpt-6-1-sol",
@@ -48,8 +44,7 @@
       "average_cost_usd": 1.57,
       "source": "Introducing GPT-6.1 Sol, DeepSWE chart",
       "sourceUrl": "https://openai.com/index/introducing-gpt-6-1-sol/#deepswe",
-      "publishedAt": "2026-09-29",
-      "figureFrom": "chart"
+      "publishedAt": "2026-09-29"
     },
     {
       "model": "gpt-6-1-sol",
@@ -58,8 +53,7 @@
       "average_cost_usd": 0.79,
       "source": "Introducing GPT-6.1 Sol, DeepSWE chart",
       "sourceUrl": "https://openai.com/index/introducing-gpt-6-1-sol/#deepswe",
-      "publishedAt": "2026-09-29",
-      "figureFrom": "chart"
+      "publishedAt": "2026-09-29"
     },
     {
       "model": "gpt-6-1-sol",
@@ -68,8 +62,7 @@
       "average_cost_usd": 0.42,
       "source": "Introducing GPT-6.1 Sol, DeepSWE chart",
       "sourceUrl": "https://openai.com/index/introducing-gpt-6-1-sol/#deepswe",
-      "publishedAt": "2026-09-29",
-      "figureFrom": "chart"
+      "publishedAt": "2026-09-29"
     },
     {
       "model": "gpt-6-1-sol",
@@ -78,8 +71,7 @@
       "average_cost_usd": 0.17,
       "source": "Introducing GPT-6.1 Sol, DeepSWE chart",
       "sourceUrl": "https://openai.com/index/introducing-gpt-6-1-sol/#deepswe",
-      "publishedAt": "2026-09-29",
-      "figureFrom": "chart"
+      "publishedAt": "2026-09-29"
     },
     {
       "model": "gpt-6-sol",
@@ -88,8 +80,7 @@
       "average_cost_usd": 2.74,
       "source": "Introducing GPT-6 Sol and Luna, DeepSWE chart",
       "sourceUrl": "https://openai.com/index/introducing-gpt-6-sol-and-luna/#deepswe",
-      "publishedAt": "2026-09-22",
-      "figureFrom": "chart"
+      "publishedAt": "2026-09-22"
     },
     {
       "model": "gpt-6-sol",
@@ -98,8 +89,7 @@
       "average_cost_usd": 1.0,
       "source": "Introducing GPT-6 Sol and Luna, DeepSWE chart",
       "sourceUrl": "https://openai.com/index/introducing-gpt-6-sol-and-luna/#deepswe",
-      "publishedAt": "2026-09-22",
-      "figureFrom": "chart"
+      "publishedAt": "2026-09-22"
     },
     {
       "model": "gpt-6-sol",
@@ -108,8 +98,7 @@
       "average_cost_usd": 0.64,
       "source": "Introducing GPT-6 Sol and Luna, DeepSWE chart",
       "sourceUrl": "https://openai.com/index/introducing-gpt-6-sol-and-luna/#deepswe",
-      "publishedAt": "2026-09-22",
-      "figureFrom": "chart"
+      "publishedAt": "2026-09-22"
     },
     {
       "model": "gpt-6-sol",
@@ -118,8 +107,7 @@
       "average_cost_usd": 0.38,
       "source": "Introducing GPT-6 Sol and Luna, DeepSWE chart",
       "sourceUrl": "https://openai.com/index/introducing-gpt-6-sol-and-luna/#deepswe",
-      "publishedAt": "2026-09-22",
-      "figureFrom": "chart"
+      "publishedAt": "2026-09-22"
     },
     {
       "model": "gpt-6-sol",
@@ -128,8 +116,7 @@
       "average_cost_usd": 0.16,
       "source": "Introducing GPT-6 Sol and Luna, DeepSWE chart",
       "sourceUrl": "https://openai.com/index/introducing-gpt-6-sol-and-luna/#deepswe",
-      "publishedAt": "2026-09-22",
-      "figureFrom": "chart"
+      "publishedAt": "2026-09-22"
     },
     {
       "model": "gpt-6-luna",
@@ -138,8 +125,7 @@
       "average_cost_usd": 0.22,
       "source": "Introducing GPT-6 Sol and Luna, DeepSWE chart",
       "sourceUrl": "https://openai.com/index/introducing-gpt-6-sol-and-luna/#deepswe",
-      "publishedAt": "2026-09-22",
-      "figureFrom": "chart"
+      "publishedAt": "2026-09-22"
     },
     {
       "model": "gpt-6-luna",
@@ -148,8 +134,7 @@
       "average_cost_usd": 0.11,
       "source": "Introducing GPT-6 Sol and Luna, DeepSWE chart",
       "sourceUrl": "https://openai.com/index/introducing-gpt-6-sol-and-luna/#deepswe",
-      "publishedAt": "2026-09-22",
-      "figureFrom": "chart"
+      "publishedAt": "2026-09-22"
     },
     {
       "model": "gpt-6-luna",
@@ -158,8 +143,7 @@
       "average_cost_usd": 0.084,
       "source": "Introducing GPT-6 Sol and Luna, DeepSWE chart",
       "sourceUrl": "https://openai.com/index/introducing-gpt-6-sol-and-luna/#deepswe",
-      "publishedAt": "2026-09-22",
-      "figureFrom": "chart"
+      "publishedAt": "2026-09-22"
     },
     {
       "model": "gpt-6-luna",
@@ -168,8 +152,7 @@
       "average_cost_usd": 0.052,
       "source": "Introducing GPT-6 Sol and Luna, DeepSWE chart",
       "sourceUrl": "https://openai.com/index/introducing-gpt-6-sol-and-luna/#deepswe",
-      "publishedAt": "2026-09-22",
-      "figureFrom": "chart"
+      "publishedAt": "2026-09-22"
     },
     {
       "model": "gpt-6-luna",
@@ -178,8 +161,7 @@
       "average_cost_usd": 0.0057,
       "source": "Introducing GPT-6 Sol and Luna, DeepSWE chart",
       "sourceUrl": "https://openai.com/index/introducing-gpt-6-sol-and-luna/#deepswe",
-      "publishedAt": "2026-09-22",
-      "figureFrom": "chart"
+      "publishedAt": "2026-09-22"
     },
     {
       "model": "grok-4-7",
@@ -187,8 +169,7 @@
       "pass_at_1": 0.71,
       "source": "Grok 4.7 announcement, benchmark table",
       "sourceUrl": "https://x.ai/news/grok-4-7",
-      "publishedAt": "2026-09-21",
-      "figureFrom": "text"
+      "publishedAt": "2026-09-21"
     },
     {
       "model": "deepseek-v4-1-flash",
@@ -197,7 +178,6 @@
       "source": "DeepSeek-V4.1-Flash model card, Instruct Model results",
       "sourceUrl": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash",
       "publishedAt": "2026-09-10",
-      "figureFrom": "text",
       "harness": "mini-swe-agent",
       "trials": 8
     },
@@ -207,8 +187,7 @@
       "pass_at_1": 0.754,
       "source": "Muse Spark model page, Muse Spark 1.3 (max) column",
       "sourceUrl": "https://dev.meta.ai/models/muse-spark/",
-      "publishedAt": "2026-09-02",
-      "figureFrom": "text"
+      "publishedAt": "2026-09-02"
     },
     {
       "model": "gemini-4-argon",
@@ -216,8 +195,7 @@
       "pass_at_1": 0.779,
       "source": "Gemini 4 Argon announcement",
       "sourceUrl": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/",
-      "publishedAt": "2026-09-30",
-      "figureFrom": "text"
+      "publishedAt": "2026-09-30"
     }
   ]
 }
