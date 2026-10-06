@@ -102,7 +102,7 @@ describe("vendorReportedSnapshotSchema", () => {
     expect(() => vendorReportedSnapshotSchema.parse(tampered)).toThrowError(/colour/);
   });
 
-  // The masthead dates the newest claim by sorting these as strings.
+  // The popover shows the date as written, so it must read as one.
   test("rejects a publication date that isn't an ISO date", () => {
     const tampered = vendorReported({ ...vendorEntry, publishedAt: "22 September 2026" });
     expect(() => vendorReportedSnapshotSchema.parse(tampered)).toThrowError(/publishedAt/);

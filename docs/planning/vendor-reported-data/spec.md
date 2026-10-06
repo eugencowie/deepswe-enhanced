@@ -12,7 +12,7 @@ A snapshot of vendor claims, written by hand through ordinary PRs; the Refresh P
 
 ```ts
 // No file-level source/sourceUrl pair: no single page covers the file, and
-// the masthead item is unlinked.
+// the masthead doesn't list it.
 type VendorReportedSnapshot = {
   benchmark_version: "v1.1";      // pinned like the DeepSWE snapshot; moving the pin clears or replaces this file
   entries: {
@@ -61,7 +61,7 @@ A generated `openrouterId` falls back to `null` when the revision is ambiguous (
 
 - **Marker.** A vendor-reported row's model name is its marker, on a row in the enhancement tint: underlined dotted in grey, as the column headers mark their tooltips, and selectable with the text cursor like every other model name. It opens a popover on hover, tap or Enter, in three lines: a "Vendor reported" heading, which names the dialog; the source by name, linked in the same tab like the masthead's sources; and its publication date, in muted text. The harness and trials stay in the data but aren't shown. Enter and tap move focus onto the link, so the source is reachable by mouse, touch and keyboard alike. DeepSWE rows' names are plain text. (Ticket 03 made a badge the link, because a link inside a hover tooltip is unreachable on touch and by keyboard. Ticket 07 replaced the badge with the name and the tooltip with a popover, which opens on tap and takes focus, and dropped "read from a chart", since the maintainer checks every chart reading and for some entries only the cost came from a chart.)
 - **Row tint.** A vendor-reported row carries the derived columns' enhancement tint across its whole width, without stacking where it meets them; on hover the tint deepens to roughly double, in place of the grey hover other rows take. Vendor-reported models in the Models picker take the tint at the Subscriptions trigger's stronger pair (8%, 15% on focus; 12% and 20% dark), since the rows' pair barely reads as purple on the popover, and its vendor-reported toggle is purple when on. (Added after ticket 05.)
-- **Masthead.** The Sources line gains a fourth item, "vendor-reported scores", unlinked (each row cites its own source) and dated by the newest entry's `publishedAt`. The comment that every figure traces to the masthead's sources stays true.
+- **Masthead.** The Sources line doesn't list the vendor-reported scores: each row's name cites its own source. The comment that every figure traces to the masthead's sources excepts them. (Ticket 03 added an unlinked "vendor-reported scores" item dated by the newest entry; the maintainer dropped it once the popover dated each entry.)
 
 ## Initial entries
 

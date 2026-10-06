@@ -61,3 +61,5 @@ The header and cell tints stay applied separately; the refresh still validates t
 **2026-10-06 — The popover replaces the link**, after the maintainer tried a prototype on a phone. Base UI's tooltip opens only on hover and keyboard focus, never on tap, and can't hold a reachable link; its popover with `openOnHover` does both. `shadcn add popover` vendored it. `vendorReportedNote` became `vendorReportedMethod`, the popover's harness-and-trials line, and the hidden `aria-describedby` copy went: the citation is now in the popover itself. Enter and tap focus the source link directly, which the e2e test relies on.
 
 **2026-10-06 — The popover's wording settles** on three lines: a "Vendor reported" heading, the linked source, and its date in the muted style the harness-and-trials line had. That line goes, and `vendorReportedMethod` with it; the entries keep `harness` and `trials` as a record of the source. The e2e test also checks each popover's date.
+
+**2026-10-06 — The masthead drops "vendor-reported scores"**, at the maintainer's request: each row's popover now dates its own source, so the item said nothing the table doesn't. Its e2e test went with it.
