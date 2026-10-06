@@ -97,3 +97,4 @@ Gemini 4 Argon (77.9% at its "highest thinking settings") is admitted at `high`.
 - [04: Refresh supersedes vendor-reported models](tickets/04-refresh-supersession.md)
 - [05: Initial vendor-reported entries](tickets/05-initial-entries.md)
 - [06: Checklist for adding a vendor-reported entry](tickets/06-adding-entries-checklist.md)
+- [07: Review follow-ups](tickets/07-review-follow-ups.md)
