@@ -1,4 +1,4 @@
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "@/components/ui/popover";
 import type { VendorReportedProvenance } from "@/data/leaderboard";
 
 // A vendor-reported row's model name, which is its marker (ADR 0009): a
@@ -32,7 +32,7 @@ export function VendorReportedName({
         {displayName}
       </PopoverTrigger>
       <PopoverContent side="top" className="w-auto max-w-xs gap-1.5 rounded-2xl p-3 text-xs">
-        <p>Vendor reported.</p>
+        <PopoverTitle className="text-sm">Vendor reported</PopoverTitle>
         <p>
           <a
             href={provenance.sourceUrl}

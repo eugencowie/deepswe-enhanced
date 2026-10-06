@@ -52,8 +52,8 @@ test("every vendor-reported row's name opens a popover linking its source", asyn
     const cell = await name.locator("xpath=ancestor::td").innerText();
     await name.focus();
     await page.keyboard.press("Enter");
-    const popover = page.getByRole("dialog");
-    await expect(popover).toContainText("Vendor reported.");
+    const popover = page.getByRole("dialog", { name: "Vendor reported" });
+    await expect(popover).toBeVisible();
     const link = popover.getByRole("link");
     await expect(link).toBeFocused();
     shown.push({
