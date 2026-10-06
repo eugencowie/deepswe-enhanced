@@ -1,0 +1,34 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Eugén Cowie <eugencowie@users.noreply.github.com>
+Date: Wed, 12 Aug 2026 21:00:00 +0100
+Subject: [PATCH] Strip "use client" from every file when rsc is false
+
+Regenerating components with `shadcn add --overwrite ...` produced a
+different diff every time. "use client" directives were removed from
+some files but left in others, and which files flip changed from run
+to run, causing constant churn.
+
+The transformer that removed "use client" in non-RSC projects tested
+each file against a module-level regex declared with the global flag:
+
+    const directiveRegex = /^["']use client["']$/g
+
+A global regex keeps its `lastIndex` between `.test()` calls, so after
+each match the next call starts mid-string and fails. The directive is
+stripped from every other file in a batch, depending on the processing
+order.
+
+This fix drops the /g flag so the regex is stateless and the directive
+is stripped from every file on every run.
+---
+ dist/chunk-LPPCIX2G.js | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/dist/chunk-LPPCIX2G.js b/dist/chunk-LPPCIX2G.js
+--- a/dist/chunk-LPPCIX2G.js
++++ b/dist/chunk-LPPCIX2G.js
+@@ -1 +1 @@
+-import {SyntaxKind}from'ts-morph';var s=/^["']use client["']$/g,o=async({sourceFile:t,config:e})=>{if(e.rsc)return t;let r=t.getFirstChildByKind(SyntaxKind.ExpressionStatement);return r&&s.test(r.getText())&&r.remove(),t};export{o as a};
+\ No newline at end of file
++import {SyntaxKind}from'ts-morph';var s=/^["']use client["']$/,o=async({sourceFile:t,config:e})=>{if(e.rsc)return t;let r=t.getFirstChildByKind(SyntaxKind.ExpressionStatement);return r&&s.test(r.getText())&&r.remove(),t};export{o as a};
+\ No newline at end of file
