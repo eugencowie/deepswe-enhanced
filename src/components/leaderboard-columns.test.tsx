@@ -167,8 +167,10 @@ describe("Model cell", () => {
   });
 });
 
-// The marker is the name itself: a link to the vendor's source, its note as
-// the tooltip and the accessible description (vendor-reported-data ticket 07).
+// The marker is the name itself: a button opening a popover that cites the
+// source and links it, on hover, tap or Enter (vendor-reported-data ticket
+// 07). The popover is portalled, so these tests see only the trigger; the
+// e2e tests open it.
 describe("vendor-reported name", () => {
   const claim = row({
     effort: "max",
@@ -179,39 +181,29 @@ describe("vendor-reported name", () => {
       publishedAt: "2026-09-22",
     },
   });
-  const note =
-    "Reported by the vendor, not run by DeepSWE. Claude Opus 9 System Card §8.3, 2026-09-22.";
-  const link = (r: LeaderboardRow) => markup("model", r).match(/<a [^>]*>([^<]*)<\/a>/);
+  const trigger = (r: LeaderboardRow) =>
+    markup("model", r).match(/<button [^>]*>([^<]*)<\/button>/);
 
-  test("links the display name to the vendor's source in the same tab", () => {
-    const [anchor, name] = link(claim)!;
+  test("is a button opening the source's popover", () => {
+    const [button, name] = trigger(claim)!;
     expect(name).toBe("Test Model");
-    expect(anchor).toContain('href="https://www.anthropic.com/claude-opus-9"');
-    expect(anchor).not.toContain("target=");
-    expect(anchor).toContain('data-slot="tooltip-trigger"');
+    expect(button).toContain('type="button"');
+    expect(button).toContain('data-slot="popover-trigger"');
   });
 
   test("underlines the name dashed in the enhancement colour", () => {
-    const classes = link(claim)![0]
+    const classes = trigger(claim)![0]
       .match(/class="([^"]*)"/)![1]
       .split(" ");
     expect(classes).toEqual(expect.arrayContaining(["decoration-dashed", "decoration-brand"]));
   });
 
-  // The tooltip is hover-only; the description reaches screen readers, and
-  // the hidden copy stays out of the cell's name and copied text.
-  test("describes itself with the note, from a hidden copy", () => {
-    const html = markup("model", claim);
-    const id = link(claim)![0].match(/aria-describedby="([^"]+)"/)?.[1];
-    expect(id).toBeDefined();
-    expect(html).toContain(`<span id="${id}" hidden="">${note}</span>`);
-  });
-
-  test("leaves no badge: the cell reads as name, effort and access tag", () => {
+  // The link lives in the popover, where keyboard focus can reach it.
+  test("leaves no link or badge in the cell: name, effort and access tag", () => {
     const tagged = { ...claim, accessTag: { label: "Pro", family: "claude" as const } };
-    expect(markup("model", tagged).replace(/<span [^>]*hidden[^>]*>.*?<\/span>/, "")).toMatch(
-      /Test Model<\/a> <span[^>]*>max<\/span><span[^>]*>Pro<\/span>$/,
-    );
+    const html = markup("model", tagged);
+    expect(html).not.toContain("<a ");
+    expect(html).toMatch(/Test Model<\/button> <span[^>]*>max<\/span><span[^>]*>Pro<\/span>$/);
   });
 });
 

@@ -1,27 +1,17 @@
 import { describe, expect, test } from "vite-plus/test";
 
-import type { VendorReportedProvenance } from "@/data/leaderboard";
-import { vendorReportedNote } from "./vendor-reported-note.ts";
+import { vendorReportedMethod } from "./vendor-reported-note.ts";
 
-const claim: VendorReportedProvenance = {
-  kind: "vendor-reported",
-  source: "Claude Opus 9 System Card §8.3",
-  sourceUrl: "https://www.anthropic.com/claude-opus-9",
-  publishedAt: "2026-09-22",
-};
-
-describe("vendorReportedNote", () => {
-  test("cites the source and its date, and says DeepSWE didn't run it", () => {
-    expect(vendorReportedNote(claim)).toBe(
-      "Reported by the vendor, not run by DeepSWE. Claude Opus 9 System Card §8.3, 2026-09-22.",
+describe("vendorReportedMethod", () => {
+  test("states the harness and trials when the vendor does", () => {
+    expect(vendorReportedMethod({ harness: "mini-swe-agent", trials: 5 })).toBe(
+      "Harness: mini-swe-agent. 5 trials.",
     );
+    expect(vendorReportedMethod({ harness: "mini-swe-agent" })).toBe("Harness: mini-swe-agent.");
+    expect(vendorReportedMethod({ trials: 1 })).toBe("1 trial.");
   });
 
-  test("adds the harness and trials when stated", () => {
-    expect(vendorReportedNote({ ...claim, harness: "mini-swe-agent", trials: 5 })).toBe(
-      "Reported by the vendor, not run by DeepSWE. Claude Opus 9 System Card §8.3, 2026-09-22. " +
-        "Harness: mini-swe-agent. 5 trials.",
-    );
-    expect(vendorReportedNote({ ...claim, trials: 1 })).toMatch(/ 1 trial\.$/);
+  test("is absent when the vendor states neither", () => {
+    expect(vendorReportedMethod({})).toBeUndefined();
   });
 });

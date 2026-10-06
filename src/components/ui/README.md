@@ -8,7 +8,7 @@ Regenerate the currently installed components with:
 
 ```bash
 vp exec shadcn add --overwrite \
-  badge button dropdown-menu switch table tooltip
+  badge button dropdown-menu popover switch table tooltip
 vp check --fix
 ```
 

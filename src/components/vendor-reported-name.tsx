@@ -1,14 +1,13 @@
-import { useId } from "react";
-
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { vendorReportedNote } from "@/components/vendor-reported-note";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { vendorReportedMethod } from "@/components/vendor-reported-note";
 import type { VendorReportedProvenance } from "@/data/leaderboard";
 
-// A vendor-reported row's model name, which is its marker (ADR 0009): a link
-// to the vendor's source, in the same tab like the masthead's sources, with a
-// dashed underline in the enhancement colour. The note is the tooltip and,
-// for readers who can't hover, the link's description, from a hidden copy
-// that stays out of the cell's name and copied text.
+// A vendor-reported row's model name, which is its marker (ADR 0009): a
+// button underlined dashed in the enhancement colour, opening a popover that
+// cites the source and links it, in the same tab like the masthead's sources.
+// A popover rather than a tooltip, because it opens on tap as well as hover,
+// and Enter moves keyboard focus into it, so the link is reachable everywhere
+// (vendor-reported-data ticket 07).
 export function VendorReportedName({
   displayName,
   provenance,
@@ -16,27 +15,34 @@ export function VendorReportedName({
   displayName: string;
   provenance: VendorReportedProvenance;
 }) {
-  const noteId = useId();
-  const note = vendorReportedNote(provenance);
+  const method = vendorReportedMethod(provenance);
   return (
-    <>
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <a
-              href={provenance.sourceUrl}
-              aria-describedby={noteId}
-              className="underline decoration-brand decoration-dashed underline-offset-4 hover:text-brand hover:decoration-solid"
-            />
-          }
-        >
-          {displayName}
-        </TooltipTrigger>
-        <TooltipContent>{note}</TooltipContent>
-      </Tooltip>
-      <span id={noteId} hidden>
-        {note}
-      </span>
-    </>
+    <Popover>
+      <PopoverTrigger
+        openOnHover
+        delay={100}
+        render={
+          <button
+            type="button"
+            className="cursor-pointer underline decoration-brand decoration-dashed underline-offset-4 hover:text-brand hover:decoration-solid data-popup-open:text-brand data-popup-open:decoration-solid"
+          />
+        }
+      >
+        {displayName}
+      </PopoverTrigger>
+      <PopoverContent side="top" className="w-auto max-w-xs gap-1.5 rounded-2xl p-3 text-xs">
+        <p>Reported by the vendor, not run by DeepSWE.</p>
+        <p>
+          <a
+            href={provenance.sourceUrl}
+            className="text-brand underline underline-offset-4 hover:decoration-2"
+          >
+            {provenance.source}
+          </a>
+          , {provenance.publishedAt}.
+        </p>
+        {method !== undefined && <p className="text-muted-foreground">{method}</p>}
+      </PopoverContent>
+    </Popover>
   );
 }

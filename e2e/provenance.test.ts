@@ -23,10 +23,11 @@ test("the masthead lists vendor-reported scores exactly when there are some", as
   }
 });
 
-// Every vendor-reported row's name links to its entry's source and is
-// described by its citation (vendor-reported-data ticket 07). Expected rows come from the data
-// file, matched by name and effort, so the test names no live model.
-test("every vendor-reported row links its name to its source", async ({ page }) => {
+// Every vendor-reported row's name opens a popover citing its entry's source
+// and linking it (vendor-reported-data ticket 07). Opened by keyboard: Enter
+// moves focus onto the link. Expected rows come from the data file,
+// matched by name and effort, so the test names no live model.
+test("every vendor-reported row's name opens a popover linking its source", async ({ page }) => {
   const { entries } = vendorReportedSnapshot;
   test.skip(entries.length === 0, "no vendor-reported entries");
   const { modelOptions } = createLeaderboard(leaderboardSources);
@@ -42,25 +43,25 @@ test("every vendor-reported row links its name to its source", async ({ page }) 
 
   await page.goto("./");
   await page.getByRole("button", { name: "All effort levels" }).click();
-  const links = page.getByRole("table").locator("tbody a");
-  await expect(links).toHaveCount(entries.length);
+  const names = page.getByRole("table").locator("tbody button");
+  await expect(names).toHaveCount(entries.length);
 
-  const shown = await links.evaluateAll((anchors) =>
-    anchors.map((a) => ({
-      cell: (a.closest("td") as HTMLElement).innerText.trim(),
-      href: a.getAttribute("href"),
-      description: document.getElementById(a.getAttribute("aria-describedby") ?? "")?.textContent,
-    })),
-  );
-  expect(
-    shown
-      .map(({ cell, href }) => ({ cell, href }))
-      .toSorted((a, b) => a.cell.localeCompare(b.cell)),
-  ).toEqual(expected.map(({ cell, href }) => ({ cell, href })));
-  for (const { cell, description } of shown) {
-    const { source } = expected.find((e) => e.cell === cell)!;
-    expect(description, cell).toContain(source);
+  const shown = [];
+  for (const name of await names.all()) {
+    const cell = await name.locator("xpath=ancestor::td").innerText();
+    await name.focus();
+    await page.keyboard.press("Enter");
+    const popover = page.getByRole("dialog");
+    await expect(popover).toContainText("Reported by the vendor, not run by DeepSWE.");
+    const link = popover.getByRole("link");
+    await expect(link).toBeFocused();
+    shown.push({
+      cell: cell.trim(),
+      href: await link.getAttribute("href"),
+      source: await link.innerText(),
+    });
+    await page.keyboard.press("Escape");
+    await expect(popover).toBeHidden();
   }
-  // The description reaches the accessibility tree, not just the markup.
-  await expect(links.first()).toHaveAccessibleDescription(/^Reported by the vendor/);
+  expect(shown.toSorted((a, b) => a.cell.localeCompare(b.cell))).toEqual(expected);
 });

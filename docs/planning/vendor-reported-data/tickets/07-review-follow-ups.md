@@ -11,10 +11,9 @@ Follow-ups from the review of [#95](https://github.com/eugencowie/deepswe-enhanc
 ### The model name replaces the marker
 
 - **No badge.** The purple "vendor-reported" badge goes. A vendor-reported row is marked by its row tint and its model name.
-- **The name links to the source**, in the same tab, so the source stays reachable by keyboard and touch (the reason ticket 03 made the marker a link). DeepSWE rows' names stay plain text.
-- **Tooltip.** On hover or focus the name shows the vendor-reported note.
-- **Look.** Normal text colour with a dashed purple underline; on hover the text turns purple and the underline goes solid.
-- **Accessible name.** The link's name stays the display name, and the note is its description via `aria-describedby`. Fallback, if that clashes with the tooltip's own wiring: an `aria-label` of "{name}, vendor-reported: {note}".
+- **The name opens a popover** (revised after a prototype; first built as a link to the source with the note as a tooltip). The popover, shadcn's on Base UI with `openOnHover`, opens on hover, tap or Enter. It says the vendor reported the figures, links the source by name in the same tab with its date, and states the harness and trials when stated. Tap and Enter move focus onto the link, so the source is reachable by mouse, touch and keyboard (the reason ticket 03 made the marker a link); a tooltip can't open on tap or take focus. DeepSWE rows' names stay plain text.
+- **Look.** Normal text colour with a dashed purple underline; on hover or while open the text turns purple and the underline goes solid.
+- **Accessible name.** The button's name is the display name; the popover is a dialog holding the citation and the link.
 - **No OpenRouter-id tooltips.** Every model name loses its OpenRouter-id tooltip, which served no purpose, and `LeaderboardRow` loses `openrouterId`. Throughput still reads the id from the mapping.
 - **Open before merging:** the name's dashed purple underline and the column headers' dotted grey one get aligned, either dropping the purple or adopting it for the headers.
 
@@ -40,10 +39,10 @@ The header and cell tints stay applied separately; the refresh still validates t
 
 ## Acceptance criteria
 
-- [x] No vendor-reported badge; a vendor-reported model's name is a same-tab link to its `sourceUrl`, with a dashed purple underline, and the note as its tooltip and accessible description
+- [x] No vendor-reported badge; a vendor-reported model's name, underlined dashed in purple, opens a popover on hover, tap or Enter that links its `sourceUrl` in the same tab
 - [x] No model name has an OpenRouter-id tooltip, and `LeaderboardRow` has no `openrouterId`
 - [x] `figureFrom` is gone from the schema, data, note, tests, spec and checklist; the checklist still has the chart sign-off
-- [x] An e2e test checks, in the All view, one source link per vendor-reported entry, each to its `sourceUrl` and described with its `source`, from the data file; it skips when the file is empty
+- [x] An e2e test checks, in the All view, one name per vendor-reported entry, each opening by keyboard a popover whose focused link goes to its `sourceUrl` and names its `source`, from the data file; it skips when the file is empty
 - [x] The toggle's e2e test names no live model and skips when the file is empty
 - [x] `planDeepsweRefresh` exists, the script calls it, and a unit test shows a refresh publishing a vendor-reported model yields files that pass the load-time checks
 - [x] `summarizeRefresh` takes the supersession result; `normalize` has no default for vendor-reported models
@@ -59,4 +58,6 @@ The header and cell tints stay applied separately; the refresh still validates t
 - **The name marker** lives in `src/components/vendor-reported-name.tsx`, because a component module may export only components (fast refresh). The note's hidden copy carries the `hidden` attribute, so it stays out of the cell's accessible name and copied text, while `aria-describedby` still reads it. Playwright confirms the accessible description; Base UI's tooltip adds no description of its own, so the fallback wasn't needed.
 - **The plan** lives in `scripts/deepswe-refresh-plan.ts`. Its tests cover both kinds of supersession and a no-op run, and each shows the files pass the load-time checks. A fourth test shows a generated entry colliding with an ordinary one fails before anything is written. The shell still fetches the OpenRouter listings only when a model is unmapped. A live `refresh:deepswe` run through the plan wrote nothing, since upstream hadn't changed.
 - **The spec's initial-entries table** now matches the data: GPT-6.1 Sol high cites the launch post, and GPT-6 Sol and Luna max read "text and chart".
+
+**2026-10-06 — The popover replaces the link**, after the maintainer tried a prototype on a phone. Base UI's tooltip opens only on hover and keyboard focus, never on tap, and can't hold a reachable link; its popover with `openOnHover` does both. `shadcn add popover` vendored it. `vendorReportedNote` became `vendorReportedMethod`, the popover's harness-and-trials line, and the hidden `aria-describedby` copy went: the citation is now in the popover itself. Enter and tap focus the source link directly, which the e2e test relies on.
 
