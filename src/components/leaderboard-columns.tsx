@@ -26,8 +26,8 @@ export type ColumnMeta = {
   // small muted "est" and the tooltip says what is left out.
   estimate?: true;
   // Derived columns are computed by this project rather than reported by the
-  // DeepSWE leaderboard: an enhancement, so they carry the brand tint and a
-  // rule sets them apart from the source columns.
+  // DeepSWE leaderboard: an enhancement, so they carry the brand tint, which
+  // sets them apart from the source columns.
   derived?: true;
   // Figures are right-aligned; neither TanStack nor shadcn aligns by type.
   align?: "end";

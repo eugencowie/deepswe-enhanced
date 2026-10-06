@@ -24,22 +24,14 @@ const tint = "bg-brand/5 dark:bg-brand/8";
 // look stacked on itself, in place of the grey hover other rows take.
 const vendorReportedRowTint = cn(tint, "hover:bg-brand/10 dark:hover:bg-brand/15");
 
-// Classes shared by a column's header and cells, keyed by column id: alignment
-// and the rule that marks where the derived block starts, which needs the
-// previous column too. The derived tint is applied per cell, since a
-// vendor-reported row already carries it. Column meta and order are static,
-// so this is computed once.
+// Classes shared by a column's header and cells, keyed by column id: the
+// alignment. The derived tint is applied per cell, since a vendor-reported row
+// already carries it; the tint alone sets the derived block apart. Column meta
+// is static, so this is computed once.
 const columnClasses = Object.fromEntries(
-  leaderboardTableOptions.columns.map((column, index, columns) => {
+  leaderboardTableOptions.columns.map((column) => {
     const meta: ColumnMeta | undefined = column.meta;
-    const previous: ColumnMeta | undefined = columns[index - 1]?.meta;
-    return [
-      column.id,
-      cn(
-        meta?.align === "end" && "text-right",
-        meta?.derived && !previous?.derived && "border-l border-brand/30",
-      ),
-    ];
+    return [column.id, cn(meta?.align === "end" && "text-right")];
   }),
 );
 
