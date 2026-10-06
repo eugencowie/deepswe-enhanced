@@ -12,7 +12,7 @@ Follow-ups from the review of [#95](https://github.com/eugencowie/deepswe-enhanc
 
 - **No badge.** The purple "vendor-reported" badge goes. A vendor-reported row is marked by its row tint and its model name.
 - **The name opens a popover** (revised after a prototype; first built as a link to the source with the note as a tooltip). The popover, shadcn's on Base UI with `openOnHover`, opens on hover, tap or Enter. It says the vendor reported the figures, links the source by name in the same tab with its date, and states the harness and trials when stated. Tap and Enter move focus onto the link, so the source is reachable by mouse, touch and keyboard (the reason ticket 03 made the marker a link); a tooltip can't open on tap or take focus. DeepSWE rows' names stay plain text.
-- **Look.** Normal text colour with a dotted grey underline, as the column headers mark their tooltips, and the ordinary cursor rather than a pointer. (First built dashed and purple, turning purple on hover; the maintainer chose the headers' style.)
+- **Look.** Normal text colour with a dotted grey underline, as the column headers mark their tooltips, and the ordinary cursor rather than a pointer. The trigger is a span with the button role (Base UI's `nativeButton={false}`), so the name selects and takes the text cursor like every other model name. (First built dashed and purple, turning purple on hover; the maintainer chose the headers' style.)
 - **Accessible name.** The button's name is the display name; the popover is a dialog holding the citation and the link.
 - **No OpenRouter-id tooltips.** Every model name loses its OpenRouter-id tooltip, which served no purpose, and `LeaderboardRow` loses `openrouterId`. Throughput still reads the id from the mapping.
 

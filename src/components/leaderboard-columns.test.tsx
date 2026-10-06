@@ -167,7 +167,7 @@ describe("Model cell", () => {
   });
 });
 
-// The marker is the name itself: a button opening a popover that cites the
+// The marker is the name itself: a trigger opening a popover that cites the
 // source and links it, on hover, tap or Enter (vendor-reported-data ticket
 // 07). The popover is portalled, so these tests see only the trigger; the
 // e2e tests open it.
@@ -182,12 +182,15 @@ describe("vendor-reported name", () => {
     },
   });
   const trigger = (r: LeaderboardRow) =>
-    markup("model", r).match(/<button [^>]*>([^<]*)<\/button>/);
+    markup("model", r).match(/<span [^>]*data-slot="popover-trigger"[^>]*>([^<]*)<\/span>/);
 
-  test("is a button opening the source's popover", () => {
+  // A span with the button role, not a button, so the name selects like
+  // every other model name.
+  test("is a button-role span opening the source's popover", () => {
     const [button, name] = trigger(claim)!;
     expect(name).toBe("Test Model");
-    expect(button).toContain('type="button"');
+    expect(button).toContain('role="button"');
+    expect(button).toContain('tabindex="0"');
     expect(button).toContain('data-slot="popover-trigger"');
   });
 
@@ -207,7 +210,7 @@ describe("vendor-reported name", () => {
     const tagged = { ...claim, accessTag: { label: "Pro", family: "claude" as const } };
     const html = markup("model", tagged);
     expect(html).not.toContain("<a ");
-    expect(html).toMatch(/Test Model<\/button> <span[^>]*>max<\/span><span[^>]*>Pro<\/span>$/);
+    expect(html).toMatch(/Test Model<\/span> <span[^>]*>max<\/span><span[^>]*>Pro<\/span>$/);
   });
 });
 

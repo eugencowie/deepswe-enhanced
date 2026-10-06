@@ -43,7 +43,7 @@ test("every vendor-reported row's name opens a popover linking its source", asyn
 
   await page.goto("./");
   await page.getByRole("button", { name: "All effort levels" }).click();
-  const names = page.getByRole("table").locator("tbody button");
+  const names = page.getByRole("table").locator("tbody").getByRole("button");
   await expect(names).toHaveCount(entries.length);
 
   const shown = [];

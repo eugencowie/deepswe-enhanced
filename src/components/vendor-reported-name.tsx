@@ -22,11 +22,12 @@ export function VendorReportedName({
       <PopoverTrigger
         openOnHover
         delay={100}
+        // A span, not a button, so the name selects and takes the text
+        // cursor like every other model name; Base UI gives it the button
+        // role, focus and key handling.
+        nativeButton={false}
         render={
-          <button
-            type="button"
-            className="underline decoration-muted-foreground decoration-dotted underline-offset-4"
-          />
+          <span className="underline decoration-muted-foreground decoration-dotted underline-offset-4" />
         }
       >
         {displayName}
