@@ -52,10 +52,10 @@ A generated `openrouterId` falls back to `null` when the revision is ambiguous (
 
 ## Leaderboard
 
-- `LeaderboardSources` gains `vendorReported`, and `createLeaderboard` derives rows from both sources ([ADR 0005](../../architecture/0005-leaderboard-module-owns-tier-join.md)). Each row records its provenance: DeepSWE, or the vendor claim with its citation, figure origin, harness and trials.
+- `LeaderboardSources` gains `vendorReported`, and `createLeaderboard` derives rows from both sources ([ADR 0005](../../architecture/0005-leaderboard-module-owns-tier-join.md)). Each row records its provenance: DeepSWE, or the vendor claim with its citation: source, URL and publication date. The entry's harness and trials stay in the data file, since nothing shows them ([ticket 08](tickets/08-second-review-follow-ups.md)); figure origin went in ticket 07.
 - `LeaderboardRow.cost` becomes `CostPair | undefined`, like `costPerSolvedTask`. Missing cost, output tokens or steps leave the matching cells blank. Cost per solved task and average time are blank too, while throughput is still filled, since it comes from OpenRouter. On tier rows the effective cost is blank as well, and the row still exists, so the Subscriptions picker still never changes row count.
 - Blank cells sort last ([ADR 0008](../../architecture/0008-tanstack-owns-sorting.md)). The sort is otherwise unchanged: vendor figures mostly exceed the official board's best, so vendor-reported rows will top the default Pass@1 view. If that misleads, the fix is a filter on provenance, never a special case in the sort: the Models picker's vendor-reported toggle is that filter, on by default.
-- Best entry and the effort filter apply unchanged. The Models picker gains a vendor-reported toggle ([model-filter spec](../model-filter/spec.md)), its only change. Supersession is per model, so no model ever mixes the two sources.
+- Best entry and the effort filter apply unchanged. The Models picker gains a vendor-reported toggle ([model-filter spec](../model-filter/spec.md)) and tints vendor-reported models (see **Row tint** below). Supersession is per model, so no model ever mixes the two sources.
 
 ## App
 

@@ -1,7 +1,7 @@
 # 08: Second review follow-ups
 
 Type: task
-Status: ready-for-agent
+Status: resolved
 Blocked by: none
 
 ## What to build
@@ -28,11 +28,18 @@ The figure fields listed twice in `leaderboard.ts`; the three `provenance.kind =
 
 ## Acceptance criteria
 
-- [ ] `LeaderboardRow`'s vendor-reported provenance has only `source`, `sourceUrl` and `publishedAt`, and a test pins it; the data file and schema keep `harness` and `trials`
-- [ ] `columnClasses` is gone and alignment matches before
-- [ ] `normalize` takes an input object, and its callers pass one
-- [ ] `vendor-reported-name.tsx`'s comment describes a span trigger
-- [ ] ADR 0007, the vendor-reported-data spec, the design spec and the leaderboard-table spec match the code
-- [ ] `mise run validate` passes
+- [x] `LeaderboardRow`'s vendor-reported provenance has only `source`, `sourceUrl` and `publishedAt`, and a test pins it; the data file and schema keep `harness` and `trials`
+- [x] `columnClasses` is gone and alignment matches before
+- [x] `normalize` takes an input object, and its callers pass one
+- [x] `vendor-reported-name.tsx`'s comment describes a span trigger
+- [x] ADR 0007, the vendor-reported-data spec, the design spec and the leaderboard-table spec match the code
+- [x] `mise run validate` passes
 
 ## Comments
+
+**2026-10-06 — Implemented** in four commits, each passing check and the unit tests:
+
+- **Provenance** is the citation alone: `leaderboardEntries` destructures `source`, `sourceUrl` and `publishedAt` by name rather than spreading the rest, so a field added to the entry schema doesn't reach the row unasked. One test pins the row's provenance with `toStrictEqual`, from a claim that states harness and trials.
+- **Alignment** sits on the header and cell directly; the cell's `text-right tabular-nums` joined into one class pair, and every element keeps the classes it had.
+- **`normalize`'s callers** are the plan and the snapshot tests.
+- **Docs**: ADR 0007 notes ticket 07 dropped the rule; the vendor-reported-data spec, design spec and leaderboard-table spec match the popover, masthead, tint and underline as built.
