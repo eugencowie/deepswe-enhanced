@@ -56,9 +56,11 @@ function App() {
             time at the consumer API throughput, and the effective cost on a Claude or ChatGPT
             subscription.
           </p>
-          {/* Provenance: every figure on the page traces to one of these three,
-              listed in the order the sentence above mentions them. Each date is
-              the upstream figure's own age, not when this project fetched it. */}
+          {/* Provenance: every figure on the page traces to one of these,
+              listed in the order the sentence above mentions them, except a
+              vendor-reported row's scores, whose name cites their source
+              (ADR 0009). Each date is the upstream figure's own age, not when
+              this project fetched it. */}
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
             Sources: <SourceLink href={deepsweSnapshot.sourceUrl}>DeepSWE</SourceLink> (
             {deepsweDate}), <SourceLink href={throughputSnapshot.sourceUrl}>OpenRouter</SourceLink>{" "}

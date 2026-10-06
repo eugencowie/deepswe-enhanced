@@ -15,6 +15,7 @@ const row = (overrides: Partial<LeaderboardRow> = {}): LeaderboardRow => ({
   family: "none",
   accessRoute: "api",
   isBestEntry: true,
+  provenance: { kind: "deepswe" },
   passAt1: 0.7364864,
   cost: { api: 11.8375, effective: 11.8375 },
   costPerSolvedTask: { api: 11.8375 / 0.7364864, effective: 11.8375 / 0.7364864 },
@@ -93,7 +94,7 @@ describe("sort definitions", () => {
     ]);
   });
 
-  test("cost accessors return effective figures and preserve absent cost per solved task", () => {
+  test("cost accessors return effective figures and preserve absent costs", () => {
     const tier = row({
       accessRoute: "claude-pro",
       cost: { api: 20, effective: 1 },
@@ -107,6 +108,7 @@ describe("sort definitions", () => {
     expect(cost.accessorFn(tier, 0)).toBe(1);
     expect(costPerf.accessorFn(tier, 0)).toBe(2);
     expect(costPerf.accessorFn(row({ costPerSolvedTask: undefined }), 0)).toBeUndefined();
+    expect(cost.accessorFn(row({ cost: undefined }), 0)).toBeUndefined();
   });
 
   test("every figure column places blanks last", () => {
@@ -157,11 +159,58 @@ describe("Model cell", () => {
     ).toBe("Test Model xhighMax 20x");
   });
 
-  test("exposes the pinned OpenRouter id in a tooltip only when mapped", () => {
-    expect(markup("model", row())).toBe("Test Model");
-    expect(markup("model", row({ openrouterId: "test/test-model" }))).toMatch(
-      /^<span [^>]*data-slot="tooltip-trigger"[^>]*>Test Model<\/span>$/,
+  // Display names omit revisions, but nobody needed the pinned id on hover.
+  test("a DeepSWE row's name is plain text, with no tooltip", () => {
+    expect(markup("model", row({ effort: "max" }))).toBe(
+      'Test Model <span class="ml-1 text-xs text-muted-foreground">max</span>',
     );
+  });
+});
+
+// The marker is the name itself: a trigger opening a popover that cites the
+// source and links it, on hover, tap or Enter (vendor-reported-data ticket
+// 07). The popover is portalled, so these tests see only the trigger; the
+// e2e tests open it.
+describe("vendor-reported name", () => {
+  const claim = row({
+    effort: "max",
+    provenance: {
+      kind: "vendor-reported",
+      source: "Claude Opus 9 System Card §8.3",
+      sourceUrl: "https://www.anthropic.com/claude-opus-9",
+      publishedAt: "2026-09-22",
+    },
+  });
+  const trigger = (r: LeaderboardRow) =>
+    markup("model", r).match(/<span [^>]*data-slot="popover-trigger"[^>]*>([^<]*)<\/span>/);
+
+  // A span with the button role, not a button, so the name selects like
+  // every other model name.
+  test("is a button-role span opening the source's popover", () => {
+    const [button, name] = trigger(claim)!;
+    expect(name).toBe("Test Model");
+    expect(button).toContain('role="button"');
+    expect(button).toContain('tabindex="0"');
+    expect(button).toContain('data-slot="popover-trigger"');
+  });
+
+  // The column headers mark their tooltips the same way.
+  test("underlines the name dotted in grey, with no pointer cursor", () => {
+    const classes = trigger(claim)![0]
+      .match(/class="([^"]*)"/)![1]
+      .split(" ");
+    expect(classes).toEqual(
+      expect.arrayContaining(["decoration-dotted", "decoration-muted-foreground"]),
+    );
+    expect(classes).not.toContain("cursor-pointer");
+  });
+
+  // The link lives in the popover, where keyboard focus can reach it.
+  test("leaves no link or badge in the cell: name, effort and access tag", () => {
+    const tagged = { ...claim, accessTag: { label: "Pro", family: "claude" as const } };
+    const html = markup("model", tagged);
+    expect(html).not.toContain("<a ");
+    expect(html).toMatch(/Test Model<\/span> <span[^>]*>max<\/span><span[^>]*>Pro<\/span>$/);
   });
 });
 
@@ -236,5 +285,21 @@ describe("figure cells", () => {
     const blank = row({ throughputTokPerSec: undefined, averageTimeSeconds: undefined });
     expect(text("avgTime", blank)).toBe("–");
     expect(text("tokPerSec", blank)).toBe("–");
+  });
+
+  // A vendor-reported entry usually states Pass@1 alone (ADR 0009).
+  test("Cost, Tokens and Steps are blank when the entry states none", () => {
+    for (const accessRoute of ["api", "claude-pro"] as const) {
+      const blank = row({
+        accessRoute,
+        cost: undefined,
+        costPerSolvedTask: undefined,
+        outputTokens: undefined,
+        steps: undefined,
+      });
+      expect(markup("avgCost", blank), accessRoute).toBe("–");
+      expect(text("outTok", blank), accessRoute).toBe("–");
+      expect(text("steps", blank), accessRoute).toBe("–");
+    }
   });
 });

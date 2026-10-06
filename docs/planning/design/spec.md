@@ -34,7 +34,8 @@ record specific visual changes.
 - Keep a single-page layout: a masthead (site identity, a sentence naming
   what the page adds over DeepSWE, the source links as a provenance line, and the
   theme control), a rule, the filter toolbar, then the leaderboard. There
-  is no footer; every source is named in the masthead. See
+  is no footer; every source is named in the masthead, except
+  vendor-reported scores, which each row's name cites. See
   [ticket 02](tickets/02-ledger-page-layout.md).
 - Keep related controls together and the table dense enough for comparison.
   On narrow screens, let controls wrap and the table scroll horizontally,
@@ -43,8 +44,10 @@ record specific visual changes.
 - Let the table carry one visual encoding: Pass@1 drawn as a neutral grey
   bar behind the figure on a fixed 0 to 100% scale, the figure in medium
   weight so it stays legible over the bar. Purple is reserved for
-  enhancements: the three derived columns and the Subscriptions picker,
-  trigger and popover.
+  enhancements: the three derived columns, the Subscriptions picker
+  (trigger and popover), and vendor-reported rows with their Models
+  picker items, the vendor-reported toggle when on, and the source link
+  in their popover.
   Other columns stay plain figures. The sorted column header is the only
   header in the foreground colour.
 - Mark estimated columns with a small muted "est" after the header name.
@@ -52,7 +55,8 @@ record specific visual changes.
   foreground colour. Time is estimated; Tok/s is a measurement and
   carries no mark.
 - Underlines encode what a click does: solid for links (the provenance
-  line), dotted for headers that open a tooltip.
+  line and a vendor-reported row's source), dotted for text that opens a tooltip or popover: the column
+  headers and vendor-reported model names.
 - The effort level after a model name has both a real space (so the
   accessible name and copied text read naturally) and a visual margin.
   Neither replaces the other.

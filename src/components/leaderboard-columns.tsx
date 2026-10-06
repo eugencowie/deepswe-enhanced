@@ -14,9 +14,9 @@ import {
 } from "@tanstack/react-table";
 
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "cn";
 import { VendorMark } from "@/components/vendor-mark";
+import { VendorReportedName } from "@/components/vendor-reported-name";
 import { compareModel, type CostPair, type LeaderboardRow } from "@/data/leaderboard";
 
 // What the table reads to render a column beyond its header and cell.
@@ -26,8 +26,8 @@ export type ColumnMeta = {
   // small muted "est" and the tooltip says what is left out.
   estimate?: true;
   // Derived columns are computed by this project rather than reported by the
-  // DeepSWE leaderboard: an enhancement, so they carry the brand tint and a
-  // rule sets them apart from the source columns.
+  // DeepSWE leaderboard: an enhancement, so they carry the brand tint, which
+  // sets them apart from the source columns.
   derived?: true;
   // Figures are right-aligned; neither TanStack nor shadcn aligns by type.
   align?: "end";
@@ -65,7 +65,7 @@ const columns = helper.columns([
     sortDescFirst: true,
     cell: figureCell(formatPassAt1),
   }),
-  helper.accessor((row) => row.cost.effective, {
+  helper.accessor((row) => row.cost?.effective, {
     id: "avgCost",
     header: "Cost",
     ...figure(),
@@ -141,13 +141,10 @@ function modelCell(row: LeaderboardRow): ReactNode {
   return (
     <>
       <VendorMark vendor={row.vendor} className="mr-1.5" />
-      {row.openrouterId === undefined ? (
-        row.displayName
+      {row.provenance.kind === "vendor-reported" ? (
+        <VendorReportedName displayName={row.displayName} provenance={row.provenance} />
       ) : (
-        <Tooltip>
-          <TooltipTrigger render={<span />}>{row.displayName}</TooltipTrigger>
-          <TooltipContent>{row.openrouterId}</TooltipContent>
-        </Tooltip>
+        row.displayName
       )}
       {row.effort !== undefined && (
         // A real space, so copied text and the accessible name stay readable.

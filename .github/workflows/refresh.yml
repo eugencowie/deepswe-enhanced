@@ -30,6 +30,7 @@ jobs:
             data/model-mapping.json
             data/price-revisions.json
             data/openrouter-throughput.json
+            data/vendor-reported.json
           commit-message: "Refresh data snapshots"
           title: "chore(deps): Refresh data snapshots"
           labels: chore
@@ -38,7 +39,7 @@ jobs:
 
             ## DeepSWE
 
-            `data/deepswe-v1.1.json` from the live DeepSWE source, plus generated `data/model-mapping.json` entries for any new models from known vendors and `data/price-revisions.json` re-extracted from the site's bundle. Review the diff against the [changelog](https://deepswe.datacurve.ai/changelog) before merging; a changed price revision is listed below with the entries it moved.
+            `data/deepswe-v1.1.json` from the live DeepSWE source, plus generated `data/model-mapping.json` entries for any new models from known vendors, `data/price-revisions.json` re-extracted from the site's bundle, and `data/vendor-reported.json` minus any model DeepSWE now publishes. Review the diff against the [changelog](https://deepswe.datacurve.ai/changelog) before merging; a changed price revision is listed below with the entries it moved.
 
             ${{ steps.deepswe.outcome == 'failure' && '**The DeepSWE refresh failed**; see the run log.' || steps.deepswe.outputs.summary }}
 

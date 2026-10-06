@@ -5,10 +5,10 @@
 
 import { createHash } from "node:crypto";
 import {
-  type ModelMappingEntry,
   deepsweSnapshotSchema,
   modelMappingSchema,
   priceRevisionsFileSchema,
+  vendorReportedSnapshotSchema,
 } from "../src/data/schema.ts";
 import {
   extractBundlePriceTable,
@@ -20,17 +20,13 @@ import {
   benchmarkVersion,
   hasMeaningfulChange,
   leaderboardArtifactSchema,
-  normalize,
   origin,
   summarizeRefresh,
   unmappedModels,
   versionManifestSchema,
 } from "./deepswe-snapshot.ts";
-import {
-  generateMappingEntries,
-  openrouterModelsSchema,
-  openrouterModelsUrl,
-} from "./mapping-generation.ts";
+import { openrouterModelsSchema, openrouterModelsUrl } from "./mapping-generation.ts";
+import { planDeepsweRefresh } from "./deepswe-refresh-plan.ts";
 import {
   fetchBytes,
   fetchJson,
@@ -48,6 +44,7 @@ const artifact = leaderboardArtifactSchema.parse(JSON.parse(artifactBytes.toStri
 const rawSha256 = createHash("sha256").update(artifactBytes).digest("hex");
 
 const mapping = await readDataFile("model-mapping.json", modelMappingSchema);
+const vendorReported = await readDataFile("vendor-reported.json", vendorReportedSnapshotSchema);
 
 // The site's price revisions live only in its deployed bundle (ADR 0006), so
 // every run extracts them and the checked-in file follows the site; the
@@ -66,29 +63,27 @@ const revisions = resolvePriceRevisions(extractBundlePriceTable(bundles), benchm
 const priceRevisionsChanged =
   JSON.stringify(priceRevisionsFile.revisions) !== JSON.stringify(revisions);
 
-// New models from known vendors get generated mapping entries (ADR 0003);
-// anything still unmapped afterwards fails normalize's guard as before.
-const unmapped = unmappedModels(artifact.rows, mapping);
-const generated: ModelMappingEntry[] = [];
-if (unmapped.length > 0) {
-  // An unreachable models API fails the run like any other fetch error; the
-  // failure email is the alert and a manual re-run the retry.
-  const listings = (await fetchJson(openrouterModelsUrl, openrouterModelsSchema)).data;
-  const result = generateMappingEntries(unmapped, mapping, listings);
-  result.warnings.forEach(warn);
-  generated.push(...result.generated);
-}
+// The OpenRouter listings are fetched only when a model is unmapped. An
+// unreachable models API fails the run like any other fetch error; the
+// failure email is the alert and a manual re-run the retry.
+const listings =
+  unmappedModels(artifact.rows, mapping).length > 0
+    ? (await fetchJson(openrouterModelsUrl, openrouterModelsSchema)).data
+    : [];
 
-const { snapshot, warnings } = normalize(
+// Throws before anything is written when a guard rail trips.
+const { snapshot, generated, supersession, warnings } = planDeepsweRefresh({
   manifest,
   artifact,
-  [...mapping, ...generated],
-  revisions,
   rawSha256,
-);
+  mapping,
+  vendorReported,
+  revisions,
+  listings,
+});
 warnings.forEach(warn);
 
-// Written only after normalize succeeds, so a tripped guard rail still leaves
+// Written only after the plan succeeds, so a tripped guard rail still leaves
 // everything untouched.
 if (priceRevisionsChanged) {
   await writeDataFile("price-revisions.json", priceRevisionsFileSchema, {
@@ -100,10 +95,21 @@ if (priceRevisionsChanged) {
   );
 }
 if (generated.length > 0) {
-  await writeDataFile("model-mapping.json", modelMappingSchema, [...mapping, ...generated]);
+  await writeDataFile("model-mapping.json", modelMappingSchema, supersession.mapping);
   console.log(
     `Generated mapping entries in data/model-mapping.json: ` +
       `${generated.map((entry) => entry.leaderboardModel).join(", ")}.`,
+  );
+}
+if (supersession.superseded.length > 0) {
+  await writeDataFile(
+    "vendor-reported.json",
+    vendorReportedSnapshotSchema,
+    supersession.vendorReported,
+  );
+  console.log(
+    `Superseded vendor-reported models in data/vendor-reported.json: ` +
+      `${supersession.superseded.map(({ model }) => model).join(", ")}.`,
   );
 }
 
@@ -126,9 +132,10 @@ await publishSummary(
   summarizeRefresh({
     existing,
     snapshot,
-    mappingCount: mapping.length,
+    previousMappingCount: mapping.length,
     generated,
     changed,
     previousPriceRevisions: priceRevisionsFile.revisions,
+    supersession,
   }),
 );

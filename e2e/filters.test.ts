@@ -1,9 +1,16 @@
 import { expect, test, type Page } from "@playwright/test";
 
 import { createLeaderboard } from "../src/data/leaderboard.ts";
-import { deepsweSnapshot, leaderboardSources } from "../src/data/sources.ts";
+import {
+  deepsweSnapshot,
+  leaderboardSources,
+  vendorReportedSnapshot,
+} from "../src/data/sources.ts";
 
-const modelCount = createLeaderboard(leaderboardSources).modelOptions.length;
+const { modelOptions } = createLeaderboard(leaderboardSources);
+const modelCount = modelOptions.length;
+// The All view shows every entry once, whichever source it came from.
+const entryCount = deepsweSnapshot.entries.length + vendorReportedSnapshot.entries.length;
 
 const bodyRows = (page: Page) => page.getByRole("table").locator("tbody tr");
 
@@ -15,7 +22,7 @@ test("the effort toggle switches between best and all entries", async ({ page })
   await expect(page.getByRole("cell", { name: "Claude Fable 5 xhigh" })).toBeVisible();
 
   await page.getByRole("button", { name: "All effort levels" }).click();
-  await expect(bodyRows(page)).toHaveCount(deepsweSnapshot.entries.length);
+  await expect(bodyRows(page)).toHaveCount(entryCount);
 
   await page.getByRole("button", { name: "Best", exact: true }).click();
   await expect(bodyRows(page)).toHaveCount(modelCount);
@@ -134,5 +141,48 @@ test("the models picker removes a model everywhere and can clear to empty", asyn
   await expect(page.getByRole("button", { name: `Models (0/${modelCount})` })).toBeVisible();
 
   await page.getByRole("menuitem", { name: "Select all" }).click();
+  await expect(bodyRows(page)).toHaveCount(modelCount);
+});
+
+test("the vendor-reported toggle unlists those models and brings them back unselected", async ({
+  page,
+}) => {
+  // Any vendor-reported model the data file holds, never a named one: the
+  // refresh supersedes each once DeepSWE publishes it (ADR 0004).
+  const vendorReported = modelOptions.filter((option) => option.vendorReported);
+  test.skip(vendorReported.length === 0, "no vendor-reported entries");
+  const [{ vendor, displayName }] = vendorReported;
+  const deepsweCount = modelCount - vendorReported.length;
+  await page.goto("./");
+  await page.getByRole("button", { name: /^Models/ }).click();
+  // The vendor mark's aria-label leads the item's name.
+  const sample = page.getByRole("menuitemcheckbox", {
+    name: `${vendor} ${displayName}`,
+    exact: true,
+  });
+  const toggle = page.getByRole("menuitemcheckbox", { name: "Include vendor-reported" });
+
+  // On by default: listed and selected.
+  await expect(toggle).toBeChecked();
+  await expect(sample).toBeChecked();
+
+  // Off: unlisted, deselected, their rows gone.
+  await toggle.click();
+  await expect(sample).toBeHidden();
+  await expect(
+    page.getByRole("button", { name: `Models (${deepsweCount}/${deepsweCount})` }),
+  ).toBeVisible();
+  await expect(bodyRows(page)).toHaveCount(deepsweCount);
+
+  // On again: listed but left unselected until Select all.
+  await toggle.click();
+  await expect(sample).not.toBeChecked();
+  await expect(
+    page.getByRole("button", { name: `Models (${deepsweCount}/${modelCount})` }),
+  ).toBeVisible();
+  await expect(bodyRows(page)).toHaveCount(deepsweCount);
+
+  await page.getByRole("menuitem", { name: "Select all" }).click();
+  await expect(sample).toBeChecked();
   await expect(bodyRows(page)).toHaveCount(modelCount);
 });

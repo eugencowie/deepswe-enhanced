@@ -6,19 +6,29 @@ import {
   modelMapping,
   throughputSnapshot,
   tiers,
+  vendorReportedSnapshot,
 } from "./sources.ts";
 import {
   compareModel,
   createLeaderboard,
+  pickerModels,
   setEffortView,
   setModels,
   setRoute,
+  setIncludeVendorReported,
   toggleModel,
   type AccessRoute,
+  type Leaderboard,
   type LeaderboardFilters,
+  type LeaderboardSources,
   type LeaderboardRow,
 } from "./leaderboard.ts";
-import type { ModelMappingEntry, ThroughputSnapshot } from "./schema.ts";
+import type {
+  ModelMappingEntry,
+  ThroughputSnapshot,
+  VendorReportedEntry,
+  VendorReportedSnapshot,
+} from "./schema.ts";
 
 // Value-asserting throughput tests use this fixture rather than the live
 // snapshot, so a data refresh never re-touches them; live-data tests below
@@ -34,6 +44,17 @@ const throughputFixture: ThroughputSnapshot = {
 };
 
 const live = () => createLeaderboard(sources);
+
+// Fixture-built leaderboards start from no vendor-reported entries, so live
+// claims never meet a fixture's snapshot or mapping.
+const fixtureSources: LeaderboardSources = {
+  ...sources,
+  vendorReported: { benchmark_version: "v1.1", entries: [] },
+};
+
+// Every live leaderboard entry, from both sources: row counts follow these,
+// whichever source an entry came from (ADR 0009).
+const liveEntries = [...deepsweSnapshot.entries, ...vendorReportedSnapshot.entries];
 
 // A family's access routes in row order: the API, then its tiers.
 const familyRoutes = (family: "claude" | "chatgpt"): AccessRoute[] => [
@@ -79,11 +100,13 @@ const bestFixture = () => {
   const mapping = mappingFixture(["inverted", "ordinary", "tied", "single"]).map((e) =>
     e.leaderboardModel === "inverted" ? { ...e, family: "claude" as const } : e,
   );
-  return createLeaderboard({ ...sources, snapshot, mapping });
+  return createLeaderboard({ ...fixtureSources, snapshot, mapping });
 };
 
 describe("rows", () => {
   const { rows } = live();
+  // Rows whose figures sourceEntry can look up in the DeepSWE snapshot.
+  const deepsweRows = rows.filter((row) => row.provenance.kind === "deepswe");
   const sourceEntry = (row: { model: string; effort?: string }) =>
     deepsweSnapshot.entries.find(
       (e) => e.model === row.model && e.effort === (row.effort ?? null),
@@ -92,16 +115,14 @@ describe("rows", () => {
   test("expands every entry into an API row plus one row per family tier", () => {
     const familyOf = new Map(modelMapping.map((entry) => [entry.leaderboardModel, entry.family]));
     const tierCount = (family: string) => tiers.filter((tier) => tier.family === family).length;
-    const expected = deepsweSnapshot.entries.reduce(
+    const expected = liveEntries.reduce(
       (total, entry) => total + 1 + tierCount(familyOf.get(entry.model) ?? "none"),
       0,
     );
     expect(rows).toHaveLength(expected);
     // No literal count here: snapshot-size drift checks moved to the
     // load-time schema and PR review (ADR 0004).
-    expect(rows.filter((row) => row.accessRoute === "api")).toHaveLength(
-      deepsweSnapshot.entries.length,
-    );
+    expect(rows.filter((row) => row.accessRoute === "api")).toHaveLength(liveEntries.length);
   });
 
   test("every tier row uses one of its own mapping family's tiers", () => {
@@ -140,12 +161,12 @@ describe("rows", () => {
 
   test("claude-pro rows of standard Claude models use factor 0.05", () => {
     // 20 / 400 at the default usage multiplier.
-    const proRows = rows.filter(
+    const proRows = deepsweRows.filter(
       (row) => row.accessRoute === "claude-pro" && row.model !== "claude-fable-5",
     );
     expect(proRows.length).toBeGreaterThan(0);
     for (const row of proRows) {
-      expect(row.cost.effective).toBeCloseTo(sourceEntry(row).average_cost_usd * 0.05, 10);
+      expect(row.cost?.effective).toBeCloseTo(sourceEntry(row).average_cost_usd * 0.05, 10);
     }
   });
 
@@ -156,24 +177,24 @@ describe("rows", () => {
       ["claude-max-5x", 0.1],
       ["claude-max-20x", 0.05],
     ] as const) {
-      const maxRows = rows.filter(
+      const maxRows = deepsweRows.filter(
         (row) => row.accessRoute === accessRoute && row.model === "claude-fable-5",
       );
       expect(maxRows.length, accessRoute).toBeGreaterThan(0);
       for (const row of maxRows) {
-        expect(row.cost.effective).toBeCloseTo(sourceEntry(row).average_cost_usd * factor, 10);
+        expect(row.cost?.effective).toBeCloseTo(sourceEntry(row).average_cost_usd * factor, 10);
       }
     }
   });
 
   // Pro runs Fable on usage credits, billed at standard API rates.
   test("Fable 5 claude-pro rows are at API cost: Pro excludes it", () => {
-    const proRows = rows.filter(
+    const proRows = deepsweRows.filter(
       (row) => row.accessRoute === "claude-pro" && row.model === "claude-fable-5",
     );
     expect(proRows.length).toBeGreaterThan(0);
     for (const row of proRows) {
-      expect(row.cost.effective).toBe(sourceEntry(row).average_cost_usd);
+      expect(row.cost?.effective).toBe(sourceEntry(row).average_cost_usd);
       expect(row.costPerSolvedTask?.effective).toBe(row.costPerSolvedTask?.api);
     }
   });
@@ -188,8 +209,8 @@ describe("rows", () => {
       family: "claude" as const,
       excludedTiers: ["claude-max-5x" as const],
     }));
-    const { rows } = createLeaderboard({ ...sources, snapshot, mapping });
-    expect(rows.map((row) => [row.accessRoute, row.cost.effective])).toEqual([
+    const { rows } = createLeaderboard({ ...fixtureSources, snapshot, mapping });
+    expect(rows.map((row) => [row.accessRoute, row.cost?.effective])).toEqual([
       ["api", 4],
       ["claude-pro", expect.closeTo(4 * 0.05, 10)],
       ["claude-max-5x", 4],
@@ -204,14 +225,14 @@ describe("rows", () => {
       (r) =>
         r.model === "gpt-5-5" && r.effort === entry?.effort && r.accessRoute === "chatgpt-plus",
     );
-    expect(row?.cost.effective).toBeCloseTo(entry!.average_cost_usd * (20 / 700), 10);
+    expect(row?.cost?.effective).toBeCloseTo(entry!.average_cost_usd * (20 / 700), 10);
   });
 
   test("tier rows carry the entry's API cost beside the effective cost", () => {
-    const tierRows = rows.filter((row) => row.accessRoute !== "api");
+    const tierRows = deepsweRows.filter((row) => row.accessRoute !== "api");
     expect(tierRows.length).toBeGreaterThan(0);
     for (const row of tierRows) {
-      expect(row.cost.api).toBe(sourceEntry(row).average_cost_usd);
+      expect(row.cost?.api).toBe(sourceEntry(row).average_cost_usd);
     }
   });
 
@@ -219,7 +240,7 @@ describe("rows", () => {
     const apiRows = rows.filter((row) => row.accessRoute === "api");
     expect(apiRows.length).toBeGreaterThan(0);
     for (const row of apiRows) {
-      expect(row.cost.api).toBe(row.cost.effective);
+      expect(row.cost?.api).toBe(row.cost?.effective);
       expect(row.costPerSolvedTask?.api).toBe(row.costPerSolvedTask?.effective);
     }
   });
@@ -252,7 +273,11 @@ describe("rows", () => {
       ...deepsweSnapshot,
       entries: [{ ...deepsweSnapshot.entries[0], model: "claude-fable-5", pass_at_1: 0 }],
     };
-    const [row] = createLeaderboard({ ...sources, snapshot, throughput: throughputFixture }).rows;
+    const [row] = createLeaderboard({
+      ...fixtureSources,
+      snapshot,
+      throughput: throughputFixture,
+    }).rows;
     expect(row.costPerSolvedTask).toBeUndefined();
   });
 
@@ -278,12 +303,12 @@ describe("rows", () => {
       ],
     };
     const [row] = createLeaderboard({
-      ...sources,
+      ...fixtureSources,
       snapshot,
       mapping: mappingFixture(["adjusted"]),
     }).rows;
-    expect(row.cost.effective).toBe(1);
-    expect(row.cost.api).toBe(1);
+    expect(row.cost?.effective).toBe(1);
+    expect(row.cost?.api).toBe(1);
   });
 
   test("each row states whether it is its model's best entry, the same on every route", () => {
@@ -309,13 +334,14 @@ describe("rows", () => {
 
   test("throws when a leaderboard model is missing from the mapping", () => {
     const mapping = modelMapping.filter((entry) => entry.leaderboardModel !== "glm-5-3");
-    expect(() => createLeaderboard({ ...sources, mapping })).toThrow(/glm-5-3/);
+    expect(() => createLeaderboard({ ...fixtureSources, mapping })).toThrow(/glm-5-3/);
   });
 
   test("a model's rows share one throughput figure across effort levels", () => {
-    const opus = createLeaderboard({ ...sources, throughput: throughputFixture }).rows.filter(
-      (row) => row.model === "claude-opus-5",
-    );
+    const opus = createLeaderboard({
+      ...fixtureSources,
+      throughput: throughputFixture,
+    }).rows.filter((row) => row.model === "claude-opus-5");
     expect(opus.length).toBeGreaterThan(1);
     for (const row of opus) {
       expect(row.throughputTokPerSec).toBe(50);
@@ -327,7 +353,11 @@ describe("rows", () => {
       ...deepsweSnapshot,
       entries: [{ ...deepsweSnapshot.entries[0], model: "claude-fable-5", output_tokens: 8400 }],
     };
-    const [row] = createLeaderboard({ ...sources, snapshot, throughput: throughputFixture }).rows;
+    const [row] = createLeaderboard({
+      ...fixtureSources,
+      snapshot,
+      throughput: throughputFixture,
+    }).rows;
     expect(row.throughputTokPerSec).toBe(42);
     expect(row.averageTimeSeconds).toBe(200);
   });
@@ -336,7 +366,7 @@ describe("rows", () => {
     const mapping = modelMapping.map((entry) =>
       entry.leaderboardModel === "glm-5-3" ? { ...entry, openrouterId: null } : entry,
     );
-    const glm = createLeaderboard({ ...sources, mapping }).rows.filter(
+    const glm = createLeaderboard({ ...fixtureSources, mapping }).rows.filter(
       (row) => row.model === "glm-5-3",
     );
     expect(glm.length).toBeGreaterThan(0);
@@ -350,7 +380,7 @@ describe("rows", () => {
     const models = { ...throughputSnapshot.models };
     delete models["z-ai/glm-5.3"];
     const glm = createLeaderboard({
-      ...sources,
+      ...fixtureSources,
       throughput: { ...throughputSnapshot, models },
     }).rows.filter((row) => row.model === "glm-5-3");
     expect(glm.length).toBeGreaterThan(0);
@@ -358,6 +388,143 @@ describe("rows", () => {
       expect(row.throughputTokPerSec).toBeUndefined();
       expect(row.averageTimeSeconds).toBeUndefined();
     }
+  });
+});
+
+// A Claude-family model DeepSWE hasn't published, claimed at Pass@1 only:
+// the shape nearly every vendor publishes (ADR 0009).
+const opusNineMapping: ModelMappingEntry = {
+  leaderboardModel: "claude-opus-9",
+  displayName: "Claude Opus 9",
+  vendor: "Anthropic",
+  openrouterId: "anthropic/claude-opus-9",
+  family: "claude",
+  usageMultiplier: 1,
+};
+const opusNineClaim: VendorReportedEntry = {
+  model: "claude-opus-9",
+  effort: "max",
+  pass_at_1: 0.742,
+  source: "Claude Opus 9 System Card §8.3",
+  sourceUrl: "https://www.anthropic.com/claude-opus-9",
+  publishedAt: "2026-09-22",
+};
+const vendorReportedLeaderboard = (...entries: VendorReportedEntry[]) => {
+  const vendorReported: VendorReportedSnapshot = { benchmark_version: "v1.1", entries };
+  return createLeaderboard({
+    ...fixtureSources,
+    vendorReported,
+    mapping: [...modelMapping, opusNineMapping],
+    throughput: {
+      ...throughputFixture,
+      models: { ...throughputFixture.models, "anthropic/claude-opus-9": { consumerP50: 45 } },
+    },
+  });
+};
+const opusNineRows = (leaderboard: Leaderboard) =>
+  leaderboard.rows.filter((row) => row.model === "claude-opus-9");
+
+describe("vendor-reported entries", () => {
+  test("a Pass@1-only claim gets one row per access route, its missing figures blank", () => {
+    const rows = opusNineRows(vendorReportedLeaderboard(opusNineClaim));
+    expect(rows.map((row) => row.accessRoute)).toEqual(familyRoutes("claude"));
+    for (const row of rows) {
+      expect(row.passAt1).toBe(0.742);
+      expect(row.cost).toBeUndefined();
+      expect(row.costPerSolvedTask).toBeUndefined();
+      expect(row.outputTokens).toBeUndefined();
+      expect(row.steps).toBeUndefined();
+      expect(row.averageTimeSeconds).toBeUndefined();
+      // Throughput comes from OpenRouter, not the claim.
+      expect(row.throughputTokPerSec).toBe(45);
+    }
+  });
+
+  test("a claim that states cost and tokens carries them through, tier rows included", () => {
+    const claim = { ...opusNineClaim, average_cost_usd: 2, output_tokens: 74200, steps: 80 };
+    const rows = opusNineRows(vendorReportedLeaderboard(claim));
+    const api = rows.find((row) => row.accessRoute === "api");
+    const pro = rows.find((row) => row.accessRoute === "claude-pro");
+    expect(api?.cost).toEqual({ api: 2, effective: 2 });
+    expect(api?.costPerSolvedTask?.effective).toBeCloseTo(2.69542, 5);
+    expect(api?.outputTokens).toBe(74200);
+    expect(api?.steps).toBe(80);
+    expect(api?.averageTimeSeconds).toBeCloseTo(1648.889, 3);
+    // claude-pro scales cost by 0.05.
+    expect(pro?.cost?.api).toBe(2);
+    expect(pro?.cost?.effective).toBeCloseTo(0.1, 10);
+    expect(pro?.costPerSolvedTask?.effective).toBeCloseTo(0.134771, 6);
+  });
+
+  // Harness and trials stay in the data file as a record of the source, but
+  // nothing shows them, so they stop short of the row (vendor-reported-data
+  // ticket 08).
+  test("rows carry the claim's citation, and only that, on every access route", () => {
+    const claim: VendorReportedEntry = {
+      ...opusNineClaim,
+      harness: "mini-swe-agent",
+      trials: 5,
+    };
+    for (const row of opusNineRows(vendorReportedLeaderboard(claim))) {
+      expect(row.provenance).toStrictEqual({
+        kind: "vendor-reported",
+        source: "Claude Opus 9 System Card §8.3",
+        sourceUrl: "https://www.anthropic.com/claude-opus-9",
+        publishedAt: "2026-09-22",
+      });
+    }
+  });
+
+  test("a claim leaves every DeepSWE row unchanged", () => {
+    const withClaim = vendorReportedLeaderboard(opusNineClaim).rows.filter(
+      (row) => row.model !== "claude-opus-9",
+    );
+    expect(withClaim).toEqual(vendorReportedLeaderboard().rows);
+  });
+
+  test("a claim shows once per effort view on any route, so the picker never changes row count", () => {
+    const leaderboard = vendorReportedLeaderboard(
+      { ...opusNineClaim, effort: "max", pass_at_1: 0.71 },
+      { ...opusNineClaim, effort: "high", pass_at_1: 0.752 },
+    );
+    for (const claude of familyRoutes("claude")) {
+      const subscriptions = { claude, chatgpt: "api" as const };
+      const shown = (effortView: "best" | "all") =>
+        leaderboard
+          .visibleRows({ ...leaderboard.defaultFilters(), effortView, subscriptions })
+          .filter((row) => row.model === "claude-opus-9")
+          .map((row) => [row.effort, row.accessRoute]);
+      expect(shown("all")).toEqual([
+        ["max", claude],
+        ["high", claude],
+      ]);
+      expect(shown("best")).toEqual([["high", claude]]);
+    }
+  });
+
+  test("DeepSWE rows carry DeepSWE provenance", () => {
+    const rows = vendorReportedLeaderboard(opusNineClaim).rows.filter(
+      (row) => row.model !== "claude-opus-9",
+    );
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) expect(row.provenance).toEqual({ kind: "deepswe" });
+  });
+
+  test("Best entry and the Models picker treat claims like DeepSWE entries", () => {
+    const leaderboard = vendorReportedLeaderboard(
+      { ...opusNineClaim, effort: "max", pass_at_1: 0.71 },
+      { ...opusNineClaim, effort: "high", pass_at_1: 0.752 },
+    );
+    const best = opusNineRows(leaderboard).filter((row) => row.isBestEntry);
+    expect(best.map((row) => [row.effort, row.accessRoute])).toEqual(
+      familyRoutes("claude").map((route) => ["high", route]),
+    );
+    expect(leaderboard.modelOptions).toContainEqual({
+      model: "claude-opus-9",
+      displayName: "Claude Opus 9",
+      vendor: "Anthropic",
+      vendorReported: true,
+    });
   });
 });
 
@@ -386,7 +553,7 @@ describe("modelOptions", () => {
     const { modelOptions } = live();
     const models = modelOptions.map((option) => option.model);
     expect(new Set(models).size).toBe(models.length);
-    expect(new Set(models)).toEqual(new Set(deepsweSnapshot.entries.map((entry) => entry.model)));
+    expect(new Set(models)).toEqual(new Set(liveEntries.map((entry) => entry.model)));
   });
 
   test("sorts by display name, case-insensitively", () => {
@@ -399,7 +566,7 @@ describe("modelOptions", () => {
       ]),
     };
     const mapping = mappingFixture(["beta", "Gamma", "Alpha"]);
-    const { modelOptions } = createLeaderboard({ ...sources, snapshot, mapping });
+    const { modelOptions } = createLeaderboard({ ...fixtureSources, snapshot, mapping });
     expect(modelOptions.map((option) => option.displayName)).toEqual(["Alpha", "beta", "Gamma"]);
   });
 
@@ -408,6 +575,14 @@ describe("modelOptions", () => {
     expect(modelOptions.find((option) => option.model === "claude-opus-5")?.displayName).toBe(
       "Claude Opus 5",
     );
+  });
+
+  // The Models picker colours vendor-reported models like their rows.
+  test("says whether a model is vendor-reported", () => {
+    const { modelOptions } = vendorReportedLeaderboard(opusNineClaim);
+    const flag = (model: string) => modelOptions.find((o) => o.model === model)?.vendorReported;
+    expect(flag("claude-opus-9")).toBe(true);
+    expect(flag("claude-opus-5")).toBe(false);
   });
 
   test("carries the mapping's vendor for the Models picker's vendor mark", () => {
@@ -470,7 +645,7 @@ describe("pickerFamilies", () => {
         ? { ...entry, excludedTiers: ["chatgpt-plus" as const] }
         : entry,
     );
-    const { pickerFamilies } = createLeaderboard({ ...sources, mapping });
+    const { pickerFamilies } = createLeaderboard({ ...fixtureSources, mapping });
     const tiers = pickerFamilies.find((f) => f.family === "chatgpt")!.tiers;
     expect(tiers.map((tier) => [tier.id, tier.notes])).toEqual([
       ["chatgpt-plus", [{ name: "GPT-5.5", tierDiscount: 0 }]],
@@ -485,13 +660,47 @@ describe("pickerFamilies", () => {
     }
   });
 
+  // Fable 5 and Fable 5.1 share Fable's halved limits, so one "Fable" note
+  // covers both.
+  test("models sharing a short name and usage multiplier share one note", () => {
+    const fable = modelMapping.find((entry) => entry.leaderboardModel === "claude-fable-5")!;
+    const fable9 = { ...fable, leaderboardModel: "claude-fable-9", openrouterId: null };
+    const mapping = [...modelMapping, fable9];
+    const { pickerFamilies } = createLeaderboard({ ...fixtureSources, mapping });
+    // Max 5x, not Pro: Pro excludes Fable. 1 − 100/(2000 × 0.5)
+    const maxFive = pickerFamilies
+      .find((f) => f.family === "claude")!
+      .tiers.find((tier) => tier.id === "claude-max-5x");
+    expect(maxFive?.notes).toEqual([{ name: "Fable", tierDiscount: expect.closeTo(0.9, 10) }]);
+  });
+
+  test("models sharing a short name at different multipliers get a note each", () => {
+    const fable = modelMapping.find((entry) => entry.leaderboardModel === "claude-fable-5")!;
+    const fable9 = {
+      ...fable,
+      leaderboardModel: "claude-fable-9",
+      openrouterId: null,
+      usageMultiplier: 0.25,
+    };
+    const mapping = [...modelMapping.filter((e) => e.shortName !== "Fable"), fable, fable9];
+    const { pickerFamilies } = createLeaderboard({ ...fixtureSources, mapping });
+    const maxFive = pickerFamilies
+      .find((f) => f.family === "claude")!
+      .tiers.find((tier) => tier.id === "claude-max-5x");
+    // 1 − 100/(2000 × 0.5) and 1 − 100/(2000 × 0.25)
+    expect(maxFive?.notes).toEqual([
+      { name: "Fable", tierDiscount: expect.closeTo(0.9, 10) },
+      { name: "Fable", tierDiscount: expect.closeTo(0.8, 10) },
+    ]);
+  });
+
   test("a note uses the mapping's short name, falling back to the display name", () => {
     const mapping = modelMapping.map((entry) =>
       entry.leaderboardModel === "gpt-5-5"
         ? { ...entry, usageMultiplier: 2, shortName: undefined }
         : entry,
     );
-    const { pickerFamilies } = createLeaderboard({ ...sources, mapping });
+    const { pickerFamilies } = createLeaderboard({ ...fixtureSources, mapping });
     const plus = pickerFamilies
       .find((f) => f.family === "chatgpt")!
       .tiers.find((tier) => tier.id === "chatgpt-plus");
@@ -555,7 +764,7 @@ describe("visibleRows", () => {
 
   test("All effort levels with API only shows every entry once", () => {
     const visible = leaderboard.visibleRows(filters({ effortView: "all" }));
-    expect(visible).toHaveLength(deepsweSnapshot.entries.length);
+    expect(visible).toHaveLength(liveEntries.length);
     expect(visible.every((row) => row.accessRoute === "api")).toBe(true);
   });
 
@@ -563,7 +772,7 @@ describe("visibleRows", () => {
     const visible = leaderboard.visibleRows(
       filters({ effortView: "all", subscriptions: { claude: "claude-pro", chatgpt: "api" } }),
     );
-    expect(visible).toHaveLength(deepsweSnapshot.entries.length);
+    expect(visible).toHaveLength(liveEntries.length);
     const claudeRows = visible.filter((row) => row.family === "claude");
     expect(claudeRows.length).toBeGreaterThan(0);
     expect(claudeRows.every((row) => row.accessRoute === "claude-pro")).toBe(true);
@@ -590,7 +799,7 @@ describe("visibleRows", () => {
       for (const chatgpt of familyRoutes("chatgpt")) {
         const subscriptions = { claude, chatgpt };
         expect(leaderboard.visibleRows(filters({ effortView: "all", subscriptions }))).toHaveLength(
-          deepsweSnapshot.entries.length,
+          liveEntries.length,
         );
         expect(leaderboard.visibleRows(filters({ subscriptions }))).toHaveLength(
           modelOptions.length,
@@ -610,11 +819,9 @@ describe("visibleRows", () => {
         models,
       }),
     );
-    const fableEntries = deepsweSnapshot.entries.filter(
-      (entry) => entry.model === "claude-fable-5",
-    );
+    const fableEntries = liveEntries.filter((entry) => entry.model === "claude-fable-5");
     expect(visible.some((row) => row.model === "claude-fable-5")).toBe(false);
-    expect(visible).toHaveLength(deepsweSnapshot.entries.length - fableEntries.length);
+    expect(visible).toHaveLength(liveEntries.length - fableEntries.length);
     expect(rows.length).toBeGreaterThan(visible.length);
   });
 
@@ -670,6 +877,62 @@ describe("filter transitions", () => {
   });
 });
 
+// The Models picker's vendor-reported toggle: off removes those models from
+// the picker and the selection; on brings them back unselected.
+describe("vendor-reported toggle", () => {
+  const leaderboard = vendorReportedLeaderboard(opusNineClaim);
+  const { modelOptions } = leaderboard;
+  const listed = (filters: LeaderboardFilters) =>
+    pickerModels(filters, modelOptions).map(({ model }) => model);
+  const initial = leaderboard.defaultFilters();
+  const off = setIncludeVendorReported(initial, false, modelOptions);
+
+  test("is on by default, listing and selecting vendor-reported models", () => {
+    expect(initial.includeVendorReported).toBe(true);
+    expect(listed(initial)).toContain("claude-opus-9");
+    expect(initial.models.has("claude-opus-9")).toBe(true);
+  });
+
+  test("off unlists and deselects vendor-reported models, leaving the rest", () => {
+    expect(off.includeVendorReported).toBe(false);
+    expect(listed(off)).not.toContain("claude-opus-9");
+    expect(listed(off)).toHaveLength(modelOptions.length - 1);
+    expect(off.models.has("claude-opus-9")).toBe(false);
+    expect(off.models.size).toBe(initial.models.size - 1);
+    expect(leaderboard.visibleRows(off).some((row) => row.model === "claude-opus-9")).toBe(false);
+  });
+
+  test("off keeps a DeepSWE model's deselection", () => {
+    const fewer = setIncludeVendorReported(
+      toggleModel(initial, "claude-fable-5"),
+      false,
+      modelOptions,
+    );
+    expect(fewer.models.has("claude-fable-5")).toBe(false);
+  });
+
+  test("on again lists vendor-reported models without selecting them", () => {
+    const on = setIncludeVendorReported(off, true, modelOptions);
+    expect(on.includeVendorReported).toBe(true);
+    expect(listed(on)).toContain("claude-opus-9");
+    expect(on.models).toEqual(off.models);
+  });
+
+  test("select all over the listed models selects them once listed", () => {
+    const selectAll = (filters: LeaderboardFilters) => setModels(filters, new Set(listed(filters)));
+    expect(selectAll(off).models.has("claude-opus-9")).toBe(false);
+    const on = setIncludeVendorReported(off, true, modelOptions);
+    expect(selectAll(on).models.has("claude-opus-9")).toBe(true);
+  });
+
+  test("never mutates its input", () => {
+    const before = new Set(initial.models);
+    setIncludeVendorReported(initial, false, modelOptions);
+    expect(initial.models).toEqual(before);
+    expect(initial.includeVendorReported).toBe(true);
+  });
+});
+
 describe("compareModel", () => {
   const row = (displayName: string, effort: string | undefined): LeaderboardRow => ({
     model: displayName.toLowerCase(),
@@ -679,12 +942,12 @@ describe("compareModel", () => {
     effort,
     accessRoute: "api",
     isBestEntry: true,
+    provenance: { kind: "deepswe" },
     passAt1: 0.5,
     cost: { api: 1, effective: 1 },
     costPerSolvedTask: { api: 2, effective: 2 },
     outputTokens: 100,
     steps: 10,
-    openrouterId: "test/model",
     throughputTokPerSec: 50,
     averageTimeSeconds: 2,
   });

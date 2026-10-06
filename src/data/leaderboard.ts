@@ -4,7 +4,6 @@
 // interface.
 
 import {
-  type DeepsweEntry,
   type DeepsweSnapshot,
   type FamilyVendors,
   type ModelMappingEntry,
@@ -14,6 +13,8 @@ import {
   type ThroughputSnapshot,
   type Tier,
   type TierId,
+  type VendorReportedEntry,
+  type VendorReportedSnapshot,
 } from "./schema.ts";
 
 // How you would pay to run a model: direct API, or a specific tier. Every row
@@ -22,6 +23,19 @@ export type AccessRoute = "api" | TierId;
 
 // The marker on a tier row naming its tier; API rows are untagged.
 export type AccessTag = { label: string; family: PickerFamilyId };
+
+// Where a row's figures come from: the DeepSWE leaderboard, or a vendor's own
+// claim, which the UI marks and cites (ADR 0009). Only the citation: the
+// entry's harness and trials stay in the data file, since nothing shows them
+// (vendor-reported-data ticket 08).
+export type Provenance =
+  | { kind: "deepswe" }
+  | ({ kind: "vendor-reported" } & Pick<
+      VendorReportedEntry,
+      "source" | "sourceUrl" | "publishedAt"
+    >);
+
+export type VendorReportedProvenance = Extract<Provenance, { kind: "vendor-reported" }>;
 
 // API and effective figures in USD for the same cost measure.
 export type CostPair = { api: number; effective: number };
@@ -38,17 +52,22 @@ export type LeaderboardRow = {
   accessRoute: AccessRoute;
   accessTag?: AccessTag; // absent on API rows
   isBestEntry: boolean; // the model's best entry (docs/context.md); the same on every route
+  provenance: Provenance; // the same on every route
   passAt1: number;
-  cost: CostPair;
-  costPerSolvedTask: CostPair | undefined; // absent when passAt1 is 0
-  outputTokens: number;
-  steps: number;
-  openrouterId?: string; // shown in the model-name tooltip
+  cost: CostPair | undefined; // absent when the vendor-reported entry states no cost
+  costPerSolvedTask: CostPair | undefined; // absent when passAt1 is 0 or cost is absent
+  outputTokens?: number; // absent when the vendor-reported entry states none
+  steps?: number; // likewise
   throughputTokPerSec?: number; // absent when unmapped or absent from the snapshot
-  averageTimeSeconds?: number; // absent whenever throughput is
+  averageTimeSeconds?: number; // absent whenever throughput or output tokens are
 };
 
-export type ModelOption = { model: string; displayName: string; vendor: string };
+export type ModelOption = {
+  model: string;
+  displayName: string;
+  vendor: string;
+  vendorReported: boolean; // coloured like its rows in the Models picker
+};
 
 // A family model with a non-standard usage limit, badged per tier in the
 // Subscriptions picker because its discount differs from the tier-wide one;
@@ -82,6 +101,9 @@ export type LeaderboardFilters = {
   effortView: "best" | "all";
   subscriptions: SubscriptionSelection;
   models: ReadonlySet<string>;
+  // Whether the Models picker lists vendor-reported models. While off, none
+  // is selected, so their rows are hidden too.
+  includeVendorReported: boolean;
 };
 
 export type Leaderboard = {
@@ -91,13 +113,14 @@ export type Leaderboard = {
   // The Subscriptions picker's sections: Claude first, tiers in tiers.json
   // (ascending price) order.
   pickerFamilies: PickerFamily[];
-  // Best view, API routes, every model selected.
+  // Best view, API routes, every model listed and selected.
   defaultFilters: () => LeaderboardFilters;
   visibleRows: (filters: LeaderboardFilters) => LeaderboardRow[];
 };
 
 export type LeaderboardSources = {
   snapshot: DeepsweSnapshot;
+  vendorReported: VendorReportedSnapshot;
   mapping: ModelMappingEntry[];
   throughput: ThroughputSnapshot;
   tiers: Tier[];
@@ -106,14 +129,21 @@ export type LeaderboardSources = {
 
 export function createLeaderboard({
   snapshot,
+  vendorReported,
   mapping,
   throughput,
   tiers,
   familyVendors,
 }: LeaderboardSources): Leaderboard {
-  const rows = deriveRows(snapshot, mapping, throughput, tiers);
+  const rows = deriveRows(leaderboardEntries(snapshot, vendorReported), mapping, throughput, tiers);
   const modelOptions = [...new Map(rows.map((row) => [row.model, row]))]
-    .map(([model, { displayName, vendor }]) => ({ model, displayName, vendor }))
+    .map(([model, { displayName, vendor, provenance }]) => ({
+      model,
+      displayName,
+      vendor,
+      // Supersession is per model, so every row of a model shares a source.
+      vendorReported: provenance.kind === "vendor-reported",
+    }))
     .toSorted((a, b) => a.displayName.localeCompare(b.displayName, "en"));
   const pickerFamilies = PICKER_FAMILIES.map((family) => ({
     family,
@@ -125,13 +155,7 @@ export function createLeaderboard({
         shortLabel: tier.shortLabel,
         priceUsdPerMonth: tier.priceUsdPerMonth,
         tierDiscount: tierDiscount(tier, 1),
-        // A non-standard usage multiplier, or a tier that excludes the model.
-        notes: mapping.flatMap((entry) => {
-          const factor = entrySubsidisationFactor(tier, entry);
-          return entry.family !== family || factor === subsidisationFactor(tier, 1)
-            ? []
-            : [{ name: entry.shortName ?? entry.displayName, tierDiscount: 1 - factor }];
-        }),
+        notes: usageLimitNotes(mapping, family, tier),
       })),
   }));
   return {
@@ -142,6 +166,7 @@ export function createLeaderboard({
       effortView: "best",
       subscriptions: { claude: "api", chatgpt: "api" },
       models: new Set(modelOptions.map(({ model }) => model)),
+      includeVendorReported: true,
     }),
     visibleRows: (filters) =>
       rows.filter(
@@ -162,15 +187,67 @@ export function compareModel(a: LeaderboardRow, b: LeaderboardRow): number {
   return effortRank(a.effort) - effortRank(b.effort);
 }
 
-function deriveRows(
+// An entry's identity and figures, in the vendor-reported shape: DeepSWE
+// entries state every figure, vendor-reported ones leave unstated figures
+// absent (ADR 0009).
+type LeaderboardEntryFields = Pick<
+  VendorReportedEntry,
+  "model" | "effort" | "pass_at_1" | "average_cost_usd" | "output_tokens" | "steps"
+>;
+
+// A leaderboard entry from either source, in the one shape rows derive from.
+type LeaderboardEntry = Omit<LeaderboardEntryFields, "effort"> & {
+  effort: string | null; // null = model's default effort, DeepSWE only
+  provenance: Provenance;
+};
+
+function leaderboardEntries(
   snapshot: DeepsweSnapshot,
+  vendorReported: VendorReportedSnapshot,
+): LeaderboardEntry[] {
+  return [
+    ...snapshot.entries.map((entry) => ({
+      ...entry,
+      provenance: { kind: "deepswe" } satisfies Provenance,
+    })),
+    ...vendorReported.entries.map(
+      ({
+        model,
+        effort,
+        pass_at_1,
+        average_cost_usd,
+        output_tokens,
+        steps,
+        source,
+        sourceUrl,
+        publishedAt,
+      }) => ({
+        model,
+        effort,
+        pass_at_1,
+        average_cost_usd,
+        output_tokens,
+        steps,
+        provenance: {
+          kind: "vendor-reported",
+          source,
+          sourceUrl,
+          publishedAt,
+        } satisfies Provenance,
+      }),
+    ),
+  ];
+}
+
+function deriveRows(
+  entries: LeaderboardEntry[],
   mapping: ModelMappingEntry[],
   throughput: ThroughputSnapshot,
   tiers: Tier[],
 ): LeaderboardRow[] {
   const byModel = new Map(mapping.map((entry) => [entry.leaderboardModel, entry]));
-  const bestByModel = bestEntries(snapshot.entries);
-  return snapshot.entries.flatMap((entry) => {
+  const bestByModel = bestEntries(entries);
+  return entries.flatMap((entry) => {
     const mapped = byModel.get(entry.model);
     if (!mapped) {
       throw new Error(
@@ -183,10 +260,16 @@ function deriveRows(
         : throughput.models[mapped.openrouterId]?.consumerP50;
     const familyTiers = tiers.filter((tier) => tier.family === mapped.family);
     const isBestEntry = bestByModel.get(entry.model) === entry;
+    // The entry's cost on a route with this subsidisation factor (1 on the
+    // API); absent when the entry states no cost.
+    const costAt = (factor: number): CostPair | undefined =>
+      entry.average_cost_usd === undefined
+        ? undefined
+        : { api: entry.average_cost_usd, effective: entry.average_cost_usd * factor };
     const row = (
       accessRoute: AccessRoute,
       accessTag: AccessTag | undefined,
-      effectiveCostUsd: number,
+      cost: CostPair | undefined,
     ): LeaderboardRow => ({
       model: entry.model,
       displayName: mapped.displayName,
@@ -196,29 +279,28 @@ function deriveRows(
       accessRoute,
       accessTag,
       isBestEntry,
+      provenance: entry.provenance,
       passAt1: entry.pass_at_1,
-      cost: { api: entry.average_cost_usd, effective: effectiveCostUsd },
+      cost,
       costPerSolvedTask:
-        entry.pass_at_1 === 0
+        cost === undefined || entry.pass_at_1 === 0
           ? undefined
-          : {
-              api: entry.average_cost_usd / entry.pass_at_1,
-              effective: effectiveCostUsd / entry.pass_at_1,
-            },
+          : { api: cost.api / entry.pass_at_1, effective: cost.effective / entry.pass_at_1 },
       outputTokens: entry.output_tokens,
       steps: entry.steps,
-      openrouterId: mapped.openrouterId ?? undefined,
       throughputTokPerSec,
       averageTimeSeconds:
-        throughputTokPerSec === undefined ? undefined : entry.output_tokens / throughputTokPerSec,
+        throughputTokPerSec === undefined || entry.output_tokens === undefined
+          ? undefined
+          : entry.output_tokens / throughputTokPerSec,
     });
     return [
-      row("api", undefined, entry.average_cost_usd),
+      row("api", undefined, costAt(1)),
       ...familyTiers.map((tier) =>
         row(
           tier.id,
           { label: tier.shortLabel, family: tier.family },
-          entry.average_cost_usd * entrySubsidisationFactor(tier, mapped),
+          costAt(entrySubsidisationFactor(tier, mapped)),
         ),
       ),
     ];
@@ -259,12 +341,36 @@ export function toggleModel(filters: LeaderboardFilters, model: string): Leaderb
   return setModels(filters, models);
 }
 
+// Turning vendor-reported models off deselects them; turning them back on
+// lists them unselected, for the user to tick or select all.
+export function setIncludeVendorReported(
+  filters: LeaderboardFilters,
+  includeVendorReported: boolean,
+  modelOptions: ModelOption[],
+): LeaderboardFilters {
+  const vendorReportedModels = new Set(
+    modelOptions.filter((option) => option.vendorReported).map(({ model }) => model),
+  );
+  const models = includeVendorReported
+    ? filters.models
+    : new Set([...filters.models].filter((model) => !vendorReportedModels.has(model)));
+  return { ...filters, models, includeVendorReported };
+}
+
+// The models the Models picker lists, which select-all selects.
+export function pickerModels(
+  filters: LeaderboardFilters,
+  modelOptions: ModelOption[],
+): ModelOption[] {
+  return modelOptions.filter((option) => filters.includeVendorReported || !option.vendorReported);
+}
+
 // Each model's best entry: the highest Pass@1 on the raw fraction, with the
 // higher effort level winning an exact tie. This is the DeepSWE site's rule;
 // for claude-fable-5 it picks xhigh over max. Chosen per model, so every
 // access route of the entry is best together.
-function bestEntries(entries: DeepsweEntry[]): Map<string, DeepsweEntry> {
-  const best = new Map<string, DeepsweEntry>();
+function bestEntries(entries: LeaderboardEntry[]): Map<string, LeaderboardEntry> {
+  const best = new Map<string, LeaderboardEntry>();
   for (const entry of entries) {
     const incumbent = best.get(entry.model);
     if (incumbent === undefined || outscores(entry, incumbent)) best.set(entry.model, entry);
@@ -272,7 +378,7 @@ function bestEntries(entries: DeepsweEntry[]): Map<string, DeepsweEntry> {
   return best;
 }
 
-function outscores(entry: DeepsweEntry, incumbent: DeepsweEntry): boolean {
+function outscores(entry: LeaderboardEntry, incumbent: LeaderboardEntry): boolean {
   if (entry.pass_at_1 !== incumbent.pass_at_1) return entry.pass_at_1 > incumbent.pass_at_1;
   return effortRank(entry.effort) > effortRank(incumbent.effort);
 }
@@ -300,6 +406,25 @@ function entrySubsidisationFactor(tier: Tier, entry: ModelMappingEntry): number 
   return entry.excludedTiers?.includes(tier.id)
     ? 1
     : subsidisationFactor(tier, entry.usageMultiplier);
+}
+
+// A family's models whose factor on the tier differs from the tier-wide one
+// (a non-standard usage multiplier, or a tier that excludes the model), one
+// note per distinct label and factor: models sharing both (Fable 5 and
+// Fable 5.1, both "Fable" at 0.5) share one note.
+function usageLimitNotes(
+  mapping: ModelMappingEntry[],
+  family: PickerFamilyId,
+  tier: Tier,
+): UsageLimitNote[] {
+  const notes = new Map<string, UsageLimitNote>();
+  for (const entry of mapping) {
+    const factor = entrySubsidisationFactor(tier, entry);
+    if (entry.family !== family || factor === subsidisationFactor(tier, 1)) continue;
+    const name = entry.shortName ?? entry.displayName;
+    notes.set(`${name}@${factor}`, { name, tierDiscount: 1 - factor });
+  }
+  return [...notes.values()];
 }
 
 // A subsidisation factor as the discount it amounts to.

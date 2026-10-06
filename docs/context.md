@@ -9,8 +9,12 @@ The derived, filterable set of rows this project computes from the snapshots: ev
 _Avoid_: table model, ranking
 
 **Leaderboard entry**:
-One (model, effort level) result from the DeepSWE leaderboard: Pass@1, average cost, output tokens, steps.
+One (model, effort level) result: Pass@1, average cost, output tokens, steps. Usually from the DeepSWE leaderboard; a vendor-reported entry comes from the vendor instead and often has Pass@1 alone.
 _Avoid_: model row, result
+
+**Vendor-reported entry**:
+A leaderboard entry transcribed from a vendor's own DeepSWE v1.1 claim rather than the DeepSWE leaderboard, citing its source. Superseded per model, every effort level at once, when DeepSWE publishes the model (ADR 0009). Marked in the UI as an enhancement.
+_Avoid_: self-reported, unofficial, unverified
 
 **Effort level**:
 The reasoning-effort setting a model was benchmarked at. Part of an entry's identity: the same model at two effort levels is two entries.
@@ -40,7 +44,7 @@ A toolbar control that sets one filter: the effort buttons, the Models picker, t
 _Avoid_: filter (for the control), selector, dropdown (as a name)
 
 **Models picker**:
-The toolbar control that sets the model filter: a checkbox per model with select-all and clear. UI copy says "Models menu"; internal vocabulary stays "Models picker".
+The toolbar control that sets the model filter: a checkbox per model with select-all and clear, and a toggle that lists or unlists the vendor-reported models. UI copy says "Models menu"; internal vocabulary stays "Models picker".
 _Avoid_: model dropdown, model selector
 
 **Subscriptions picker**:
@@ -109,10 +113,10 @@ _Avoid_: ordering, ranking
 Every column but Model: one number per row, right-aligned, blank cells last whichever the sort direction.
 
 **Source column**:
-A leaderboard column reported verbatim by the DeepSWE leaderboard (Pass@1, average cost, output tokens, steps).
+A leaderboard column reported verbatim by the DeepSWE leaderboard (Pass@1, average cost, output tokens, steps). Per-column, like derived column: on a vendor-reported entry's rows the figures come from the vendor, but the columns are still source columns.
 
 **Enhancement**:
-Anything the site adds over the DeepSWE leaderboard: the derived columns and the Subscriptions picker. Marked purple in the UI, the same colour as "enhanced" in the title.
+Anything the site adds over the DeepSWE leaderboard: the derived columns, the Subscriptions picker, and vendor-reported entries. Marked purple in the UI, the same colour as "enhanced" in the title.
 _Avoid_: extra, add-on, custom column
 
 **Derived column**:
@@ -150,7 +154,7 @@ The organisation segment of an OpenRouter model id (z-ai in z-ai/glm-5.3), used 
 _Avoid_: author, owner
 
 **Data file**:
-One of the checked-in JSON files the site and the refresh scripts read. Every data file is either a snapshot (DeepSWE, throughput, tiers, price revisions) or a mapping (model mapping, vendor mapping); the site treats all of them alike, whoever last wrote them.
+One of the checked-in JSON files the site and the refresh scripts read. Every data file is either a snapshot (DeepSWE, throughput, tiers, price revisions, vendor-reported entries) or a mapping (model mapping, vendor mapping); the site treats all of them alike, whoever last wrote them.
 _Avoid_: refresh-written file, hand-maintained file (the model mapping is both), static data
 
 **Snapshot**:

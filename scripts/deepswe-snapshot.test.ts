@@ -14,6 +14,7 @@ import {
   leaderboardArtifactSchema,
   normalize,
 } from "./deepswe-snapshot.ts";
+import type { SupersessionResult } from "./vendor-reported-supersession.ts";
 
 const manifest: VersionManifest = {
   latest: "v1.1",
@@ -71,19 +72,42 @@ function mappingFor(models: string[]): ModelMappingEntry[] {
   }));
 }
 
+// The supersession result summarizeRefresh reads: a mapping of the given size
+// after this run, and nothing superseded or standing unless a test says so.
+const supersession = (
+  mappingAfter: number,
+  overrides: Partial<Pick<SupersessionResult, "superseded" | "standing">> = {},
+) => ({
+  mapping: mappingFor(Array.from({ length: mappingAfter }, (_, i) => `model-${i}`)),
+  superseded: [],
+  standing: [],
+  ...overrides,
+});
+
 // Includes the fixture factor's model so the happy path has no stale-factor
 // warnings.
 const allModels = ["claude-opus-5", "gpt-5-6-luna"];
 
+// normalize with the inputs most tests leave alone: the pinned manifest, the
+// fixture revisions, a fixed hash and no vendor-reported models.
+type NormalizeInput = Parameters<typeof normalize>[0];
+const normalizeWith = (
+  input: Pick<NormalizeInput, "artifact" | "mapping"> & Partial<NormalizeInput>,
+) =>
+  normalize({
+    manifest,
+    priceRevisions: revisions,
+    rawSha256: "abc123",
+    vendorReportedModels: new Set(),
+    ...input,
+  });
+
 describe("normalize", () => {
   it("produces a pinned, warning-free snapshot from a clean artifact", () => {
-    const { snapshot, warnings } = normalize(
-      manifest,
-      artifact(allModels.map((model) => row(model))),
-      mappingFor(allModels),
-      revisions,
-      "abc123",
-    );
+    const { snapshot, warnings } = normalizeWith({
+      artifact: artifact(allModels.map((model) => row(model))),
+      mapping: mappingFor(allModels),
+    });
     expect(warnings).toEqual([]);
     expect(snapshot.benchmark_version).toBe("v1.1");
     expect(snapshot.source).toBe("DeepSWE leaderboard");
@@ -96,13 +120,10 @@ describe("normalize", () => {
   });
 
   it("applies the given price revisions per entry and keeps raw values beside adjusted ones", () => {
-    const { snapshot } = normalize(
-      manifest,
-      artifact(allModels.map((model) => row(model, { mean_cost_usd: 2 }))),
-      mappingFor(allModels),
-      revisions,
-      "abc123",
-    );
+    const { snapshot } = normalizeWith({
+      artifact: artifact(allModels.map((model) => row(model, { mean_cost_usd: 2 }))),
+      mapping: mappingFor(allModels),
+    });
     const byModel = new Map(snapshot.entries.map((entry) => [entry.model, entry]));
     expect(byModel.get("gpt-5-6-luna")).toMatchObject({
       average_cost_usd: 0.5,
@@ -123,7 +144,7 @@ describe("normalize", () => {
   // Ticket 10's worked example: a non-uniform revision yields a factor that
   // depends on the entry's token mix, matching the site's rendered $1.67.
   it("derives a token-mix factor for a non-uniform revision (deepseek-v4-pro max)", () => {
-    const revisions: Record<string, PriceRevision> = {
+    const deepseekRevisions: Record<string, PriceRevision> = {
       "deepseek-v4-pro": {
         from: { input: 0.435, cached: 0.003625, output: 0.87 },
         to: { input: 1.32, cached: 0.044, output: 3.96 },
@@ -138,13 +159,11 @@ describe("normalize", () => {
         mean_output_tokens: 105998.91814159292,
       }),
     ]);
-    const { snapshot } = normalize(
-      manifest,
-      source,
-      mappingFor(["deepseek-v4-pro"]),
-      revisions,
-      "abc123",
-    );
+    const { snapshot } = normalizeWith({
+      artifact: source,
+      mapping: mappingFor(["deepseek-v4-pro"]),
+      priceRevisions: deepseekRevisions,
+    });
     expect(snapshot.entries[0]).toMatchObject({
       cost_adjustment_factor: 6.901879779721177,
       average_cost_usd: 1.6660232187256647,
@@ -157,13 +176,11 @@ describe("normalize", () => {
   });
 
   it("warns without switching when the manifest's latest moves past the pin", () => {
-    const { snapshot, warnings } = normalize(
-      { ...manifest, latest: "v1.2" },
-      artifact(allModels.map((model) => row(model))),
-      mappingFor(allModels),
-      revisions,
-      "abc123",
-    );
+    const { snapshot, warnings } = normalizeWith({
+      manifest: { ...manifest, latest: "v1.2" },
+      artifact: artifact(allModels.map((model) => row(model))),
+      mapping: mappingFor(allModels),
+    });
     expect(warnings).toEqual([expect.stringContaining("New DeepSWE version available: v1.2")]);
     expect(snapshot.benchmark_version).toBe("v1.1");
     expect(snapshot.source_url).toContain("/v1.1/");
@@ -171,35 +188,37 @@ describe("normalize", () => {
 
   it("fails when a fetched model is missing from the mapping, naming the model", () => {
     expect(() =>
-      normalize(
-        manifest,
-        artifact([...allModels.map((model) => row(model)), row("new-model")]),
-        mappingFor(allModels),
-        revisions,
-        "abc123",
-      ),
+      normalizeWith({
+        artifact: artifact([...allModels.map((model) => row(model)), row("new-model")]),
+        mapping: mappingFor(allModels),
+      }),
     ).toThrow(/new-model.*model-mapping\.json|model-mapping\.json.*new-model/);
   });
 
   it("warns when a mapping entry has no leaderboard rows", () => {
-    const { warnings } = normalize(
-      manifest,
-      artifact(allModels.map((model) => row(model))),
-      mappingFor([...allModels, "retired-model"]),
-      revisions,
-      "abc123",
-    );
+    const { warnings } = normalizeWith({
+      artifact: artifact(allModels.map((model) => row(model))),
+      mapping: mappingFor([...allModels, "retired-model"]),
+    });
     expect(warnings).toEqual([expect.stringContaining("retired-model")]);
   });
 
+  // A vendor-reported model's mapping entry has no DeepSWE rows by
+  // definition: DeepSWE hasn't published it yet (ADR 0009).
+  it("doesn't warn about a vendor-reported model's mapping entry", () => {
+    const { warnings } = normalizeWith({
+      artifact: artifact(allModels.map((model) => row(model))),
+      mapping: mappingFor([...allModels, "claude-opus-5-5"]),
+      vendorReportedModels: new Set(["claude-opus-5-5"]),
+    });
+    expect(warnings).toEqual([]);
+  });
+
   it("warns when a price revision has no leaderboard rows", () => {
-    const { warnings } = normalize(
-      manifest,
-      artifact([row("claude-opus-5")]),
-      mappingFor(["claude-opus-5"]),
-      revisions,
-      "abc123",
-    );
+    const { warnings } = normalizeWith({
+      artifact: artifact([row("claude-opus-5")]),
+      mapping: mappingFor(["claude-opus-5"]),
+    });
     expect(warnings).toEqual([
       expect.stringContaining("Price revisions with no leaderboard rows: gpt-5-6-luna"),
     ]);
@@ -208,7 +227,10 @@ describe("normalize", () => {
   it("rejects duplicate configurations", () => {
     const duplicated = [row("claude-opus-5"), row("claude-opus-5", { pass_at_1: 0.6 })];
     expect(() =>
-      normalize(manifest, artifact(duplicated), mappingFor(allModels), revisions, "abc123"),
+      normalizeWith({
+        artifact: artifact(duplicated),
+        mapping: mappingFor(allModels),
+      }),
     ).toThrow(/Duplicate configuration "mini_swe_agent_claude-opus-5"/);
   });
 
@@ -220,7 +242,10 @@ describe("normalize", () => {
       latest_job: { name: "job", finished_at: null },
     };
     expect(leaderboardArtifactSchema.parse(source).latest_job.finished_at).toBeNull();
-    const { snapshot } = normalize(manifest, source, mappingFor(allModels), revisions, "abc123");
+    const { snapshot } = normalizeWith({
+      artifact: source,
+      mapping: mappingFor(allModels),
+    });
     expect(snapshot.source_latest_job).toEqual({ name: "job", finished_at: null });
   });
 
@@ -233,7 +258,10 @@ describe("normalize", () => {
   it("rejects a task-count disagreement between manifest and artifact", () => {
     const disagreeing = { ...artifact(allModels.map((model) => row(model))), n_tasks_in_set: 99 };
     expect(() =>
-      normalize(manifest, disagreeing, mappingFor(allModels), revisions, "abc123"),
+      normalizeWith({
+        artifact: disagreeing,
+        mapping: mappingFor(allModels),
+      }),
     ).toThrow(/113.*99/);
   });
 });
@@ -258,7 +286,11 @@ describe("hasMeaningfulChange", () => {
   const snapshotFrom = (rows: LeaderboardArtifact["rows"], sha: string, generatedAt?: string) => {
     const source = artifact(rows);
     if (generatedAt) source.generated_at = generatedAt;
-    return normalize(manifest, source, mappingFor(allModels), revisions, sha).snapshot;
+    return normalizeWith({
+      artifact: source,
+      mapping: mappingFor(allModels),
+      rawSha256: sha,
+    }).snapshot;
   };
   const rows = allModels.map((model) => row(model));
 
@@ -288,7 +320,11 @@ describe("hasMeaningfulChange", () => {
     const existing = snapshotFrom(rows, "abc123");
     const source = artifact(rows);
     source.latest_job = { name: "newer-job", finished_at: null };
-    const next = normalize(manifest, source, mappingFor(allModels), revisions, "def456").snapshot;
+    const next = normalizeWith({
+      artifact: source,
+      mapping: mappingFor(allModels),
+      rawSha256: "def456",
+    }).snapshot;
     expect(hasMeaningfulChange(existing, next)).toBe(false);
   });
 
@@ -304,7 +340,10 @@ describe("hasMeaningfulChange", () => {
 
 describe("summarizeRefresh", () => {
   const snapshotFrom = (rows: LeaderboardArtifact["rows"]) =>
-    normalize(manifest, artifact(rows), mappingFor(allModels), revisions, "abc123").snapshot;
+    normalizeWith({
+      artifact: artifact(rows),
+      mapping: mappingFor(allModels),
+    }).snapshot;
   const rows = allModels.map((model) => row(model));
   const generatedEntry = mappingFor(["new-model"])[0]!;
 
@@ -312,10 +351,11 @@ describe("summarizeRefresh", () => {
     const text = summarizeRefresh({
       existing: null,
       snapshot: snapshotFrom(rows),
-      mappingCount: 25,
+      previousMappingCount: 25,
       generated: [],
       changed: true,
       previousPriceRevisions: revisions,
+      supersession: supersession(25),
     });
     expect(text.startsWith("### DeepSWE data summary")).toBe(true);
   });
@@ -325,10 +365,11 @@ describe("summarizeRefresh", () => {
     const first = summarizeRefresh({
       existing: null,
       snapshot,
-      mappingCount: 25,
+      previousMappingCount: 25,
       generated: [],
       changed: true,
       previousPriceRevisions: revisions,
+      supersession: supersession(25),
     });
     expect(first).toContain(`| Leaderboard entries | — | ${snapshot.entries.length} |`);
     expect(first).toContain(`| Models | — | ${allModels.length} |`);
@@ -337,10 +378,11 @@ describe("summarizeRefresh", () => {
     const later = summarizeRefresh({
       existing: snapshot,
       snapshot,
-      mappingCount: 25,
+      previousMappingCount: 25,
       generated: [generatedEntry],
       changed: true,
       previousPriceRevisions: revisions,
+      supersession: supersession(26),
     });
     expect(later).toContain(
       `| Leaderboard entries | ${snapshot.entries.length} | ${snapshot.entries.length} |`,
@@ -351,20 +393,19 @@ describe("summarizeRefresh", () => {
 
   it("lists changed price revisions with old and new rates and the entries they moved", () => {
     const snapshot = snapshotFrom(rows);
-    const before = normalize(
-      manifest,
-      artifact(rows),
-      mappingFor(allModels),
-      {},
-      "abc123",
-    ).snapshot;
+    const before = normalizeWith({
+      artifact: artifact(rows),
+      mapping: mappingFor(allModels),
+      priceRevisions: {},
+    }).snapshot;
     const text = summarizeRefresh({
       existing: before,
       snapshot,
-      mappingCount: 25,
+      previousMappingCount: 25,
       generated: [],
       changed: true,
       previousPriceRevisions: {},
+      supersession: supersession(25),
     });
     expect(text).toContain("Price revisions");
     expect(text).toContain("| gpt-5-6-luna | — | 4 / 0.4 / 24 → 1 / 0.1 / 6 |");
@@ -378,10 +419,11 @@ describe("summarizeRefresh", () => {
     const text = summarizeRefresh({
       existing: snapshot,
       snapshot,
-      mappingCount: 25,
+      previousMappingCount: 25,
       generated: [],
       changed: true,
       previousPriceRevisions: {},
+      supersession: supersession(25),
     });
     expect(text).toContain("| gpt-5-6-luna | — | 4 / 0.4 / 24 → 1 / 0.1 / 6 |");
     expect(text).not.toContain("Entries whose average cost moved");
@@ -392,10 +434,11 @@ describe("summarizeRefresh", () => {
     const text = summarizeRefresh({
       existing: snapshot,
       snapshot,
-      mappingCount: 25,
+      previousMappingCount: 25,
       generated: [],
       changed: true,
       previousPriceRevisions: revisions,
+      supersession: supersession(25),
     });
     expect(text).not.toContain("Price revisions");
   });
@@ -405,21 +448,106 @@ describe("summarizeRefresh", () => {
     const text = summarizeRefresh({
       existing: snapshot,
       snapshot,
-      mappingCount: 25,
+      previousMappingCount: 25,
       generated: [],
       changed: false,
       previousPriceRevisions: revisions,
+      supersession: supersession(25),
     });
     expect(text).toContain("No content change");
     expect(
       summarizeRefresh({
         existing: snapshot,
         snapshot,
-        mappingCount: 25,
+        previousMappingCount: 25,
         generated: [],
         changed: true,
         previousPriceRevisions: revisions,
+        supersession: supersession(25),
       }),
     ).not.toContain("No content change");
+  });
+
+  // Vendor-reported models DeepSWE has now published (ADR 0009). Opus 9 kept
+  // our id; GPT-9 Sol arrived under another, matched by OpenRouter id, so its
+  // hand-written mapping entry gave way to the generated one.
+  const withModels = (models: string[]) =>
+    normalizeWith({
+      artifact: artifact([...rows, ...models.map((model) => row(model))]),
+      mapping: mappingFor([...allModels, ...models]),
+    }).snapshot;
+
+  it("lists superseded vendor-reported models with the match that superseded each", () => {
+    const text = summarizeRefresh({
+      existing: snapshotFrom(rows),
+      snapshot: withModels(["claude-opus-9", "gpt-9-sol-2026-10"]),
+      previousMappingCount: 25,
+      generated: mappingFor(["gpt-9-sol-2026-10"]),
+      changed: true,
+      previousPriceRevisions: revisions,
+      supersession: supersession(25, {
+        superseded: [
+          { model: "claude-opus-9", match: "id" },
+          { model: "gpt-9-sol", match: "openrouter-id", publishedAs: "gpt-9-sol-2026-10" },
+        ],
+      }),
+    });
+    expect(text).toContain(
+      "Superseded vendor-reported models: claude-opus-9 (published under the same id), " +
+        "gpt-9-sol (published as gpt-9-sol-2026-10, same OpenRouter id).",
+    );
+    expect(text).toContain("| Mapping entries | 25 | 25 |");
+  });
+
+  it("lists new DeepSWE models beside the vendor-reported models still standing", () => {
+    const text = summarizeRefresh({
+      existing: snapshotFrom(rows),
+      snapshot: withModels(["gpt-9-sol-2026-10"]),
+      previousMappingCount: 25,
+      generated: [],
+      changed: true,
+      previousPriceRevisions: revisions,
+      supersession: supersession(25, { standing: ["gpt-9-sol", "grok-9"] }),
+    });
+    expect(text).toContain(
+      "New DeepSWE models: gpt-9-sol-2026-10. Vendor-reported models still standing: " +
+        "gpt-9-sol, grok-9. Check none of them is one model under two ids.",
+    );
+  });
+
+  it("on a first run lists every DeepSWE model beside the vendor-reported models still standing", () => {
+    const text = summarizeRefresh({
+      existing: null,
+      snapshot: withModels(["gpt-9-sol-2026-10"]),
+      previousMappingCount: 25,
+      generated: [],
+      changed: true,
+      previousPriceRevisions: revisions,
+      supersession: supersession(25, { standing: ["gpt-9-sol"] }),
+    });
+    expect(text).toContain(
+      `New DeepSWE models: ${[...allModels, "gpt-9-sol-2026-10"].join(", ")}.`,
+    );
+  });
+
+  it("says nothing about vendor-reported models when nothing could collide", () => {
+    const base = {
+      existing: snapshotFrom(rows),
+      previousMappingCount: 25,
+      generated: [],
+      changed: true,
+      previousPriceRevisions: revisions,
+    };
+    const noNewModels = summarizeRefresh({
+      ...base,
+      snapshot: snapshotFrom(rows),
+      supersession: supersession(25, { standing: ["grok-9"] }),
+    });
+    const noneStanding = summarizeRefresh({
+      ...base,
+      snapshot: withModels(["new-model"]),
+      supersession: supersession(25),
+    });
+    for (const text of [noNewModels, noneStanding]) expect(text).not.toMatch(/[Vv]endor-reported/);
   });
 });
