@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "cn";
-import { leaderboardTableOptions, type ColumnMeta } from "@/components/leaderboard-columns";
+import { leaderboardTableOptions } from "@/components/leaderboard-columns";
 import type { LeaderboardRow } from "@/data/leaderboard";
 
 // The enhancement tint, shared by the derived columns and vendor-reported rows
@@ -23,17 +23,6 @@ const tint = "bg-brand/5 dark:bg-brand/8";
 // A vendor-reported row's tint, and its hover: the tint doubled, as it would
 // look stacked on itself, in place of the grey hover other rows take.
 const vendorReportedRowTint = cn(tint, "hover:bg-brand/10 dark:hover:bg-brand/15");
-
-// Classes shared by a column's header and cells, keyed by column id: the
-// alignment. The derived tint is applied per cell, since a vendor-reported row
-// already carries it; the tint alone sets the derived block apart. Column meta
-// is static, so this is computed once.
-const columnClasses = Object.fromEntries(
-  leaderboardTableOptions.columns.map((column) => {
-    const meta: ColumnMeta | undefined = column.meta;
-    return [column.id, cn(meta?.align === "end" && "text-right")];
-  }),
-);
 
 export function LeaderboardTable({ rows, empty }: { rows: LeaderboardRow[]; empty?: ReactNode }) {
   const table = useTable({ ...leaderboardTableOptions, data: rows });
@@ -46,7 +35,6 @@ export function LeaderboardTable({ rows, empty }: { rows: LeaderboardRow[]; empt
           <TableRow key={group.id} className="text-muted-foreground">
             {group.headers.map((header) => {
               const { meta } = header.column.columnDef;
-              const classes = columnClasses[header.column.id];
               const sorted = header.column.getIsSorted();
               const label = (
                 <>
@@ -70,7 +58,11 @@ export function LeaderboardTable({ rows, empty }: { rows: LeaderboardRow[]; empt
                   aria-sort={
                     sorted === false ? undefined : sorted === "asc" ? "ascending" : "descending"
                   }
-                  className={cn(classes, meta?.derived && tint, meta?.bar && "w-40")}
+                  className={cn(
+                    meta?.align === "end" && "text-right",
+                    meta?.derived && tint,
+                    meta?.bar && "w-40",
+                  )}
                 >
                   <button
                     type="button"
@@ -107,13 +99,13 @@ export function LeaderboardTable({ rows, empty }: { rows: LeaderboardRow[]; empt
         )}
         {table.getRowModel().rows.map((row) => {
           // A vendor-reported row is tinted whole, so its derived cells add
-          // nothing on top: the tint never stacks.
+          // nothing on top: the tint never stacks. Elsewhere the tint alone
+          // sets the derived columns apart.
           const vendorReported = row.original.provenance.kind === "vendor-reported";
           return (
             <TableRow key={row.id} className={cn(vendorReported && vendorReportedRowTint)}>
               {row.getAllCells().map((cell) => {
                 const { meta } = cell.column.columnDef;
-                const classes = columnClasses[cell.column.id];
                 const value = cell.getValue();
                 const bar = meta?.bar && typeof value === "number" ? value : undefined;
                 return (
@@ -121,9 +113,8 @@ export function LeaderboardTable({ rows, empty }: { rows: LeaderboardRow[]; empt
                     key={cell.id}
                     className={cn(
                       "py-1.5",
-                      classes,
+                      meta?.align === "end" && "text-right tabular-nums",
                       meta?.derived && !vendorReported && tint,
-                      meta?.align === "end" && "tabular-nums",
                     )}
                   >
                     {bar === undefined ? (

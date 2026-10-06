@@ -2,10 +2,10 @@ import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "@/compone
 import type { VendorReportedProvenance } from "@/data/leaderboard";
 
 // A vendor-reported row's model name, which is its marker (ADR 0009): a
-// button underlined dotted in grey, as the column headers mark their
-// tooltips, on a row in the enhancement tint, opening a popover that says
-// the vendor reported it and links the source, in the same tab like the
-// masthead's sources, over its date.
+// span with the button role, underlined dotted in grey as the column headers
+// mark their tooltips, on a row in the enhancement tint. It opens a popover
+// that says the vendor reported it and links the source, in the same tab
+// like the masthead's sources, over its date.
 // A popover rather than a tooltip, because it opens on tap as well as hover,
 // and Enter moves keyboard focus into it, so the link is reachable everywhere
 // (vendor-reported-data ticket 07).
