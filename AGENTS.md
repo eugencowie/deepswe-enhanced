@@ -14,10 +14,6 @@ Default canonical labels. See `docs/agents/triage-labels.md`.
 
 Single-context layout: `docs/context.md` and ADRs in `docs/architecture/`. See `docs/agents/domain.md`.
 
-## Vendor-reported entries
-
-Adding, correcting or reviewing a vendor-reported entry: apply the admission rules in ADR 0009 (`docs/architecture/0009-vendor-reported-entries.md`), and have the maintainer confirm every figure read off a chart before committing it. The PR body carries the evidence that ADR lists.
-
 ## Development environment
 
 This project uses mise to manage the development environment.

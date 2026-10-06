@@ -4,7 +4,7 @@ Adds vendor-reported entries to the [leaderboard](../leaderboard-table/spec.md):
 
 ## Admission rules
 
-The rules a vendor claim must meet, with the reason for each, live in [ADR 0009's Admission section](../../architecture/0009-vendor-reported-entries.md#admission), the single source of truth for adding, correcting or reviewing an entry. (Ticket 06 first put them in an agent guide with the steps for adding an entry; the guide was folded into the ADR, the schema comments and `AGENTS.md`, since the steps were discoverable from the source.)
+The rules a vendor claim must meet, with the reason for each, live in [ADR 0009's Admission section](../../architecture/0009-vendor-reported-entries.md#admission), the single source of truth for adding, correcting or reviewing an entry. (Ticket 06 first put them in an agent guide with the steps for adding an entry; the guide was folded into the ADR and the schema comments, since the steps were discoverable from the source.)
 
 ## Data file: `data/vendor-reported.json`
 
