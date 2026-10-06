@@ -7,7 +7,8 @@ import {
   vendorReportedSnapshot,
 } from "../src/data/sources.ts";
 
-const modelCount = createLeaderboard(leaderboardSources).modelOptions.length;
+const { modelOptions } = createLeaderboard(leaderboardSources);
+const modelCount = modelOptions.length;
 // The All view shows every entry once, whichever source it came from.
 const entryCount = deepsweSnapshot.entries.length + vendorReportedSnapshot.entries.length;
 
@@ -146,24 +147,28 @@ test("the models picker removes a model everywhere and can clear to empty", asyn
 test("the vendor-reported toggle unlists those models and brings them back unselected", async ({
   page,
 }) => {
-  const vendorReportedCount = new Set(vendorReportedSnapshot.entries.map(({ model }) => model))
-    .size;
-  const deepsweCount = modelCount - vendorReportedCount;
+  // Any vendor-reported model the data file holds, never a named one: the
+  // refresh supersedes each once DeepSWE publishes it (ADR 0004).
+  const vendorReported = modelOptions.filter((option) => option.vendorReported);
+  test.skip(vendorReported.length === 0, "no vendor-reported entries");
+  const [{ vendor, displayName }] = vendorReported;
+  const deepsweCount = modelCount - vendorReported.length;
   await page.goto("./");
   await page.getByRole("button", { name: /^Models/ }).click();
-  const opus = page.getByRole("menuitemcheckbox", {
-    name: "Anthropic Claude Opus 5.5",
+  // The vendor mark's aria-label leads the item's name.
+  const sample = page.getByRole("menuitemcheckbox", {
+    name: `${vendor} ${displayName}`,
     exact: true,
   });
   const toggle = page.getByRole("menuitemcheckbox", { name: "Include vendor-reported" });
 
   // On by default: listed and selected.
   await expect(toggle).toBeChecked();
-  await expect(opus).toBeChecked();
+  await expect(sample).toBeChecked();
 
   // Off: unlisted, deselected, their rows gone.
   await toggle.click();
-  await expect(opus).toBeHidden();
+  await expect(sample).toBeHidden();
   await expect(
     page.getByRole("button", { name: `Models (${deepsweCount}/${deepsweCount})` }),
   ).toBeVisible();
@@ -171,13 +176,13 @@ test("the vendor-reported toggle unlists those models and brings them back unsel
 
   // On again: listed but left unselected until Select all.
   await toggle.click();
-  await expect(opus).not.toBeChecked();
+  await expect(sample).not.toBeChecked();
   await expect(
     page.getByRole("button", { name: `Models (${deepsweCount}/${modelCount})` }),
   ).toBeVisible();
   await expect(bodyRows(page)).toHaveCount(deepsweCount);
 
   await page.getByRole("menuitem", { name: "Select all" }).click();
-  await expect(opus).toBeChecked();
+  await expect(sample).toBeChecked();
   await expect(bodyRows(page)).toHaveCount(modelCount);
 });

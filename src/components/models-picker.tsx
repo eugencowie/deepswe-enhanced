@@ -15,7 +15,7 @@ import { cn } from "cn";
 import {
   pickerModels,
   setModels,
-  setVendorReported,
+  setIncludeVendorReported,
   toggleModel,
   type LeaderboardFilters,
   type ModelOption,
@@ -80,16 +80,18 @@ export function ModelsPicker({
             befits a switch; keyboard focus keeps one. */}
         <DropdownMenuCheckboxItem
           className="pr-2 *:data-[slot=dropdown-menu-checkbox-item-indicator]:hidden focus:bg-transparent focus-visible:bg-accent"
-          checked={filters.vendorReported}
+          checked={filters.includeVendorReported}
           closeOnClick={false}
-          onCheckedChange={(checked) => onChange(setVendorReported(filters, checked, models))}
+          onCheckedChange={(checked) =>
+            onChange(setIncludeVendorReported(filters, checked, models))
+          }
         >
           Include vendor-reported
           {/* On, the switch takes the enhancement colour as the key to the
               tinted items. */}
           <Switch
             className="pointer-events-none ms-auto data-checked:border-brand data-checked:bg-brand"
-            checked={filters.vendorReported}
+            checked={filters.includeVendorReported}
             tabIndex={-1}
             aria-hidden
           />

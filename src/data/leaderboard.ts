@@ -98,7 +98,7 @@ export type LeaderboardFilters = {
   models: ReadonlySet<string>;
   // Whether the Models picker lists vendor-reported models. While off, none
   // is selected, so their rows are hidden too.
-  vendorReported: boolean;
+  includeVendorReported: boolean;
 };
 
 export type Leaderboard = {
@@ -161,7 +161,7 @@ export function createLeaderboard({
       effortView: "best",
       subscriptions: { claude: "api", chatgpt: "api" },
       models: new Set(modelOptions.map(({ model }) => model)),
-      vendorReported: true,
+      includeVendorReported: true,
     }),
     visibleRows: (filters) =>
       rows.filter(
@@ -324,18 +324,18 @@ export function toggleModel(filters: LeaderboardFilters, model: string): Leaderb
 
 // Turning vendor-reported models off deselects them; turning them back on
 // lists them unselected, for the user to tick or select all.
-export function setVendorReported(
+export function setIncludeVendorReported(
   filters: LeaderboardFilters,
-  vendorReported: boolean,
+  includeVendorReported: boolean,
   modelOptions: ModelOption[],
 ): LeaderboardFilters {
-  const unlisted = new Set(
+  const vendorReportedModels = new Set(
     modelOptions.filter((option) => option.vendorReported).map(({ model }) => model),
   );
-  const models = vendorReported
+  const models = includeVendorReported
     ? filters.models
-    : new Set([...filters.models].filter((model) => !unlisted.has(model)));
-  return { ...filters, models, vendorReported };
+    : new Set([...filters.models].filter((model) => !vendorReportedModels.has(model)));
+  return { ...filters, models, includeVendorReported };
 }
 
 // The models the Models picker lists, which select-all selects.
@@ -343,7 +343,7 @@ export function pickerModels(
   filters: LeaderboardFilters,
   modelOptions: ModelOption[],
 ): ModelOption[] {
-  return modelOptions.filter((option) => filters.vendorReported || !option.vendorReported);
+  return modelOptions.filter((option) => filters.includeVendorReported || !option.vendorReported);
 }
 
 // Each model's best entry: the highest Pass@1 on the raw fraction, with the

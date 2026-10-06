@@ -18,8 +18,9 @@ of hiding them still holds.
 - **Behaviour** (the maintainer's): off removes the vendor-reported models
   from the picker and deselects any that were selected; on lists them again
   but leaves them unselected until the user ticks them or clicks Select all.
-- **State**: `LeaderboardFilters` gains `vendorReported: boolean`, true by
-  default. `setVendorReported` in `src/data/leaderboard.ts` deselects on the
+- **State**: `LeaderboardFilters` gains `includeVendorReported: boolean`, true
+  by default (named `vendorReported` until vendor-reported-data ticket 07).
+  `setIncludeVendorReported` in `src/data/leaderboard.ts` deselects on the
   way off, so `visibleRows` needs no provenance check; `pickerModels` gives
   the listed models, which the picker, its count and Select all all use.
 - **Placement**: "Include vendor-reported", under its own separator below
