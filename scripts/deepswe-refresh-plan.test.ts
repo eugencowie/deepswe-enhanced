@@ -5,6 +5,7 @@ import {
   assertMappingCoverage,
   assertNoOverlap,
   deepsweSnapshotSchema,
+  familyVendors,
   modelMappingSchema,
   vendorReportedSnapshotSchema,
 } from "../src/data/schema.ts";
@@ -60,13 +61,19 @@ const claim = (model: string): VendorReportedEntry => ({
   publishedAt: "2026-09-29",
 });
 
-// One DeepSWE model and two vendor-reported ones, as checked in before the
-// run: the files pass every load-time check. GPT-9 Luna's id is a wrong guess
+// Two DeepSWE models, one per subscription family the site needs a vendor
+// for, and two vendor-reported ones, as checked in before the run: the files
+// pass every load-time check. GPT-9 Luna's id is a wrong guess
 // at DeepSWE's: its OpenRouter id is right, so the refresh still catches it.
-const mapping = [
+const mapping: ModelMappingEntry[] = [
   mappingEntry("gpt-6-astra", "openai/gpt-6-astra"),
   mappingEntry("gpt-9-sol", "openai/gpt-9-sol"),
   mappingEntry("gpt9-luna", "openai/gpt-9-luna"),
+  {
+    ...mappingEntry("claude-opus-5", "anthropic/claude-opus-5"),
+    vendor: "Anthropic",
+    family: "claude",
+  },
 ];
 const vendorReported = vendorReportedSnapshotSchema.parse({
   benchmark_version: "v1.1",
@@ -81,7 +88,7 @@ const plan = (
 ) =>
   planDeepsweRefresh({
     manifest,
-    artifact: artifact(models),
+    artifact: artifact(["claude-opus-5", ...models]),
     rawSha256: "abc123",
     mapping: checkedIn,
     vendorReported,
@@ -101,6 +108,7 @@ function expectLoads({ snapshot, supersession }: ReturnType<typeof plan>) {
   expect(() =>
     assertMappingCoverage(files.snapshot, files.vendorReported, files.mapping),
   ).not.toThrow();
+  expect(() => familyVendors(files.mapping)).not.toThrow();
 }
 
 describe("planDeepsweRefresh", () => {

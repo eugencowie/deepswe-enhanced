@@ -162,6 +162,8 @@ function modelCell(row: LeaderboardRow): ReactNode {
   );
 }
 
+// The API cost is struck out only where the route discounts it: API rows, and
+// tier rows on a tier that excludes the model, have nothing to strike.
 function costCell(cost: CostPair | undefined): ReactNode {
   if (cost === undefined) return BLANK;
   return cost.effective === cost.api

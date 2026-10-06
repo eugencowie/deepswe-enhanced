@@ -168,7 +168,7 @@ describe("Model cell", () => {
 });
 
 // The marker is the name itself: a link to the vendor's source, its note as
-// the tooltip and the accessible description (ticket 07).
+// the tooltip and the accessible description (vendor-reported-data ticket 07).
 describe("vendor-reported name", () => {
   const claim = row({
     effort: "max",

@@ -203,9 +203,7 @@ export function summarizeRefresh(input: {
   previousPriceRevisions: Readonly<Record<string, PriceRevision>>;
   supersession: Pick<SupersessionResult, "mapping" | "superseded" | "standing">;
 }): string {
-  const { existing, snapshot, previousMappingCount, generated, changed, previousPriceRevisions } =
-    input;
-  const { supersession } = input;
+  const { existing, snapshot, generated, changed, supersession } = input;
   const modelCount = (s: DeepsweSnapshot) => new Set(s.entries.map((entry) => entry.model)).size;
   const lines = [
     "### DeepSWE data summary",
@@ -214,7 +212,7 @@ export function summarizeRefresh(input: {
     "| --- | ---: | ---: |",
     `| Leaderboard entries | ${existing?.entries.length ?? "—"} | ${snapshot.entries.length} |`,
     `| Models | ${existing ? modelCount(existing) : "—"} | ${modelCount(snapshot)} |`,
-    `| Mapping entries | ${previousMappingCount} | ${supersession.mapping.length} |`,
+    `| Mapping entries | ${input.previousMappingCount} | ${supersession.mapping.length} |`,
   ];
   if (!changed) {
     // Equal counts alone cannot distinguish an untouched snapshot from a
@@ -232,7 +230,7 @@ export function summarizeRefresh(input: {
   if (vendorReportedLines.length > 0) {
     lines.push("", ...vendorReportedLines);
   }
-  const revisionLines = priceRevisionsSection(previousPriceRevisions, existing, snapshot);
+  const revisionLines = priceRevisionsSection(input.previousPriceRevisions, existing, snapshot);
   if (revisionLines.length > 0) {
     lines.push("", ...revisionLines);
   }

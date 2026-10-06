@@ -40,11 +40,11 @@ export function planDeepsweRefresh(input: {
 
   // New models from known vendors get generated mapping entries (ADR 0003);
   // anything still unmapped afterwards fails normalize's guard as before.
-  const unmapped = unmappedModels(artifact.rows, mapping);
-  const generation =
-    unmapped.length > 0
-      ? generateMappingEntries(unmapped, mapping, listings)
-      : { generated: [], warnings: [] };
+  const generation = generateMappingEntries(
+    unmappedModels(artifact.rows, mapping),
+    mapping,
+    listings,
+  );
 
   // Vendor-reported models DeepSWE now publishes go, every effort level at
   // once (ADR 0009); an OpenRouter-id match also retires the model's mapping

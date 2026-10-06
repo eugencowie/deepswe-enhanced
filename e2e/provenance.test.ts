@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-import { modelMapping, vendorReportedSnapshot } from "../src/data/sources.ts";
+import { createLeaderboard } from "../src/data/leaderboard.ts";
+import { leaderboardSources, vendorReportedSnapshot } from "../src/data/sources.ts";
 
 // The masthead names vendor-reported scores only once there are some, dated by
 // the newest claim (ADR 0009). Derived from the data file, so the test holds
@@ -23,13 +24,14 @@ test("the masthead lists vendor-reported scores exactly when there are some", as
 });
 
 // Every vendor-reported row's name links to its entry's source and is
-// described by its citation (ticket 07). Expected rows come from the data
+// described by its citation (vendor-reported-data ticket 07). Expected rows come from the data
 // file, matched by name and effort, so the test names no live model.
 test("every vendor-reported row links its name to its source", async ({ page }) => {
   const { entries } = vendorReportedSnapshot;
   test.skip(entries.length === 0, "no vendor-reported entries");
+  const { modelOptions } = createLeaderboard(leaderboardSources);
   const displayName = (model: string) =>
-    modelMapping.find((entry) => entry.leaderboardModel === model)!.displayName;
+    modelOptions.find((option) => option.model === model)!.displayName;
   const expected = entries
     .map((entry) => ({
       cell: `${displayName(entry.model)} ${entry.effort}`,
