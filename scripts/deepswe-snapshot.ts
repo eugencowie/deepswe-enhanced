@@ -91,15 +91,16 @@ export function unmappedModels(rows: { model: string }[], mapping: ModelMappingE
   return [...new Set(rows.map((row) => row.model))].filter((model) => !mapped.has(model));
 }
 
-export function normalize(
-  manifest: VersionManifest,
-  artifact: LeaderboardArtifact,
-  mapping: ModelMappingEntry[],
-  priceRevisions: Readonly<Record<string, PriceRevision>>,
-  rawSha256: string,
+export function normalize(input: {
+  manifest: VersionManifest;
+  artifact: LeaderboardArtifact;
+  mapping: ModelMappingEntry[];
+  priceRevisions: Readonly<Record<string, PriceRevision>>;
+  rawSha256: string;
   // Mapped but not on DeepSWE yet, so never stale (ADR 0009).
-  vendorReportedModels: ReadonlySet<string>,
-): { snapshot: DeepsweSnapshot; warnings: string[] } {
+  vendorReportedModels: ReadonlySet<string>;
+}): { snapshot: DeepsweSnapshot; warnings: string[] } {
+  const { manifest, artifact, mapping, priceRevisions, rawSha256, vendorReportedModels } = input;
   const warnings: string[] = [];
   const selected = pinnedVersion(manifest);
 

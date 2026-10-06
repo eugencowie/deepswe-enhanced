@@ -56,14 +56,14 @@ export function planDeepsweRefresh(input: {
     generated: generation.generated,
   });
 
-  const { snapshot, warnings } = normalize(
+  const { snapshot, warnings } = normalize({
     manifest,
     artifact,
-    supersession.mapping,
-    revisions,
+    mapping: supersession.mapping,
+    priceRevisions: revisions,
     rawSha256,
-    new Set(supersession.standing),
-  );
+    vendorReportedModels: new Set(supersession.standing),
+  });
   // Validated here, before the shell writes anything, so a generated entry
   // colliding with an ordinary mapping entry's OpenRouter id fails the run
   // with every file untouched.
