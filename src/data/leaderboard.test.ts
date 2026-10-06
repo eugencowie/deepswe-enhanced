@@ -456,32 +456,22 @@ describe("vendor-reported entries", () => {
     expect(pro?.costPerSolvedTask?.effective).toBeCloseTo(0.134771, 6);
   });
 
-  test("rows carry the claim's provenance on every access route", () => {
+  // Harness and trials stay in the data file as a record of the source, but
+  // nothing shows them, so they stop short of the row (ticket 08).
+  test("rows carry the claim's citation, and only that, on every access route", () => {
     const claim: VendorReportedEntry = {
       ...opusNineClaim,
       harness: "mini-swe-agent",
       trials: 5,
     };
     for (const row of opusNineRows(vendorReportedLeaderboard(claim))) {
-      expect(row.provenance).toEqual({
+      expect(row.provenance).toStrictEqual({
         kind: "vendor-reported",
         source: "Claude Opus 9 System Card §8.3",
         sourceUrl: "https://www.anthropic.com/claude-opus-9",
         publishedAt: "2026-09-22",
-        harness: "mini-swe-agent",
-        trials: 5,
       });
     }
-  });
-
-  test("unstated harness and trials stay out of the provenance", () => {
-    const [row] = opusNineRows(vendorReportedLeaderboard(opusNineClaim));
-    expect(row.provenance).toStrictEqual({
-      kind: "vendor-reported",
-      source: "Claude Opus 9 System Card §8.3",
-      sourceUrl: "https://www.anthropic.com/claude-opus-9",
-      publishedAt: "2026-09-22",
-    });
   });
 
   test("a claim leaves every DeepSWE row unchanged", () => {

@@ -25,10 +25,15 @@ export type AccessRoute = "api" | TierId;
 export type AccessTag = { label: string; family: PickerFamilyId };
 
 // Where a row's figures come from: the DeepSWE leaderboard, or a vendor's own
-// claim, which the UI marks and cites (ADR 0009).
+// claim, which the UI marks and cites (ADR 0009). Only the citation: the
+// entry's harness and trials stay in the data file, since nothing shows them
+// (vendor-reported-data ticket 08).
 export type Provenance =
   | { kind: "deepswe" }
-  | ({ kind: "vendor-reported" } & Omit<VendorReportedEntry, keyof LeaderboardEntryFields>);
+  | ({ kind: "vendor-reported" } & Pick<
+      VendorReportedEntry,
+      "source" | "sourceUrl" | "publishedAt"
+    >);
 
 export type VendorReportedProvenance = Extract<Provenance, { kind: "vendor-reported" }>;
 
@@ -184,8 +189,7 @@ export function compareModel(a: LeaderboardRow, b: LeaderboardRow): number {
 
 // An entry's identity and figures, in the vendor-reported shape: DeepSWE
 // entries state every figure, vendor-reported ones leave unstated figures
-// absent (ADR 0009). Everything else on a vendor-reported entry is its
-// provenance.
+// absent (ADR 0009).
 type LeaderboardEntryFields = Pick<
   VendorReportedEntry,
   "model" | "effort" | "pass_at_1" | "average_cost_usd" | "output_tokens" | "steps"
@@ -207,14 +211,29 @@ function leaderboardEntries(
       provenance: { kind: "deepswe" } satisfies Provenance,
     })),
     ...vendorReported.entries.map(
-      ({ model, effort, pass_at_1, average_cost_usd, output_tokens, steps, ...claim }) => ({
+      ({
         model,
         effort,
         pass_at_1,
         average_cost_usd,
         output_tokens,
         steps,
-        provenance: { kind: "vendor-reported", ...claim } satisfies Provenance,
+        source,
+        sourceUrl,
+        publishedAt,
+      }) => ({
+        model,
+        effort,
+        pass_at_1,
+        average_cost_usd,
+        output_tokens,
+        steps,
+        provenance: {
+          kind: "vendor-reported",
+          source,
+          sourceUrl,
+          publishedAt,
+        } satisfies Provenance,
       }),
     ),
   ];
