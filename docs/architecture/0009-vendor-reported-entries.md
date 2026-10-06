@@ -4,6 +4,17 @@ The DeepSWE leaderboard has published nothing since GPT-6 Astra (job finished 20
 
 Three rules hold this together. Each entry carries its own provenance (source, URL, publication date), because every entry has a different source and the marker cites it. Entries use our best guess at DeepSWE's model id, so the usual supersession is an id match. Load-time checks reject a model present in both files and two mapping entries sharing a non-null OpenRouter id. The second check catches a wrong id guess: DeepSWE's real id gets a generated mapping entry (ADR 0003) with the same OpenRouter id as ours, and the refresh treats that as a supersession too. The refresh supersedes before it writes, so a healthy Refresh PR never trips these checks (ADR 0004).
 
+## Admission
+
+A vendor's claim becomes an entry only when all four rules hold:
+
+1. **DeepSWE v1.1 Pass@1.** The figure is a DeepSWE v1.1 pass rate over attempts. Cost per solved task divides by Pass@1, so the column must stay one benchmark; SWE-bench Pro or Terminal-Bench figures never enter it.
+2. **The vendor's own publication**: launch posts, system cards, model cards, vendor docs and the vendor's official social accounts. The marker cites the vendor; a third-party transcription adds a link nobody checked.
+3. **A named effort level.** The source names the effort, or says "highest": that is the vendor's highest level, as the vendor's docs name it or, failing that, as DeepSWE writes the vendor's other models (Google's is `high`). Effort is part of an entry's identity, `null` already means the model's default effort, and an unnamed effort has no place in the effort sort or the Best-entry tiebreak.
+4. **No method known to differ.** An unstated harness is admitted; a source saying the method differs (best of several harnesses, the vendor's own scaffold, best-of-k) is not. The marker already says DeepSWE didn't run it, while a method known to differ is no longer Pass@1 on the same footing.
+
+Text, tables and charts all count; where text and a chart give a figure for the same effort, the text wins. A figure read off a chart is committed only after the maintainer confirms it, given the figure, the chart's URL and the effort level.
+
 ## Considered options
 
 - **Accept other benchmarks vendors report** (SWE-bench Pro, Terminal-Bench): many more models, but the Pass@1 column would rank incomparable numbers, and cost per solved task divides by it.
@@ -20,4 +31,5 @@ Three rules hold this together. Each entry carries its own provenance (source, U
 - Coverage between snapshot and mapping now spans both files, and OpenRouter ids must be unique across the mapping.
 - A generated OpenRouter id of `null` defeats the second match. The Refresh PR body lists new DeepSWE models beside the vendor-reported ones still standing, so a duplicate under two ids rests on the reviewer.
 - Chart readings enter the data only after the maintainer checks them against the source, so a chart-read figure is as trustworthy as the maintainer's reading of it.
+- A PR adding or correcting entries carries its evidence, since the data file can't: its body lists each entry with its source, effort and figures, marking chart readings and the maintainer's sign-off on each; what settled any "highest" effort; each rejected claim with the rule it failed; and the source of each new mapping fact, such as a usage multiplier or excluded tiers.
 - The file is pinned to v1.1. When the project moves to a new DeepSWE version, the same change clears or replaces it.

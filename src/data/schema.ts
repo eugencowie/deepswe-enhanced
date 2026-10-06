@@ -117,12 +117,17 @@ export type DeepsweSnapshot = z.infer<typeof deepsweSnapshotSchema>;
 
 const vendorReportedEntrySchema = z.strictObject({
   model: nonEmpty, // best guess at DeepSWE's id, so supersession is an id match (ADR 0009)
-  effort: nonEmpty, // never null: a claim with no named effort is not admitted
+  // The vendor's own name for the level, lowercase as DeepSWE writes them;
+  // never null, since a claim with no named effort is not admitted (ADR 0009).
+  effort: nonEmpty,
   pass_at_1: z.number().min(0).max(1), // fraction
   // Only when the vendor states them.
   average_cost_usd: nonNegative.optional(),
   output_tokens: nonNegative.optional(),
   steps: nonNegative.optional(),
+  // One source for every figure on the entry, sourceUrl its most direct URL
+  // (the PDF, not the launch page linking it); source names the document
+  // and section, as the name's popover shows it.
   ...provenanceFields,
   publishedAt: z.iso.date(), // the vendor's publication date, YYYY-MM-DD
   harness: nonEmpty.optional(),
