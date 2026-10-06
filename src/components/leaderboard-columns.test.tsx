@@ -191,11 +191,15 @@ describe("vendor-reported name", () => {
     expect(button).toContain('data-slot="popover-trigger"');
   });
 
-  test("underlines the name dashed in the enhancement colour", () => {
+  // The column headers mark their tooltips the same way.
+  test("underlines the name dotted in grey, with no pointer cursor", () => {
     const classes = trigger(claim)![0]
       .match(/class="([^"]*)"/)![1]
       .split(" ");
-    expect(classes).toEqual(expect.arrayContaining(["decoration-dashed", "decoration-brand"]));
+    expect(classes).toEqual(
+      expect.arrayContaining(["decoration-dotted", "decoration-muted-foreground"]),
+    );
+    expect(classes).not.toContain("cursor-pointer");
   });
 
   // The link lives in the popover, where keyboard focus can reach it.

@@ -1,7 +1,7 @@
 # 07: Review follow-ups
 
 Type: task
-Status: claimed
+Status: resolved
 Blocked by: none
 
 ## What to build
@@ -12,10 +12,9 @@ Follow-ups from the review of [#95](https://github.com/eugencowie/deepswe-enhanc
 
 - **No badge.** The purple "vendor-reported" badge goes. A vendor-reported row is marked by its row tint and its model name.
 - **The name opens a popover** (revised after a prototype; first built as a link to the source with the note as a tooltip). The popover, shadcn's on Base UI with `openOnHover`, opens on hover, tap or Enter. It says the vendor reported the figures, links the source by name in the same tab with its date, and states the harness and trials when stated. Tap and Enter move focus onto the link, so the source is reachable by mouse, touch and keyboard (the reason ticket 03 made the marker a link); a tooltip can't open on tap or take focus. DeepSWE rows' names stay plain text.
-- **Look.** Normal text colour with a dashed purple underline; on hover or while open the text turns purple and the underline goes solid.
+- **Look.** Normal text colour with a dotted grey underline, as the column headers mark their tooltips, and the ordinary cursor rather than a pointer. (First built dashed and purple, turning purple on hover; the maintainer chose the headers' style.)
 - **Accessible name.** The button's name is the display name; the popover is a dialog holding the citation and the link.
 - **No OpenRouter-id tooltips.** Every model name loses its OpenRouter-id tooltip, which served no purpose, and `LeaderboardRow` loses `openrouterId`. Throughput still reads the id from the mapping.
-- **Open before merging:** the name's dashed purple underline and the column headers' dotted grey one get aligned, either dropping the purple or adopting it for the headers.
 
 ### `figureFrom` goes
 
@@ -39,7 +38,7 @@ The header and cell tints stay applied separately; the refresh still validates t
 
 ## Acceptance criteria
 
-- [x] No vendor-reported badge; a vendor-reported model's name, underlined dashed in purple, opens a popover on hover, tap or Enter that links its `sourceUrl` in the same tab
+- [x] No vendor-reported badge; a vendor-reported model's name, underlined dotted in grey, opens a popover on hover, tap or Enter that links its `sourceUrl` in the same tab
 - [x] No model name has an OpenRouter-id tooltip, and `LeaderboardRow` has no `openrouterId`
 - [x] `figureFrom` is gone from the schema, data, note, tests, spec and checklist; the checklist still has the chart sign-off
 - [x] An e2e test checks, in the All view, one name per vendor-reported entry, each opening by keyboard a popover whose focused link goes to its `sourceUrl` and names its `source`, from the data file; it skips when the file is empty
@@ -48,7 +47,7 @@ The header and cell tints stay applied separately; the refresh still validates t
 - [x] `summarizeRefresh` takes the supersession result; `normalize` has no default for vendor-reported models
 - [x] The filter flag is `includeVendorReported`
 - [x] ADR 0009, the spec, the checklist, the glossary and the model-data spec match the above
-- [ ] The underline is aligned with the column headers' before #95 merges
+- [x] The underline matches the column headers' dotted grey one
 - [x] `mise run validate` passes
 
 ## Comments

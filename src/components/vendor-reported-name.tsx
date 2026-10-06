@@ -3,7 +3,8 @@ import { vendorReportedMethod } from "@/components/vendor-reported-note";
 import type { VendorReportedProvenance } from "@/data/leaderboard";
 
 // A vendor-reported row's model name, which is its marker (ADR 0009): a
-// button underlined dashed in the enhancement colour, opening a popover that
+// button underlined dotted in grey, as the column headers mark their
+// tooltips, on a row in the enhancement tint, opening a popover that
 // cites the source and links it, in the same tab like the masthead's sources.
 // A popover rather than a tooltip, because it opens on tap as well as hover,
 // and Enter moves keyboard focus into it, so the link is reachable everywhere
@@ -24,7 +25,7 @@ export function VendorReportedName({
         render={
           <button
             type="button"
-            className="cursor-pointer underline decoration-brand decoration-dashed underline-offset-4 hover:text-brand hover:decoration-solid data-popup-open:text-brand data-popup-open:decoration-solid"
+            className="underline decoration-muted-foreground decoration-dotted underline-offset-4"
           />
         }
       >
