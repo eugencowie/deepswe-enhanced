@@ -8,7 +8,7 @@ The rules a vendor claim must meet, with the reason for each, live in [docs/agen
 
 ## Data file: `data/vendor-reported.json`
 
-A snapshot of vendor claims, hand-maintained through ordinary PRs, not the Refresh PR. Each entry carries its own provenance, because each has a different source:
+A snapshot of vendor claims, written by hand through ordinary PRs; the Refresh PR only deletes from it, when it supersedes a model. Each entry carries its own provenance, because each has a different source:
 
 ```ts
 // No file-level source/sourceUrl pair: no single page covers the file, and

@@ -40,16 +40,23 @@ The header and cell tints stay applied separately; the refresh still validates t
 
 ## Acceptance criteria
 
-- [ ] No vendor-reported badge; a vendor-reported model's name is a same-tab link to its `sourceUrl`, with a dashed purple underline, and the note as its tooltip and accessible description
-- [ ] No model name has an OpenRouter-id tooltip, and `LeaderboardRow` has no `openrouterId`
-- [ ] `figureFrom` is gone from the schema, data, note, tests, spec and checklist; the checklist still has the chart sign-off
-- [ ] An e2e test checks, in the All view, one source link per vendor-reported entry, each to its `sourceUrl` and described with its `source`, from the data file; it skips when the file is empty
-- [ ] The toggle's e2e test names no live model and skips when the file is empty
-- [ ] `planDeepsweRefresh` exists, the script calls it, and a unit test shows a refresh publishing a vendor-reported model yields files that pass the load-time checks
-- [ ] `summarizeRefresh` takes the supersession result; `normalize` has no default for vendor-reported models
-- [ ] The filter flag is `includeVendorReported`
-- [ ] ADR 0009, the spec, the checklist, the glossary and the model-data spec match the above
+- [x] No vendor-reported badge; a vendor-reported model's name is a same-tab link to its `sourceUrl`, with a dashed purple underline, and the note as its tooltip and accessible description
+- [x] No model name has an OpenRouter-id tooltip, and `LeaderboardRow` has no `openrouterId`
+- [x] `figureFrom` is gone from the schema, data, note, tests, spec and checklist; the checklist still has the chart sign-off
+- [x] An e2e test checks, in the All view, one source link per vendor-reported entry, each to its `sourceUrl` and described with its `source`, from the data file; it skips when the file is empty
+- [x] The toggle's e2e test names no live model and skips when the file is empty
+- [x] `planDeepsweRefresh` exists, the script calls it, and a unit test shows a refresh publishing a vendor-reported model yields files that pass the load-time checks
+- [x] `summarizeRefresh` takes the supersession result; `normalize` has no default for vendor-reported models
+- [x] The filter flag is `includeVendorReported`
+- [x] ADR 0009, the spec, the checklist, the glossary and the model-data spec match the above
 - [ ] The underline is aligned with the column headers' before #95 merges
-- [ ] `mise run validate` passes
+- [x] `mise run validate` passes
 
 ## Comments
+
+**2026-10-06 — Implemented** in five commits, each passing check and the unit tests:
+
+- **The name marker** lives in `src/components/vendor-reported-name.tsx`, because a component module may export only components (fast refresh). The note's hidden copy carries the `hidden` attribute, so it stays out of the cell's accessible name and copied text, while `aria-describedby` still reads it. Playwright confirms the accessible description; Base UI's tooltip adds no description of its own, so the fallback wasn't needed.
+- **The plan** lives in `scripts/deepswe-refresh-plan.ts`. Its tests cover both kinds of supersession and a no-op run, and each shows the files pass the load-time checks. A fourth test shows a generated entry colliding with an ordinary one fails before anything is written. The shell still fetches the OpenRouter listings only when a model is unmapped. A live `refresh:deepswe` run through the plan wrote nothing, since upstream hadn't changed.
+- **The spec's initial-entries table** now matches the data: GPT-6.1 Sol high cites the launch post, and GPT-6 Sol and Luna max read "text and chart".
+
