@@ -88,15 +88,25 @@ const supersession = (
 // warnings.
 const allModels = ["claude-opus-5", "gpt-5-6-luna"];
 
+// normalize with the inputs most tests leave alone: the pinned manifest, the
+// fixture revisions, a fixed hash and no vendor-reported models.
+type NormalizeInput = Parameters<typeof normalize>[0];
+const normalizeWith = (
+  input: Pick<NormalizeInput, "artifact" | "mapping"> & Partial<NormalizeInput>,
+) =>
+  normalize({
+    manifest,
+    priceRevisions: revisions,
+    rawSha256: "abc123",
+    vendorReportedModels: new Set(),
+    ...input,
+  });
+
 describe("normalize", () => {
   it("produces a pinned, warning-free snapshot from a clean artifact", () => {
-    const { snapshot, warnings } = normalize({
-      manifest,
+    const { snapshot, warnings } = normalizeWith({
       artifact: artifact(allModels.map((model) => row(model))),
       mapping: mappingFor(allModels),
-      priceRevisions: revisions,
-      rawSha256: "abc123",
-      vendorReportedModels: new Set(),
     });
     expect(warnings).toEqual([]);
     expect(snapshot.benchmark_version).toBe("v1.1");
@@ -110,13 +120,9 @@ describe("normalize", () => {
   });
 
   it("applies the given price revisions per entry and keeps raw values beside adjusted ones", () => {
-    const { snapshot } = normalize({
-      manifest,
+    const { snapshot } = normalizeWith({
       artifact: artifact(allModels.map((model) => row(model, { mean_cost_usd: 2 }))),
       mapping: mappingFor(allModels),
-      priceRevisions: revisions,
-      rawSha256: "abc123",
-      vendorReportedModels: new Set(),
     });
     const byModel = new Map(snapshot.entries.map((entry) => [entry.model, entry]));
     expect(byModel.get("gpt-5-6-luna")).toMatchObject({
@@ -138,7 +144,7 @@ describe("normalize", () => {
   // Ticket 10's worked example: a non-uniform revision yields a factor that
   // depends on the entry's token mix, matching the site's rendered $1.67.
   it("derives a token-mix factor for a non-uniform revision (deepseek-v4-pro max)", () => {
-    const revisions: Record<string, PriceRevision> = {
+    const deepseekRevisions: Record<string, PriceRevision> = {
       "deepseek-v4-pro": {
         from: { input: 0.435, cached: 0.003625, output: 0.87 },
         to: { input: 1.32, cached: 0.044, output: 3.96 },
@@ -153,13 +159,10 @@ describe("normalize", () => {
         mean_output_tokens: 105998.91814159292,
       }),
     ]);
-    const { snapshot } = normalize({
-      manifest,
+    const { snapshot } = normalizeWith({
       artifact: source,
       mapping: mappingFor(["deepseek-v4-pro"]),
-      priceRevisions: revisions,
-      rawSha256: "abc123",
-      vendorReportedModels: new Set(),
+      priceRevisions: deepseekRevisions,
     });
     expect(snapshot.entries[0]).toMatchObject({
       cost_adjustment_factor: 6.901879779721177,
@@ -173,13 +176,10 @@ describe("normalize", () => {
   });
 
   it("warns without switching when the manifest's latest moves past the pin", () => {
-    const { snapshot, warnings } = normalize({
+    const { snapshot, warnings } = normalizeWith({
       manifest: { ...manifest, latest: "v1.2" },
       artifact: artifact(allModels.map((model) => row(model))),
       mapping: mappingFor(allModels),
-      priceRevisions: revisions,
-      rawSha256: "abc123",
-      vendorReportedModels: new Set(),
     });
     expect(warnings).toEqual([expect.stringContaining("New DeepSWE version available: v1.2")]);
     expect(snapshot.benchmark_version).toBe("v1.1");
@@ -188,25 +188,17 @@ describe("normalize", () => {
 
   it("fails when a fetched model is missing from the mapping, naming the model", () => {
     expect(() =>
-      normalize({
-        manifest,
+      normalizeWith({
         artifact: artifact([...allModels.map((model) => row(model)), row("new-model")]),
         mapping: mappingFor(allModels),
-        priceRevisions: revisions,
-        rawSha256: "abc123",
-        vendorReportedModels: new Set(),
       }),
     ).toThrow(/new-model.*model-mapping\.json|model-mapping\.json.*new-model/);
   });
 
   it("warns when a mapping entry has no leaderboard rows", () => {
-    const { warnings } = normalize({
-      manifest,
+    const { warnings } = normalizeWith({
       artifact: artifact(allModels.map((model) => row(model))),
       mapping: mappingFor([...allModels, "retired-model"]),
-      priceRevisions: revisions,
-      rawSha256: "abc123",
-      vendorReportedModels: new Set(),
     });
     expect(warnings).toEqual([expect.stringContaining("retired-model")]);
   });
@@ -214,25 +206,18 @@ describe("normalize", () => {
   // A vendor-reported model's mapping entry has no DeepSWE rows by
   // definition: DeepSWE hasn't published it yet (ADR 0009).
   it("doesn't warn about a vendor-reported model's mapping entry", () => {
-    const { warnings } = normalize({
-      manifest,
+    const { warnings } = normalizeWith({
       artifact: artifact(allModels.map((model) => row(model))),
       mapping: mappingFor([...allModels, "claude-opus-5-5"]),
-      priceRevisions: revisions,
-      rawSha256: "abc123",
       vendorReportedModels: new Set(["claude-opus-5-5"]),
     });
     expect(warnings).toEqual([]);
   });
 
   it("warns when a price revision has no leaderboard rows", () => {
-    const { warnings } = normalize({
-      manifest,
+    const { warnings } = normalizeWith({
       artifact: artifact([row("claude-opus-5")]),
       mapping: mappingFor(["claude-opus-5"]),
-      priceRevisions: revisions,
-      rawSha256: "abc123",
-      vendorReportedModels: new Set(),
     });
     expect(warnings).toEqual([
       expect.stringContaining("Price revisions with no leaderboard rows: gpt-5-6-luna"),
@@ -242,13 +227,9 @@ describe("normalize", () => {
   it("rejects duplicate configurations", () => {
     const duplicated = [row("claude-opus-5"), row("claude-opus-5", { pass_at_1: 0.6 })];
     expect(() =>
-      normalize({
-        manifest,
+      normalizeWith({
         artifact: artifact(duplicated),
         mapping: mappingFor(allModels),
-        priceRevisions: revisions,
-        rawSha256: "abc123",
-        vendorReportedModels: new Set(),
       }),
     ).toThrow(/Duplicate configuration "mini_swe_agent_claude-opus-5"/);
   });
@@ -261,13 +242,9 @@ describe("normalize", () => {
       latest_job: { name: "job", finished_at: null },
     };
     expect(leaderboardArtifactSchema.parse(source).latest_job.finished_at).toBeNull();
-    const { snapshot } = normalize({
-      manifest,
+    const { snapshot } = normalizeWith({
       artifact: source,
       mapping: mappingFor(allModels),
-      priceRevisions: revisions,
-      rawSha256: "abc123",
-      vendorReportedModels: new Set(),
     });
     expect(snapshot.source_latest_job).toEqual({ name: "job", finished_at: null });
   });
@@ -281,13 +258,9 @@ describe("normalize", () => {
   it("rejects a task-count disagreement between manifest and artifact", () => {
     const disagreeing = { ...artifact(allModels.map((model) => row(model))), n_tasks_in_set: 99 };
     expect(() =>
-      normalize({
-        manifest,
+      normalizeWith({
         artifact: disagreeing,
         mapping: mappingFor(allModels),
-        priceRevisions: revisions,
-        rawSha256: "abc123",
-        vendorReportedModels: new Set(),
       }),
     ).toThrow(/113.*99/);
   });
@@ -313,13 +286,10 @@ describe("hasMeaningfulChange", () => {
   const snapshotFrom = (rows: LeaderboardArtifact["rows"], sha: string, generatedAt?: string) => {
     const source = artifact(rows);
     if (generatedAt) source.generated_at = generatedAt;
-    return normalize({
-      manifest,
+    return normalizeWith({
       artifact: source,
       mapping: mappingFor(allModels),
-      priceRevisions: revisions,
       rawSha256: sha,
-      vendorReportedModels: new Set(),
     }).snapshot;
   };
   const rows = allModels.map((model) => row(model));
@@ -350,13 +320,10 @@ describe("hasMeaningfulChange", () => {
     const existing = snapshotFrom(rows, "abc123");
     const source = artifact(rows);
     source.latest_job = { name: "newer-job", finished_at: null };
-    const next = normalize({
-      manifest,
+    const next = normalizeWith({
       artifact: source,
       mapping: mappingFor(allModels),
-      priceRevisions: revisions,
       rawSha256: "def456",
-      vendorReportedModels: new Set(),
     }).snapshot;
     expect(hasMeaningfulChange(existing, next)).toBe(false);
   });
@@ -373,13 +340,9 @@ describe("hasMeaningfulChange", () => {
 
 describe("summarizeRefresh", () => {
   const snapshotFrom = (rows: LeaderboardArtifact["rows"]) =>
-    normalize({
-      manifest,
+    normalizeWith({
       artifact: artifact(rows),
       mapping: mappingFor(allModels),
-      priceRevisions: revisions,
-      rawSha256: "abc123",
-      vendorReportedModels: new Set(),
     }).snapshot;
   const rows = allModels.map((model) => row(model));
   const generatedEntry = mappingFor(["new-model"])[0]!;
@@ -430,13 +393,10 @@ describe("summarizeRefresh", () => {
 
   it("lists changed price revisions with old and new rates and the entries they moved", () => {
     const snapshot = snapshotFrom(rows);
-    const before = normalize({
-      manifest,
+    const before = normalizeWith({
       artifact: artifact(rows),
       mapping: mappingFor(allModels),
       priceRevisions: {},
-      rawSha256: "abc123",
-      vendorReportedModels: new Set(),
     }).snapshot;
     const text = summarizeRefresh({
       existing: before,
@@ -512,13 +472,9 @@ describe("summarizeRefresh", () => {
   // our id; GPT-9 Sol arrived under another, matched by OpenRouter id, so its
   // hand-written mapping entry gave way to the generated one.
   const withModels = (models: string[]) =>
-    normalize({
-      manifest,
+    normalizeWith({
       artifact: artifact([...rows, ...models.map((model) => row(model))]),
       mapping: mappingFor([...allModels, ...models]),
-      priceRevisions: revisions,
-      rawSha256: "abc123",
-      vendorReportedModels: new Set(),
     }).snapshot;
 
   it("lists superseded vendor-reported models with the match that superseded each", () => {

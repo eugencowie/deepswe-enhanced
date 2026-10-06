@@ -46,7 +46,8 @@ record specific visual changes.
   weight so it stays legible over the bar. Purple is reserved for
   enhancements: the three derived columns, the Subscriptions picker
   (trigger and popover), and vendor-reported rows with their Models
-  picker items and the switch that includes them.
+  picker items, the vendor-reported toggle when on, and the source link
+  in their popover.
   Other columns stay plain figures. The sorted column header is the only
   header in the foreground colour.
 - Mark estimated columns with a small muted "est" after the header name.
@@ -54,7 +55,7 @@ record specific visual changes.
   foreground colour. Time is estimated; Tok/s is a measurement and
   carries no mark.
 - Underlines encode what a click does: solid for links (the provenance
-  line), dotted for text that opens a tooltip or popover: the column
+  line and a vendor-reported row's source), dotted for text that opens a tooltip or popover: the column
   headers and vendor-reported model names.
 - The effort level after a model name has both a real space (so the
   accessible name and copied text read naturally) and a visual margin.

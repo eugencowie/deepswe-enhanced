@@ -43,3 +43,5 @@ The figure fields listed twice in `leaderboard.ts`; the three `provenance.kind =
 - **Alignment** sits on the header and cell directly; the cell's `text-right tabular-nums` joined into one class pair, and every element keeps the classes it had.
 - **`normalize`'s callers** are the plan and the snapshot tests.
 - **Docs**: ADR 0007 notes ticket 07 dropped the rule; the vendor-reported-data spec, design spec and leaderboard-table spec match the popover, masthead, tint and underline as built.
+
+**2026-10-06 — Reviewed.** The spec review found nothing missing or wrong. Acted on: the snapshot tests call `normalizeWith`, which fills the inputs most tests leave alone, since the input object had grown every call; the DeepSeek revision test's local revisions, which shadowed the fixture's, are renamed and passed explicitly. The design spec names the vendor-reported toggle by its glossary term and counts the popover's source link among purple items and solid-underlined links. Left: a named type for the citation's three fields, which appear only in `leaderboard.ts`.

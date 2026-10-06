@@ -457,7 +457,8 @@ describe("vendor-reported entries", () => {
   });
 
   // Harness and trials stay in the data file as a record of the source, but
-  // nothing shows them, so they stop short of the row (ticket 08).
+  // nothing shows them, so they stop short of the row (vendor-reported-data
+  // ticket 08).
   test("rows carry the claim's citation, and only that, on every access route", () => {
     const claim: VendorReportedEntry = {
       ...opusNineClaim,
