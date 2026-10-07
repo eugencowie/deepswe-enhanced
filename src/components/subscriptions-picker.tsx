@@ -25,14 +25,13 @@ import {
 // accepted cost is fast refresh for this file, which is what the suppressed
 // rule protects.
 
-// A tier discount (0.95 for 95% off) as a percentage: one decimal where
-// needed ("−95%", "−97.5%"), minus sign U+2212. No discount reads "full
-// price", like the API rung: a tier that excludes the flagship notes it so.
+// A tier discount (0.95 for 95% off) as a whole percentage ("−95%"), minus
+// sign U+2212. No discount reads "full price", like the API rung: a tier that
+// excludes the flagship notes it so.
 // oxlint-disable-next-line react/only-export-components
 export function formatTierDiscount(discount: number): string {
   if (discount === 0) return "full price";
-  const percent = Math.round(discount * 1000) / 10;
-  return `−${percent}%`;
+  return `−${Math.round(discount * 100)}%`;
 }
 
 // A tier's monthly price as published: "$20/mo".

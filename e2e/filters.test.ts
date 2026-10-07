@@ -42,16 +42,16 @@ test("the subscriptions picker swaps a family to one tier and shows discounts", 
   // note: the family flagship's discount. Older models get none.
   const maxTwenty = page.getByRole("menuitemradio", { name: /Max 20x/ });
   await expect(maxTwenty).toContainText("$200/mo");
-  await expect(maxTwenty).toContainText("−98.3%");
+  await expect(maxTwenty).toContainText("−98%");
   await expect(maxTwenty).toContainText("Fable: −92%");
   await expect(maxTwenty).not.toContainText("Opus");
   const plus = familyColumn(page, "OpenAI ChatGPT").getByRole("menuitemradio", { name: /^Plus/ });
-  await expect(plus).toContainText("Astra: −87.7%");
+  await expect(plus).toContainText("Astra: −88%");
   await expect(plus).not.toContainText("Sol");
   const proFiveHundred = page.getByRole("menuitemradio", { name: /^Pro 500/ });
   await expect(proFiveHundred).toContainText("$500/mo");
-  await expect(proFiveHundred).toContainText("−90.7%");
-  await expect(proFiveHundred).toContainText("Astra: −92.8%");
+  await expect(proFiveHundred).toContainText("−91%");
+  await expect(proFiveHundred).toContainText("Astra: −93%");
 
   // The estimate disclaimer replaced the per-cell "(e)" marker.
   await expect(page.getByText("Subscription costs are estimates")).toContainText(
@@ -92,9 +92,7 @@ test("the Kimi Code column prices Kimi K3 and notes no flagship", async ({ page 
     /^Ultra/,
   ]);
   // Label, fee and headline, and no note after them.
-  await expect(kimi.getByRole("menuitemradio", { name: /^Ultra/ })).toHaveText(
-    "Ultra$199/mo−85.2%",
-  );
+  await expect(kimi.getByRole("menuitemradio", { name: /^Ultra/ })).toHaveText("Ultra$199/mo−85%");
 
   await kimi.getByRole("menuitemradio", { name: /^Plus/ }).click();
   await expect(page.getByRole("button", { name: "Subscriptions: Moonshot Plus" })).toBeVisible();
@@ -112,9 +110,9 @@ test("the GLM Coding column notes Flash on each rung", async ({ page }) => {
   await expect(glm.getByRole("menuitemradio")).toHaveText([/^API/, /^Lite/, /^Pro/, /^Max/]);
   const lite = glm.getByRole("menuitemradio", { name: /^Lite/ });
   await expect(lite).toContainText("$18/mo");
-  await expect(lite).toContainText("−87.1%");
+  await expect(lite).toContainText("−87%");
   await expect(lite).toContainText("Flash: −25%");
-  await expect(glm.getByRole("menuitemradio", { name: /^Pro/ })).toContainText("Flash: −44.1%");
+  await expect(glm.getByRole("menuitemradio", { name: /^Pro/ })).toContainText("Flash: −44%");
   await expect(glm.getByRole("menuitemradio", { name: /^Max/ })).toContainText("Flash: −50%");
 
   await lite.click();
