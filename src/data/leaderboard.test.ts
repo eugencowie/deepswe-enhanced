@@ -2,9 +2,9 @@ import { describe, expect, test } from "vite-plus/test";
 
 import {
   deepsweSnapshot,
-  familyModels,
   leaderboardSources as sources,
   modelMapping,
+  subscriptionFamilies,
   throughputSnapshot,
   tiers,
   vendorReportedSnapshot,
@@ -69,7 +69,7 @@ const familyRoutes = (family: PickerFamilyId): AccessRoute[] => [
 // The live flagships' entries, which the Subscriptions picker's notes need
 // whatever the snapshot holds.
 const flagshipEntries = modelMapping.filter((entry) =>
-  Object.values(familyModels).some((f) => f.flagship?.model === entry.leaderboardModel),
+  Object.values(subscriptionFamilies).some((f) => f.flagship?.model === entry.leaderboardModel),
 );
 
 // Synthetic family-"none" models, plus the flagships: rows come from the
@@ -643,6 +643,13 @@ describe("pickerFamilies", () => {
       "Moonshot",
       "Z.ai",
     ]);
+    // Each column's header is its family's label in tiers.json.
+    expect(pickerFamilies.map((f) => f.label)).toEqual([
+      "Claude",
+      "ChatGPT",
+      "Kimi Code",
+      "GLM Coding",
+    ]);
     expect(family("claude").tiers.map((tier) => tier.id)).toEqual([
       "claude-pro",
       "claude-max-5x",
@@ -712,7 +719,7 @@ describe("pickerFamilies", () => {
   test("each tier notes its family's flagship under the family's flagship label", () => {
     expect(
       pickerFamilies
-        .filter((f) => familyModels[f.family].flagship !== undefined)
+        .filter((f) => subscriptionFamilies[f.family].flagship !== undefined)
         .flatMap(({ tiers }) => tiers.map((t) => [t.id, t.flagshipNote?.label])),
     ).toEqual([
       ["claude-pro", "Fable"],

@@ -55,7 +55,7 @@ The Subscriptions picker's popover: one column per subscription family, each a l
 _Avoid_: plan card, plan picker
 
 **Subscription family**:
-Which vendor's tiers can run a model: Claude, ChatGPT, Kimi (Kimi Code), GLM (GLM Coding), or none. Every family has exactly one vendor, read from its model-mapping entries; that vendor's mark labels the family's column in the Subscriptions picker, which runs Claude, ChatGPT, then the rest alphabetically by vendor. A model joins a family only when a primary source says the family's tiers serve it, so a vendor can have models in a family and in none (Kimi K2.7 Code and GLM 5.2 are in none).
+Which vendor's tiers can run a model: Claude, ChatGPT, Kimi (Kimi Code), GLM (GLM Coding), or none. Every family has exactly one vendor, read from its model-mapping entries; that vendor's mark and the family's label (Kimi Code, GLM Coding) head the family's column in the Subscriptions picker, which runs Claude, ChatGPT, then the rest alphabetically by vendor. A model joins a family only when a primary source says the family's tiers serve it, so a vendor can have models in a family and in none (Kimi K2.7 Code and GLM 5.2 are in none).
 
 **API-equivalent value**:
 SemiAnalysis's estimate of a tier's full monthly usage limit for one model, priced at list API rates on their agentic workload. Per tier and model: Opus 5.5 is worth $11,726 a month on Max 20x and Fable 5.1 $2,485, a value that already includes Max's cap on Fable at half the limit. A model SemiAnalysis didn't measure takes its family daily driver's value.
@@ -76,7 +76,7 @@ _Avoid_: unsupported tier (the model still runs)
 Tier price ÷ the model's API-equivalent value on that tier, or 1 on an excluded tier. What a dollar of API cost becomes on that tier.
 
 **Tier discount**:
-A subsidisation factor expressed as a percentage discount: 1 − factor. Shown in the Subscriptions picker per tier as the daily driver's, with the flagship's beneath under its flagship label.
+A subsidisation factor expressed as a percentage discount: 1 − factor. Shown in the Subscriptions picker per tier as the daily driver's, with the flagship's beneath under its flagship label where the family has one.
 _Avoid_: discount multiplier
 
 **API cost**:

@@ -5,12 +5,12 @@
 
 import {
   type DeepsweSnapshot,
-  type FamilyModels,
   type FamilyVendors,
   type ModelMappingEntry,
   PICKER_FAMILIES,
   type PickerFamilyId,
   type SubscriptionFamily,
+  type SubscriptionFamilies,
   type ThroughputSnapshot,
   type Tier,
   type TierId,
@@ -85,6 +85,7 @@ export type PickerTier = {
 
 export type PickerFamily = {
   family: PickerFamilyId;
+  label: string; // the route card column's heading
   vendor: string; // the family's vendor; VendorMark renders its mark
   tiers: PickerTier[];
 };
@@ -121,7 +122,7 @@ export type LeaderboardSources = {
   mapping: ModelMappingEntry[];
   throughput: ThroughputSnapshot;
   tiers: Tier[];
-  familyModels: FamilyModels;
+  subscriptionFamilies: SubscriptionFamilies;
   familyVendors: FamilyVendors;
 };
 
@@ -131,7 +132,7 @@ export function createLeaderboard({
   mapping,
   throughput,
   tiers,
-  familyModels,
+  subscriptionFamilies,
   familyVendors,
 }: LeaderboardSources): Leaderboard {
   const rows = deriveRows(
@@ -139,7 +140,7 @@ export function createLeaderboard({
     mapping,
     throughput,
     tiers,
-    familyModels,
+    subscriptionFamilies,
   );
   const modelOptions = [...new Map(rows.map((row) => [row.model, row]))]
     .map(([model, { displayName, vendor, provenance }]) => ({
@@ -152,6 +153,7 @@ export function createLeaderboard({
     .toSorted((a, b) => a.displayName.localeCompare(b.displayName, "en"));
   const pickerFamilies = PICKER_FAMILIES.map((family) => ({
     family,
+    label: subscriptionFamilies[family].label,
     vendor: familyVendors[family],
     tiers: tiers
       .filter((tier) => tier.family === family)
@@ -159,8 +161,8 @@ export function createLeaderboard({
         id: tier.id,
         shortLabel: tier.shortLabel,
         priceUsdPerMonth: tier.priceUsdPerMonth,
-        tierDiscount: 1 - dailyDriverFactor(tier, familyModels),
-        flagshipNote: flagshipNote(mapping, tier, familyModels),
+        tierDiscount: 1 - dailyDriverFactor(tier, subscriptionFamilies),
+        flagshipNote: flagshipNote(mapping, tier, subscriptionFamilies),
       })),
   }));
   return {
@@ -169,7 +171,10 @@ export function createLeaderboard({
     pickerFamilies,
     defaultFilters: () => ({
       effortView: "best",
-      subscriptions: { claude: "api", chatgpt: "api", kimi: "api", glm: "api" },
+      // PICKER_FAMILIES lists every picker family, so every key is set.
+      subscriptions: Object.fromEntries(
+        PICKER_FAMILIES.map((family) => [family, "api"]),
+      ) as SubscriptionSelection,
       models: new Set(modelOptions.map(({ model }) => model)),
       includeVendorReported: true,
     }),
@@ -249,7 +254,7 @@ function deriveRows(
   mapping: ModelMappingEntry[],
   throughput: ThroughputSnapshot,
   tiers: Tier[],
-  familyModels: FamilyModels,
+  subscriptionFamilies: SubscriptionFamilies,
 ): LeaderboardRow[] {
   const byModel = new Map(mapping.map((entry) => [entry.leaderboardModel, entry]));
   const bestByModel = bestEntries(entries);
@@ -306,7 +311,7 @@ function deriveRows(
         row(
           tier.id,
           { label: tier.shortLabel, family: tier.family },
-          costAt(subsidisationFactor(tier, mapped, familyModels)),
+          costAt(subsidisationFactor(tier, mapped, subscriptionFamilies)),
         ),
       ),
     ];
@@ -402,8 +407,8 @@ function effortRank(effort: string | null | undefined): number {
 
 // The family daily driver's API-equivalent value on a tier, which every model
 // SemiAnalysis didn't measure takes. assertTierValues guarantees it at load.
-function dailyDriverValue(tier: Tier, familyModels: FamilyModels): number {
-  const { dailyDriverModel } = familyModels[tier.family];
+function dailyDriverValue(tier: Tier, subscriptionFamilies: SubscriptionFamilies): number {
+  const { dailyDriverModel } = subscriptionFamilies[tier.family];
   const value: number | undefined = tier.apiEquivalentValuesUsdPerMonth[dailyDriverModel];
   if (value === undefined) {
     throw new Error(
@@ -415,9 +420,13 @@ function dailyDriverValue(tier: Tier, familyModels: FamilyModels): number {
 
 // A model's API-equivalent value on a tier: SemiAnalysis's measured value, or
 // the daily driver's for a model it didn't measure.
-function apiEquivalentValue(tier: Tier, model: string, familyModels: FamilyModels): number {
+function apiEquivalentValue(
+  tier: Tier,
+  model: string,
+  subscriptionFamilies: SubscriptionFamilies,
+): number {
   const measured: number | undefined = tier.apiEquivalentValuesUsdPerMonth[model];
-  return measured ?? dailyDriverValue(tier, familyModels);
+  return measured ?? dailyDriverValue(tier, subscriptionFamilies);
 }
 
 // What a dollar of API cost becomes for a mapped model on a tier: 1 on a tier
@@ -425,16 +434,17 @@ function apiEquivalentValue(tier: Tier, model: string, familyModels: FamilyModel
 function subsidisationFactor(
   tier: Tier,
   entry: ModelMappingEntry,
-  familyModels: FamilyModels,
+  subscriptionFamilies: SubscriptionFamilies,
 ): number {
   return entry.excludedTiers?.includes(tier.id)
     ? 1
-    : tier.priceUsdPerMonth / apiEquivalentValue(tier, entry.leaderboardModel, familyModels);
+    : tier.priceUsdPerMonth /
+        apiEquivalentValue(tier, entry.leaderboardModel, subscriptionFamilies);
 }
 
 // The tier's headline factor, which every unmeasured model shares.
-function dailyDriverFactor(tier: Tier, familyModels: FamilyModels): number {
-  return tier.priceUsdPerMonth / dailyDriverValue(tier, familyModels);
+function dailyDriverFactor(tier: Tier, subscriptionFamilies: SubscriptionFamilies): number {
+  return tier.priceUsdPerMonth / dailyDriverValue(tier, subscriptionFamilies);
 }
 
 // The one note on a tier rung: the family flagship's discount, shown even
@@ -444,9 +454,9 @@ function dailyDriverFactor(tier: Tier, familyModels: FamilyModels): number {
 function flagshipNote(
   mapping: ModelMappingEntry[],
   tier: Tier,
-  familyModels: FamilyModels,
+  subscriptionFamilies: SubscriptionFamilies,
 ): FlagshipNote | undefined {
-  const { flagship } = familyModels[tier.family];
+  const { flagship } = subscriptionFamilies[tier.family];
   if (flagship === undefined) return undefined;
   const entry = mapping.find((e) => e.leaderboardModel === flagship.model);
   if (entry === undefined) {
@@ -456,6 +466,6 @@ function flagshipNote(
   }
   return {
     label: flagship.label,
-    tierDiscount: 1 - subsidisationFactor(tier, entry, familyModels),
+    tierDiscount: 1 - subsidisationFactor(tier, entry, subscriptionFamilies),
   };
 }

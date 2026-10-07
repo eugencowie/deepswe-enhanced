@@ -228,14 +228,19 @@ const tierSchema = z.strictObject({
 });
 export type Tier = z.infer<typeof tierSchema>;
 
-// A family's daily driver prices every model SemiAnalysis didn't measure.
-// Its flagship, when it has one, is the model each Subscriptions picker rung
-// notes under its label (ticket 05); a family without one notes nothing
-// (ADR 0011).
-const familyModelsSchema = z.strictObject({
-  dailyDriverModel: nonEmpty,
-  flagship: z.strictObject({ model: nonEmpty, label: nonEmpty }).optional(),
-});
+// Each family's label heads its Subscriptions picker column. Its daily driver
+// prices every model SemiAnalysis didn't measure. Its flagship, when it has
+// one, is the model each rung notes under its flagship label
+// (subscription-data ticket 05); a family without one notes nothing (ADR 0011).
+const subscriptionFamiliesSchema = z.record(
+  pickerFamilySchema,
+  z.strictObject({
+    label: nonEmpty,
+    dailyDriverModel: nonEmpty,
+    flagship: z.strictObject({ model: nonEmpty, label: nonEmpty }).optional(),
+  }),
+);
+export type SubscriptionFamilies = z.infer<typeof subscriptionFamiliesSchema>;
 
 // data/tiers.json: the tiers snapshot.
 export const tiersSnapshotSchema = z.strictObject({
@@ -243,11 +248,10 @@ export const tiersSnapshotSchema = z.strictObject({
   // When SemiAnalysis published the figures (the linked post's date), not
   // when they were transcribed: the masthead shows how old the numbers are.
   publishedAt: nonEmpty,
-  families: z.record(pickerFamilySchema, familyModelsSchema),
+  families: subscriptionFamiliesSchema,
   tiers: z.array(tierSchema),
 });
 export type TiersSnapshot = z.infer<typeof tiersSnapshotSchema>;
-export type FamilyModels = TiersSnapshot["families"];
 
 // Coverage must hold in both directions, across the DeepSWE snapshot and the
 // vendor-reported entries together: an uncovered model would throw deep in

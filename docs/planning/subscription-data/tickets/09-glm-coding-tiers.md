@@ -40,4 +40,4 @@ GLM 5.3 and GLM 5.3 Flash are on the leaderboard and SemiAnalysis measured both 
 
 - **Access tag colour.** GLM Coding's tier rows are tagged in rose, beside Claude's amber, ChatGPT's teal and Kimi Code's sky. The ticket set none.
 - **Refresh fixture.** The refresh-plan tests' checked-in mapping gains a GLM 5.3 entry, since every picker family needs a vendor for the files to load.
-- **Glossary.** The **Flagship** entry no longer says the flagship is the family's top model: GLM 5.3 Flash is GLM's other measured model. ADR 0011 records this as a consequence.
+- **Glossary.** The **Flagship** entry no longer says the flagship is always the family's top model: GLM 5.3 Flash is GLM's other measured model. ADR 0011 records this as a consequence.

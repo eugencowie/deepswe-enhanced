@@ -4,17 +4,21 @@
   "publishedAt": "2026-10-05T20:01:09Z",
   "families": {
     "claude": {
+      "label": "Claude",
       "dailyDriverModel": "claude-opus-5-5",
       "flagship": { "model": "claude-fable-5-1", "label": "Fable" }
     },
     "chatgpt": {
+      "label": "ChatGPT",
       "dailyDriverModel": "gpt-6-1-sol",
       "flagship": { "model": "gpt-6-astra", "label": "Astra" }
     },
     "kimi": {
+      "label": "Kimi Code",
       "dailyDriverModel": "kimi-k3"
     },
     "glm": {
+      "label": "GLM Coding",
       "dailyDriverModel": "glm-5-3",
       "flagship": { "model": "glm-5-3-flash", "label": "Flash" }
     }

@@ -19,14 +19,6 @@ import {
   type PickerFamily,
 } from "@/data/leaderboard";
 
-// Each family's column header.
-const familyLabels = {
-  claude: "Claude",
-  chatgpt: "ChatGPT",
-  kimi: "Kimi Code",
-  glm: "GLM Coding",
-} satisfies Record<PickerFamily["family"], string>;
-
 // The rung formatters are exported for their unit tests only: the route card
 // is a portal, so it renders nothing with react-dom/server and the figures
 // can't be asserted on markup the way the column formatters are. The
@@ -151,7 +143,7 @@ function RouteCard({
       )}
     >
       <div className="grid gap-2 sm:grid-cols-2">
-        {pickerFamilies.map(({ family, vendor, tiers }) => (
+        {pickerFamilies.map(({ family, label, vendor, tiers }) => (
           <DropdownMenuRadioGroup
             key={family}
             value={filters.subscriptions[family]}
@@ -160,7 +152,7 @@ function RouteCard({
           >
             <DropdownMenuLabel className="flex items-center gap-2 px-2.5 pt-1 pb-2 text-sm text-foreground">
               <VendorMark vendor={vendor} />
-              {familyLabels[family]}
+              {label}
             </DropdownMenuLabel>
             <RouteRung value="api">
               <span className="flex-1">API</span>
@@ -193,7 +185,7 @@ function RouteCard({
       <DropdownMenuSeparator className="mt-2 bg-brand/20" />
       <p className="px-2.5 py-1.5 text-xs text-muted-foreground">
         Subscription costs are estimates: the struck-out API cost scaled by SemiAnalysis's measured
-        value for that plan and model (agentic workload).
+        value for that tier and model (agentic workload).
       </p>
     </DropdownMenuContent>
   );

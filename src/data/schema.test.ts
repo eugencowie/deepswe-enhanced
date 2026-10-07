@@ -14,11 +14,13 @@ import {
   familyVendors,
   deepsweSnapshotSchema,
   modelMappingSchema,
+  PICKER_FAMILIES,
   priceRevisionsFileSchema,
   throughputSnapshotSchema,
   tiersSnapshotSchema,
   vendorMappingSchema,
   vendorReportedSnapshotSchema,
+  type TierId,
 } from "./schema.ts";
 import { deepsweSnapshot, modelMapping, tiersSnapshot, vendorReportedSnapshot } from "./sources.ts";
 
@@ -37,6 +39,13 @@ describe("every data file parses through its schema", () => {
   ])("%s", (_file, schema, raw) => {
     expect(() => schema.parse(raw)).not.toThrow();
   });
+});
+
+// PICKER_FAMILIES is hand-ordered, and defaultFilters reads every family from
+// it. The families block must hold every picker family, so matching the two
+// keeps a new family from going missing from the list.
+test("PICKER_FAMILIES lists every picker family", () => {
+  expect(PICKER_FAMILIES.toSorted()).toEqual(Object.keys(tiersSnapshot.families).toSorted());
 });
 
 // Every file schema is strict with uniform value constraints: an unknown key
@@ -236,7 +245,7 @@ describe("assertTierValues", () => {
     ({ [model]: _dropped, ...rest }: Values) =>
       rest;
   // The live mapping with one model excluded from one more tier.
-  const excluding = (model: string, tierId: "claude-pro" | "claude-max-5x" | "chatgpt-plus") =>
+  const excluding = (model: string, tierId: TierId) =>
     modelMapping.map((entry) =>
       entry.leaderboardModel === model
         ? { ...entry, excludedTiers: [...(entry.excludedTiers ?? []), tierId] }

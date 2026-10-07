@@ -12,10 +12,10 @@ SemiAnalysis's agentic-workload API-equivalent values, per tier and measured mod
   "sourceUrl": "https://newsletter.semianalysis.com/p/anthropic-subscriptions-offer-5x",
   "publishedAt": "2026-10-05T20:01:09Z",
   "families": {
-    "claude":  { "dailyDriverModel": "claude-opus-5-5", "flagship": { "model": "claude-fable-5-1", "label": "Fable" } },
-    "chatgpt": { "dailyDriverModel": "gpt-6-1-sol",     "flagship": { "model": "gpt-6-astra",      "label": "Astra" } },
-    "kimi":    { "dailyDriverModel": "kimi-k3" },
-    "glm":     { "dailyDriverModel": "glm-5-3",         "flagship": { "model": "glm-5-3-flash",    "label": "Flash" } }
+    "claude":  { "label": "Claude",     "dailyDriverModel": "claude-opus-5-5", "flagship": { "model": "claude-fable-5-1", "label": "Fable" } },
+    "chatgpt": { "label": "ChatGPT",    "dailyDriverModel": "gpt-6-1-sol",     "flagship": { "model": "gpt-6-astra",      "label": "Astra" } },
+    "kimi":    { "label": "Kimi Code",  "dailyDriverModel": "kimi-k3" },
+    "glm":     { "label": "GLM Coding", "dailyDriverModel": "glm-5-3",         "flagship": { "model": "glm-5-3-flash",    "label": "Flash" } }
   },
   "tiers": [
     {
@@ -56,7 +56,7 @@ SemiAnalysis's agentic-workload API-equivalent values, per tier and measured mod
 | glm-coding-pro | $80 | $830 | $143 |
 | glm-coding-max | $168 | $1,942 | $336 |
 
-`families` names each family's daily driver and, optionally, its flagship with the flagship's label. They are the same on every tier of a family, so they are per family, not per tier. The flagship labels the one note on each Subscriptions picker rung ([ticket 05](tickets/05-flagship-note.md)); a family without one, like Kimi, shows no note (ADR 0011).
+`families` names each family's label, which heads its Subscriptions picker column, its daily driver and, optionally, its flagship with the flagship's label. They are the same on every tier of a family, so they are per family, not per tier. The flagship labels the one note on each Subscriptions picker rung ([ticket 05](tickets/05-flagship-note.md)); a family without one, like Kimi, shows no note (ADR 0011).
 
 Load-time validation (ADR 0004) rejects:
 
