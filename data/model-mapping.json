@@ -117,7 +117,7 @@
     "displayName": "GLM 5.3",
     "vendor": "Z.ai",
     "openrouterId": "z-ai/glm-5.3",
-    "family": "none"
+    "family": "glm"
   },
   {
     "leaderboardModel": "glm-5-2",
@@ -180,7 +180,7 @@
     "displayName": "GLM 5.3 Flash",
     "vendor": "Z.ai",
     "openrouterId": "z-ai/glm-5.3-flash",
-    "family": "none"
+    "family": "glm"
   },
   {
     "leaderboardModel": "gemini-3-8-flash",

@@ -103,6 +103,27 @@ test("the Kimi Code column prices Kimi K3 and notes no flagship", async ({ page 
   await expect(page.getByRole("cell", { name: /Kimi K2\.7 Code/ })).not.toContainText("Plus");
 });
 
+// GLM Coding notes GLM 5.3 Flash under each GLM 5.3 headline, and GLM 5.2
+// stays on the API: Z.ai routes it to GLM 5.3 (ADR 0011).
+test("the GLM Coding column notes Flash on each rung", async ({ page }) => {
+  await page.goto("./");
+  await page.getByRole("button", { name: /^Subscriptions/ }).click();
+  const glm = familyColumn(page, "Z.ai GLM Coding");
+  await expect(glm.getByRole("menuitemradio")).toHaveText([/^API/, /^Lite/, /^Pro/, /^Max/]);
+  const lite = glm.getByRole("menuitemradio", { name: /^Lite/ });
+  await expect(lite).toContainText("$18/mo");
+  await expect(lite).toContainText("−87.1%");
+  await expect(lite).toContainText("Flash: −25%");
+  await expect(glm.getByRole("menuitemradio", { name: /^Pro/ })).toContainText("Flash: −44.1%");
+  await expect(glm.getByRole("menuitemradio", { name: /^Max/ })).toContainText("Flash: −50%");
+
+  await lite.click();
+  await expect(page.getByRole("button", { name: "Subscriptions: Z.ai Lite" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("cell", { name: /GLM 5\.3 Flash/ })).toContainText("Lite");
+  await expect(page.getByRole("cell", { name: /GLM 5\.2/ })).not.toContainText("Lite");
+});
+
 test("tier rows show the API cost struck out beside the effective cost", async ({ page }) => {
   await page.goto("./");
   await page.getByRole("button", { name: /^Subscriptions/ }).click();

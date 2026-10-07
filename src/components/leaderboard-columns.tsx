@@ -133,6 +133,7 @@ const tagClassByFamily = {
   claude: "border-amber-600 text-amber-600 dark:border-amber-400 dark:text-amber-400",
   chatgpt: "border-teal-600 text-teal-600 dark:border-teal-400 dark:text-teal-400",
   kimi: "border-sky-600 text-sky-600 dark:border-sky-400 dark:text-sky-400",
+  glm: "border-rose-600 text-rose-600 dark:border-rose-400 dark:text-rose-400",
 };
 
 // The display name mirrors DeepSWE and omits the model revision; the tooltip

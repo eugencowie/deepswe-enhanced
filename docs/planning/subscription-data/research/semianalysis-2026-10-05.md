@@ -6,7 +6,7 @@ The post is paywalled. Only the parts before the third-party section ("Third par
 
 ## Which figures are used
 
-[Ticket 04](../tickets/04-per-model-api-equivalent-values.md) and [ticket 06](../tickets/06-chatgpt-tier-lineup.md) use only the **agentic** values in the Claude table and the post-cut ChatGPT table. That includes the previous-generation columns (Opus 5, Fable 5 and GPT-6 Sol), which price those models' own rows. [Ticket 08](../tickets/08-kimi-code-tiers.md) uses the appendix's Kimi Code values for Kimi K3, and [ticket 09](../tickets/09-glm-coding-tiers.md) is to use its GLM Coding values.
+[Ticket 04](../tickets/04-per-model-api-equivalent-values.md) and [ticket 06](../tickets/06-chatgpt-tier-lineup.md) use only the **agentic** values in the Claude table and the post-cut ChatGPT table. That includes the previous-generation columns (Opus 5, Fable 5 and GPT-6 Sol), which price those models' own rows. [Ticket 08](../tickets/08-kimi-code-tiers.md) uses the appendix's Kimi Code values for Kimi K3, and [ticket 09](../tickets/09-glm-coding-tiers.md) its GLM Coding values for GLM 5.3 and GLM 5.3 Flash, as published (see [GLM Coding prices and promos](#glm-coding-prices-and-promos)).
 
 These figures are recorded for context and **aren't used**:
 
@@ -111,6 +111,16 @@ Source: [Chinese labs' coding plans](https://substack-post-media.s3.amazonaws.co
 | Moonshot | Kimi Code Pro | $39 | Kimi K3 | $209 |
 | Moonshot | Kimi Code Max | $99 | Kimi K3 | $647 |
 | Moonshot | Kimi Code Ultra | $199 | Kimi K3 | $1,343 |
+
+#### GLM Coding prices and promos
+
+[z.ai/subscribe](https://z.ai/subscribe) (seen 2026-10-07) shows Lite, Pro and Max at $9, $40 and $84 a month under "Migration Exclusive 50% Off", so the list prices are $18, $80 and $168, as in the chart. Ticket 09 uses the list prices.
+
+The same page sells Pro as "6× Lite usage" and Max as "14× Lite usage". SemiAnalysis's values match: GLM-5.3's Pro and Max values are 5.97× and 13.97× its Lite value, and GLM-5.3-Flash's 5.96× and 14.0×.
+
+SemiAnalysis may have measured during Z.ai's promos: half-rate credits from Sep 25 to Oct 7, and doubled overnight quota from Sep 3 to Oct 7. If so, the values overstate the plans' usual limits. The post doesn't say when it measured, and nothing better exists, so ticket 09 uses the values unadjusted. The caveat lives here only, not in the picker.
+
+Z.ai's [plan docs](https://docs.z.ai/devpack/overview) say "All plans support GLM-5.3, GLM-5.3-Flash" and "requests for GLM-5.2/GLM-5.1 will be automatically routed to GLM-5.3", so GLM 5.2 stays out of the `glm` family (ADR 0011).
 
 ### Single plans
 

@@ -32,7 +32,7 @@ The marker on a tier row naming its tier; API rows are untagged.
 _Avoid_: tier badge, plan label
 
 **Tier**:
-A paid subscription plan from a vendor with a subscription family (e.g. claude-max-5x, chatgpt-plus, kimi-code-ultra).
+A paid subscription plan from a vendor with a subscription family (e.g. claude-max-5x, chatgpt-plus, kimi-code-ultra, glm-coding-lite).
 _Avoid_: subscription level, plan
 
 **Filter**:
@@ -55,18 +55,18 @@ The Subscriptions picker's popover: one column per subscription family, each a l
 _Avoid_: plan card, plan picker
 
 **Subscription family**:
-Which vendor's tiers can run a model: Claude, ChatGPT, Kimi (Kimi Code), or none. Every family has exactly one vendor, read from its model-mapping entries; that vendor's mark labels the family's column in the Subscriptions picker, which runs Claude, ChatGPT, then the rest alphabetically by vendor. A model joins a family only when a primary source says the family's tiers serve it, so a vendor can have models in a family and in none (Kimi K2.7 Code is in none).
+Which vendor's tiers can run a model: Claude, ChatGPT, Kimi (Kimi Code), GLM (GLM Coding), or none. Every family has exactly one vendor, read from its model-mapping entries; that vendor's mark labels the family's column in the Subscriptions picker, which runs Claude, ChatGPT, then the rest alphabetically by vendor. A model joins a family only when a primary source says the family's tiers serve it, so a vendor can have models in a family and in none (Kimi K2.7 Code and GLM 5.2 are in none).
 
 **API-equivalent value**:
 SemiAnalysis's estimate of a tier's full monthly usage limit for one model, priced at list API rates on their agentic workload. Per tier and model: Opus 5.5 is worth $11,726 a month on Max 20x and Fable 5.1 $2,485, a value that already includes Max's cap on Fable at half the limit. A model SemiAnalysis didn't measure takes its family daily driver's value.
 _Avoid_: equivalent API spend, max possible spend, usage allowance
 
 **Daily driver**:
-The model a subscription family's tiers are headlined by: Opus 5.5 for Claude, GPT-6.1 Sol for ChatGPT, Kimi K3 for Kimi. Its tier discount is the rung's headline in the Subscriptions picker, and its API-equivalent value prices every model SemiAnalysis didn't measure, so every tier needs one.
+The model a subscription family's tiers are headlined by: Opus 5.5 for Claude, GPT-6.1 Sol for ChatGPT, Kimi K3 for Kimi, GLM 5.3 for GLM. Its tier discount is the rung's headline in the Subscriptions picker, and its API-equivalent value prices every model SemiAnalysis didn't measure, so every tier needs one.
 _Avoid_: default model
 
 **Flagship**:
-The optional model noted beneath the daily driver on each tier rung of the Subscriptions picker, usually the family's top model on tighter usage limits: Fable 5.1 for Claude, GPT-6 Astra for ChatGPT. Each has a flagship label, "Fable" and "Astra", which heads the rung's one note. Every tier of the family measures it or excludes it. A family without one (Kimi) shows no note.
+The optional model noted beneath the daily driver on each tier rung of the Subscriptions picker, usually the family's top model on tighter usage limits (Fable 5.1 for Claude, GPT-6 Astra for ChatGPT), or else the family's other measured model (GLM 5.3 Flash for GLM). Each has a flagship label, "Fable", "Astra" and "Flash", which heads the rung's one note. Every tier of the family measures it or excludes it. A family without one (Kimi) shows no note.
 
 **Excluded tier**:
 A tier whose usage limits don't cover a model, so its subscribers run the model on usage credits at API rates. The model's subsidisation factor there is 1. Pro excludes Fable.

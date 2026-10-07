@@ -15,4 +15,5 @@ Ticket 05 gave every subscription family a **flagship** and every tier rung one 
 - Amends [subscription-data ticket 05](../planning/subscription-data/tickets/05-flagship-note.md)'s "one note per rung, always" to families with a flagship. `assertTierValues` checks the flagship only where a family declares one.
 - Narrows [ADR 0010](0010-per-model-api-equivalent-values.md)'s daily-driver fallback to sourced members. Claude and ChatGPT membership predates the rule and stays as mapped.
 - [ADR 0003](0003-refresh-generates-mapping-entries.md) copies a generated entry's family from same-vendor entries. When they span families, as Moonshot's now do, the refresh generates `none` and warns, so the reviewer decides with a source in hand rather than inheriting whichever entry came last.
+- A flagship needn't be the family's top model. GLM Coding's is GLM 5.3 Flash, the other model SemiAnalysis measured on its tiers ([subscription-data ticket 09](../planning/subscription-data/tickets/09-glm-coding-tiers.md)).
 - Families beyond Claude and ChatGPT sit in the Subscriptions picker alphabetically by vendor, wrapping the two-column route card onto further rows.

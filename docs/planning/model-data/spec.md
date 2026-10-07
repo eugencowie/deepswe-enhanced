@@ -24,7 +24,7 @@ One entry per leaderboard model (effort levels share it), written by hand or gen
 | gemini-3-1-pro-preview | Gemini 3.1 Pro Preview | Google | google/gemini-3.1-pro-preview | none |
 | deepseek-v4-pro | DeepSeek V4 Pro | DeepSeek | deepseek/deepseek-v4-pro-0813 | none |
 | deepseek-v4-flash | DeepSeek V4 Flash | DeepSeek | deepseek/deepseek-v4-flash-0731 | none |
-| glm-5-3 | GLM 5.3 | Z.ai | z-ai/glm-5.3 | none |
+| glm-5-3 | GLM 5.3 | Z.ai | z-ai/glm-5.3 | glm |
 | glm-5-2 | GLM 5.2 | Z.ai | z-ai/glm-5.2 | none |
 | kimi-k3 | Kimi K3 | Moonshot | moonshotai/kimi-k3 | kimi |
 | kimi-k2-7-code | Kimi K2.7 Code | Moonshot | moonshotai/kimi-k2.7-code | none |
@@ -36,7 +36,7 @@ One entry per leaderboard model (effort levels share it), written by hand or gen
 
 The table had a usage multiplier column (Fable 5 at 0.5) until [subscription-data ticket 04](../subscription-data/tickets/04-per-model-api-equivalent-values.md) replaced it with per-model API-equivalent values in `tiers.json`.
 
-Entry shape: `{ "leaderboardModel": string, "displayName": string, "vendor": string, "openrouterId": string | null, "family": "claude" | "chatgpt" | "kimi" | "none", "excludedTiers"?: TierId[] }`. The `openrouterId` field is specified by [average time data](../avg-time-data/spec.md), and `family` and `excludedTiers` by [subscription data](../subscription-data/spec.md). A leaderboard model missing from the mapping makes derive throw, and a unit test enforces full coverage — the failure surfaces through `vp run validate` and CI (don't silently drop rows).
+Entry shape: `{ "leaderboardModel": string, "displayName": string, "vendor": string, "openrouterId": string | null, "family": "claude" | "chatgpt" | "kimi" | "glm" | "none", "excludedTiers"?: TierId[] }`. The `openrouterId` field is specified by [average time data](../avg-time-data/spec.md), and `family` and `excludedTiers` by [subscription data](../subscription-data/spec.md). A leaderboard model missing from the mapping makes derive throw, and a unit test enforces full coverage — the failure surfaces through `vp run validate` and CI (don't silently drop rows).
 
 ## App
 

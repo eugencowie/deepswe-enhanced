@@ -169,7 +169,7 @@ export function createLeaderboard({
     pickerFamilies,
     defaultFilters: () => ({
       effortView: "best",
-      subscriptions: { claude: "api", chatgpt: "api", kimi: "api" },
+      subscriptions: { claude: "api", chatgpt: "api", kimi: "api", glm: "api" },
       models: new Set(modelOptions.map(({ model }) => model)),
       includeVendorReported: true,
     }),

@@ -4,7 +4,7 @@ Adds subscription-subsidised effective costs to the [leaderboard table](../leade
 
 ## Data file: `data/tiers.json`
 
-SemiAnalysis's agentic-workload API-equivalent values, per tier and measured model, from [Anthropic Subscriptions Offer 5x+ More Value Than OpenAI](https://newsletter.semianalysis.com/p/anthropic-subscriptions-offer-5x) (2026-10-05). Every figure is transcribed, with its chart, in [research/semianalysis-2026-10-05.md](research/semianalysis-2026-10-05.md) (ticket 03). Values are keyed by leaderboard model id. The Kimi Code tiers are SemiAnalysis's appendix figures for Kimi K3 ([ticket 08](tickets/08-kimi-code-tiers.md)). The ChatGPT tiers are named by price, as OpenAI now sells them, and Pro 200 takes the values after OpenAI's 2026-09-29 cut. Pro 200 subscriptions bought before the cut keep the old limits until 2026-10-29, which is ignored ([ticket 06](tickets/06-chatgpt-tier-lineup.md)).
+SemiAnalysis's agentic-workload API-equivalent values, per tier and measured model, from [Anthropic Subscriptions Offer 5x+ More Value Than OpenAI](https://newsletter.semianalysis.com/p/anthropic-subscriptions-offer-5x) (2026-10-05). Every figure is transcribed, with its chart, in [research/semianalysis-2026-10-05.md](research/semianalysis-2026-10-05.md) (ticket 03). Values are keyed by leaderboard model id. The Kimi Code tiers are SemiAnalysis's appendix figures for Kimi K3 ([ticket 08](tickets/08-kimi-code-tiers.md)), and the GLM Coding tiers its figures for GLM 5.3 and GLM 5.3 Flash at Z.ai's undiscounted list prices, used as published although they may include Z.ai's promos ([ticket 09](tickets/09-glm-coding-tiers.md)). The ChatGPT tiers are named by price, as OpenAI now sells them, and Pro 200 takes the values after OpenAI's 2026-09-29 cut. Pro 200 subscriptions bought before the cut keep the old limits until 2026-10-29, which is ignored ([ticket 06](tickets/06-chatgpt-tier-lineup.md)).
 
 ```json
 {
@@ -14,7 +14,8 @@ SemiAnalysis's agentic-workload API-equivalent values, per tier and measured mod
   "families": {
     "claude":  { "dailyDriverModel": "claude-opus-5-5", "flagship": { "model": "claude-fable-5-1", "label": "Fable" } },
     "chatgpt": { "dailyDriverModel": "gpt-6-1-sol",     "flagship": { "model": "gpt-6-astra",      "label": "Astra" } },
-    "kimi":    { "dailyDriverModel": "kimi-k3" }
+    "kimi":    { "dailyDriverModel": "kimi-k3" },
+    "glm":     { "dailyDriverModel": "glm-5-3",         "flagship": { "model": "glm-5-3-flash",    "label": "Flash" } }
   },
   "tiers": [
     {
@@ -49,6 +50,12 @@ SemiAnalysis's agentic-workload API-equivalent values, per tier and measured mod
 | kimi-code-max | $99 | $647 |
 | kimi-code-ultra | $199 | $1,343 |
 
+| Tier | Price | GLM 5.3 | GLM 5.3 Flash |
+|---|---|---|---|
+| glm-coding-lite | $18 | $139 | $24 |
+| glm-coding-pro | $80 | $830 | $143 |
+| glm-coding-max | $168 | $1,942 | $336 |
+
 `families` names each family's daily driver and, optionally, its flagship with the flagship's label. They are the same on every tier of a family, so they are per family, not per tier. The flagship labels the one note on each Subscriptions picker rung ([ticket 05](tickets/05-flagship-note.md)); a family without one, like Kimi, shows no note (ADR 0011).
 
 Load-time validation (ADR 0004) rejects:
@@ -59,13 +66,13 @@ Load-time validation (ADR 0004) rejects:
 
 ## Model mapping fields
 
-`family` and `excludedTiers` in the [model mapping](../model-data/spec.md). Family membership asserts genuine subscription access. A model joins a family only when a primary source says the family's tiers serve it (ADR 0011): Kimi Code serves Kimi K3, but of K2.7 Code only "K2.7 Code HighSpeed", which may not be the model DeepSWE ran, so Kimi K2.7 Code stays in `none`. Claude and ChatGPT membership predates the rule and rests on the user's knowledge of the plans. If a mapped model turns out to be API-only, flip its family to `none` — one-line fix. The refresh copies a new model's family from its vendor's entries only when they share one; a vendor whose entries span families (Moonshot) gets `none` and a warning in the Refresh PR.
+`family` and `excludedTiers` in the [model mapping](../model-data/spec.md). Family membership asserts genuine subscription access. A model joins a family only when a primary source says the family's tiers serve it (ADR 0011): Kimi Code serves Kimi K3, but of K2.7 Code only "K2.7 Code HighSpeed", which may not be the model DeepSWE ran, so Kimi K2.7 Code stays in `none`. GLM Coding serves GLM 5.3 and GLM 5.3 Flash, but Z.ai routes GLM 5.2 requests to GLM 5.3, so GLM 5.2 stays in `none` too. Claude and ChatGPT membership predates the rule and rests on the user's knowledge of the plans. If a mapped model turns out to be API-only, flip its family to `none` — one-line fix. The refresh copies a new model's family from its vendor's entries only when they share one; a vendor whose entries span families (Moonshot, Z.ai) gets `none` and a warning in the Refresh PR.
 
 `excludedTiers` is optional: the ids of tiers whose usage limits don't cover the model, validated against the tier ids. Fable 5 and Fable 5.1 set `["claude-pro"]`: Anthropic's [Claude Fable models on your plan](https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan) says Pro runs Fable on usage credits, which [are billed at standard API rates](https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans). It stays in the mapping, not `tiers.json`, because it comes from Anthropic's docs rather than SemiAnalysis. (Added in ticket 02.)
 
 ## Derivation rules
 
-Row expansion: entries in a family other than `none` get one row per tier of that family beside their API row: three Claude tiers, four ChatGPT tiers, four Kimi Code tiers. Tests assert the relationship, never the count (ADR 0004).
+Row expansion: entries in a family other than `none` get one row per tier of that family beside their API row: three Claude tiers, four ChatGPT tiers, four Kimi Code tiers, three GLM Coding tiers. Tests assert the relationship, never the count (ADR 0004).
 
 Per row:
 
@@ -81,7 +88,7 @@ Per row:
 
 ## Acceptance criteria
 
-- Every entry in a family derives one row per tier of its family beside its API row. Spot-checked maths: Fable 5.1 on claude-max-20x uses factor 200 / 2,485, an unmeasured Claude model there uses Opus 5.5's 200 / 11,726, and Fable's claude-pro rows use factor 1 (ticket 04); GPT-6 Astra on chatgpt-pro-500 uses 500 / 6,955 and an unmeasured ChatGPT model there GPT-6.1 Sol's 500 / 5,386 (ticket 06); Kimi K3 on kimi-code-ultra uses 199 / 1,343 and Kimi K2.7 Code has only API rows (ticket 08).
+- Every entry in a family derives one row per tier of its family beside its API row. Spot-checked maths: Fable 5.1 on claude-max-20x uses factor 200 / 2,485, an unmeasured Claude model there uses Opus 5.5's 200 / 11,726, and Fable's claude-pro rows use factor 1 (ticket 04); GPT-6 Astra on chatgpt-pro-500 uses 500 / 6,955 and an unmeasured ChatGPT model there GPT-6.1 Sol's 500 / 5,386 (ticket 06); Kimi K3 on kimi-code-ultra uses 199 / 1,343 and Kimi K2.7 Code has only API rows (ticket 08); GLM 5.3 Flash on glm-coding-max uses 168 / 336 and GLM 5.2 has only API rows (ticket 09).
 - Unit tests cover row expansion and subsidisation (incl. measured values, the daily-driver fallback and excluded tiers).
 
 ## Tickets

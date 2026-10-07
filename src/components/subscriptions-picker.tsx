@@ -24,6 +24,7 @@ const familyLabels = {
   claude: "Claude",
   chatgpt: "ChatGPT",
   kimi: "Kimi Code",
+  glm: "GLM Coding",
 } satisfies Record<PickerFamily["family"], string>;
 
 // The rung formatters are exported for their unit tests only: the route card

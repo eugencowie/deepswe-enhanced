@@ -307,6 +307,7 @@ describe("familyVendors", () => {
       claude: "Anthropic",
       chatgpt: "OpenAI",
       kimi: "Moonshot",
+      glm: "Z.ai",
     });
   });
 

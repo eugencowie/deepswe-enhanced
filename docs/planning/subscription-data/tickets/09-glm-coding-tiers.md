@@ -1,7 +1,7 @@
 # 09: GLM Coding tiers
 
 Type: task
-Status: ready-for-agent
+Status: resolved
 Blocked by: 08
 
 ## Problem
@@ -28,8 +28,16 @@ GLM 5.3 and GLM 5.3 Flash are on the leaderboard and SemiAnalysis measured both 
 
 ## Acceptance criteria
 
-- [ ] The picker shows a GLM Coding column after Kimi Code (Moonshot before Z.ai): API, Lite, Pro, Max, with the fees, headlines and "Flash" notes above.
-- [ ] Every GLM 5.3 and GLM 5.3 Flash entry gets one row per GLM Coding tier, each priced at its own measured value. GLM 5.2 keeps only its API rows.
-- [ ] The research file, glossary and both specs are updated.
-- [ ] Unit tests cover the GLM factors. The e2e picker tests cover a GLM rung's note.
-- [ ] `vp check` and `vp test` pass.
+- [x] The picker shows a GLM Coding column after Kimi Code (Moonshot before Z.ai): API, Lite, Pro, Max, with the fees, headlines and "Flash" notes above.
+- [x] Every GLM 5.3 and GLM 5.3 Flash entry gets one row per GLM Coding tier, each priced at its own measured value. GLM 5.2 keeps only its API rows.
+- [x] The research file, glossary and both specs are updated.
+- [x] Unit tests cover the GLM factors. The e2e picker tests cover a GLM rung's note.
+- [x] `vp check` and `vp test` pass.
+
+## Comments
+
+**Resolved (2026-10-07):** Built as specified. Departures:
+
+- **Access tag colour.** GLM Coding's tier rows are tagged in rose, beside Claude's amber, ChatGPT's teal and Kimi Code's sky. The ticket set none.
+- **Refresh fixture.** The refresh-plan tests' checked-in mapping gains a GLM 5.3 entry, since every picker family needs a vendor for the files to load.
+- **Glossary.** The **Flagship** entry no longer says the flagship is the family's top model: GLM 5.3 Flash is GLM's other measured model. ADR 0011 records this as a consequence.

@@ -13,6 +13,10 @@
     },
     "kimi": {
       "dailyDriverModel": "kimi-k3"
+    },
+    "glm": {
+      "dailyDriverModel": "glm-5-3",
+      "flagship": { "model": "glm-5-3-flash", "label": "Flash" }
     }
   },
   "tiers": [
@@ -142,6 +146,39 @@
       "priceUsdPerMonth": 199,
       "apiEquivalentValuesUsdPerMonth": {
         "kimi-k3": 1343
+      }
+    },
+    {
+      "id": "glm-coding-lite",
+      "family": "glm",
+      "label": "GLM Coding Lite",
+      "shortLabel": "Lite",
+      "priceUsdPerMonth": 18,
+      "apiEquivalentValuesUsdPerMonth": {
+        "glm-5-3": 139,
+        "glm-5-3-flash": 24
+      }
+    },
+    {
+      "id": "glm-coding-pro",
+      "family": "glm",
+      "label": "GLM Coding Pro",
+      "shortLabel": "Pro",
+      "priceUsdPerMonth": 80,
+      "apiEquivalentValuesUsdPerMonth": {
+        "glm-5-3": 830,
+        "glm-5-3-flash": 143
+      }
+    },
+    {
+      "id": "glm-coding-max",
+      "family": "glm",
+      "label": "GLM Coding Max",
+      "shortLabel": "Max",
+      "priceUsdPerMonth": 168,
+      "apiEquivalentValuesUsdPerMonth": {
+        "glm-5-3": 1942,
+        "glm-5-3-flash": 336
       }
     }
   ]

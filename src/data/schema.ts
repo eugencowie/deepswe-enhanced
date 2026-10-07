@@ -22,14 +22,14 @@ const count = z.number().int().nonnegative();
 // `source_url`, which is the fetched artifact itself.
 const provenanceFields = { source: nonEmpty, sourceUrl: z.url() };
 
-const subscriptionFamilySchema = z.enum(["claude", "chatgpt", "kimi", "none"]);
+const subscriptionFamilySchema = z.enum(["claude", "chatgpt", "kimi", "glm", "none"]);
 export type SubscriptionFamily = z.infer<typeof subscriptionFamilySchema>;
 
 // The families the Subscriptions picker shows, in column order: Claude,
 // ChatGPT, then the rest alphabetically by vendor.
 const pickerFamilySchema = subscriptionFamilySchema.exclude(["none"]);
 export type PickerFamilyId = z.infer<typeof pickerFamilySchema>;
-export const PICKER_FAMILIES: readonly PickerFamilyId[] = ["claude", "chatgpt", "kimi"];
+export const PICKER_FAMILIES: readonly PickerFamilyId[] = ["claude", "chatgpt", "kimi", "glm"];
 
 const tierIdSchema = z.enum([
   "claude-pro",
@@ -43,6 +43,9 @@ const tierIdSchema = z.enum([
   "kimi-code-pro",
   "kimi-code-max",
   "kimi-code-ultra",
+  "glm-coding-lite",
+  "glm-coding-pro",
+  "glm-coding-max",
 ]);
 export type TierId = z.infer<typeof tierIdSchema>;
 

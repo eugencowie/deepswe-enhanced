@@ -23,6 +23,7 @@ import {
   type LeaderboardFilters,
   type LeaderboardSources,
   type LeaderboardRow,
+  type SubscriptionSelection,
 } from "./leaderboard.ts";
 import {
   PICKER_FAMILIES,
@@ -237,12 +238,22 @@ describe("rows", () => {
     expectFactor("kimi-k3", "kimi-code-ultra", 199 / 1343);
   });
 
-  // Kimi Code serves only "K2.7 Code HighSpeed", which may not be the model
-  // DeepSWE ran, so K2.7 Code stays out of the family (ADR 0011).
-  test("Kimi K2.7 Code keeps only its API rows", () => {
-    const k27 = rows.filter((row) => row.model === "kimi-k2-7-code");
-    expect(k27.length).toBeGreaterThan(0);
-    expect(k27.every((row) => row.accessRoute === "api")).toBe(true);
+  test("GLM 5.3 and GLM 5.3 Flash tier rows use their own values on every GLM Coding tier", () => {
+    expectFactor("glm-5-3", "glm-coding-lite", 18 / 139);
+    expectFactor("glm-5-3", "glm-coding-pro", 80 / 830);
+    expectFactor("glm-5-3", "glm-coding-max", 168 / 1942);
+    expectFactor("glm-5-3-flash", "glm-coding-lite", 18 / 24);
+    expectFactor("glm-5-3-flash", "glm-coding-pro", 80 / 143);
+    expectFactor("glm-5-3-flash", "glm-coding-max", 168 / 336);
+  });
+
+  // Vendor models no source puts on the family's tiers stay out of it (ADR
+  // 0011): Kimi Code serves only "K2.7 Code HighSpeed", which may not be the
+  // model DeepSWE ran, and Z.ai routes GLM 5.2 requests to GLM 5.3.
+  test.each(["kimi-k2-7-code", "glm-5-2"])("%s keeps only its API rows", (model) => {
+    const modelRows = rows.filter((row) => row.model === model);
+    expect(modelRows.length).toBeGreaterThan(0);
+    expect(modelRows.every((row) => row.family === "none" && row.accessRoute === "api")).toBe(true);
   });
 
   test("ChatGPT tier rows use their own tier's values", () => {
@@ -314,7 +325,6 @@ describe("rows", () => {
     expect(opus?.displayName).toBe("Claude Opus 5");
     expect(opus?.vendor).toBe("Anthropic");
     expect(opus?.family).toBe("claude");
-    expect(rows.find((row) => row.model === "kimi-k2-7-code")?.family).toBe("none");
   });
 
   test("rows use the snapshot's cost-adjusted average cost, not the raw value", () => {
@@ -625,9 +635,14 @@ describe("pickerFamilies", () => {
   const family = (id: PickerFamilyId) => pickerFamilies.find((f) => f.family === id)!;
 
   test("lists Claude, ChatGPT, then the rest by vendor, with tiers in tiers.json order", () => {
-    expect(pickerFamilies.map((f) => f.family)).toEqual(["claude", "chatgpt", "kimi"]);
+    expect(pickerFamilies.map((f) => f.family)).toEqual(["claude", "chatgpt", "kimi", "glm"]);
     // The vendor mark for each column is the family's vendor.
-    expect(pickerFamilies.map((f) => f.vendor)).toEqual(["Anthropic", "OpenAI", "Moonshot"]);
+    expect(pickerFamilies.map((f) => f.vendor)).toEqual([
+      "Anthropic",
+      "OpenAI",
+      "Moonshot",
+      "Z.ai",
+    ]);
     expect(family("claude").tiers.map((tier) => tier.id)).toEqual([
       "claude-pro",
       "claude-max-5x",
@@ -644,6 +659,11 @@ describe("pickerFamilies", () => {
       "kimi-code-pro",
       "kimi-code-max",
       "kimi-code-ultra",
+    ]);
+    expect(family("glm").tiers.map((tier) => tier.id)).toEqual([
+      "glm-coding-lite",
+      "glm-coding-pro",
+      "glm-coding-max",
     ]);
   });
 
@@ -678,6 +698,13 @@ describe("pickerFamilies", () => {
     expect(ultra?.priceUsdPerMonth).toBe(199);
     expect(ultra?.tierDiscount).toBeCloseTo(1 - 199 / 1343, 10);
     expect(tier("kimi", "kimi-code-plus")?.tierDiscount).toBeCloseTo(1 - 19 / 47, 10);
+    // GLM 5.3.
+    const lite = tier("glm", "glm-coding-lite");
+    expect(lite?.shortLabel).toBe("Lite");
+    expect(lite?.priceUsdPerMonth).toBe(18);
+    expect(lite?.tierDiscount).toBeCloseTo(1 - 18 / 139, 10);
+    expect(tier("glm", "glm-coding-pro")?.tierDiscount).toBeCloseTo(1 - 80 / 830, 10);
+    expect(tier("glm", "glm-coding-max")?.tierDiscount).toBeCloseTo(1 - 168 / 1942, 10);
   });
 
   // The flagship is the one model noted: every other model either shares the
@@ -695,8 +722,11 @@ describe("pickerFamilies", () => {
       ["chatgpt-pro-100", "Astra"],
       ["chatgpt-pro-200", "Astra"],
       ["chatgpt-pro-500", "Astra"],
+      ["glm-coding-lite", "Flash"],
+      ["glm-coding-pro", "Flash"],
+      ["glm-coding-max", "Flash"],
     ]);
-    // Fable 5.1 and GPT-6 Astra at their measured values.
+    // Fable 5.1, GPT-6 Astra and GLM 5.3 Flash at their measured values.
     expect(tier("claude", "claude-max-20x")?.flagshipNote?.tierDiscount).toBeCloseTo(
       1 - 200 / 2485,
       10,
@@ -709,6 +739,7 @@ describe("pickerFamilies", () => {
       1 - 500 / 6955,
       10,
     );
+    expect(tier("glm", "glm-coding-pro")?.flagshipNote?.tierDiscount).toBeCloseTo(1 - 80 / 143, 10);
   });
 
   // Kimi Code serves one model, so its rungs carry the headline alone.
@@ -813,6 +844,7 @@ describe("visibleRows", () => {
           claude: "claude-max-20x",
           chatgpt: "chatgpt-pro-500",
           kimi: "kimi-code-ultra",
+          glm: "glm-coding-max",
         },
       }),
     );
@@ -825,18 +857,18 @@ describe("visibleRows", () => {
     // Exactly one route per family means every entry appears on exactly one
     // row: every entry in the All view and one per model in Best, whatever
     // the picker says.
-    for (const claude of familyRoutes("claude")) {
-      for (const chatgpt of familyRoutes("chatgpt")) {
-        for (const kimi of familyRoutes("kimi")) {
-          const subscriptions = { claude, chatgpt, kimi };
-          expect(
-            leaderboard.visibleRows(filters({ effortView: "all", subscriptions })),
-          ).toHaveLength(liveEntries.length);
-          expect(leaderboard.visibleRows(filters({ subscriptions }))).toHaveLength(
-            modelOptions.length,
-          );
-        }
-      }
+    const everySelection = PICKER_FAMILIES.reduce<SubscriptionSelection[]>(
+      (selections, family) =>
+        selections.flatMap((selection) =>
+          familyRoutes(family).map((route) => ({ ...selection, [family]: route })),
+        ),
+      [apiOnly],
+    );
+    for (const subscriptions of everySelection) {
+      expect(leaderboard.visibleRows(filters({ effortView: "all", subscriptions }))).toHaveLength(
+        liveEntries.length,
+      );
+      expect(leaderboard.visibleRows(filters({ subscriptions }))).toHaveLength(modelOptions.length);
     }
   });
 
@@ -882,7 +914,12 @@ describe("filter transitions", () => {
     setRoute(initial, "claude", "claude-pro");
     setEffortView(initial, "all");
     expect(initial.models).toEqual(before);
-    expect(initial.subscriptions).toEqual({ claude: "api", chatgpt: "api", kimi: "api" });
+    expect(initial.subscriptions).toEqual({
+      claude: "api",
+      chatgpt: "api",
+      kimi: "api",
+      glm: "api",
+    });
     expect(initial.effortView).toBe("best");
   });
 
@@ -896,11 +933,13 @@ describe("filter transitions", () => {
       claude: "claude-max-5x",
       chatgpt: "chatgpt-plus",
       kimi: "api",
+      glm: "api",
     });
     expect(setRoute(picked, "claude", "api").subscriptions).toEqual({
       claude: "api",
       chatgpt: "chatgpt-plus",
       kimi: "api",
+      glm: "api",
     });
   });
 
