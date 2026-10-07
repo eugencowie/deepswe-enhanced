@@ -4,6 +4,7 @@ import {
   deepsweSnapshot,
   leaderboardSources as sources,
   modelMapping,
+  subscriptionFamilies,
   throughputSnapshot,
   tiers,
   vendorReportedSnapshot,
@@ -22,12 +23,15 @@ import {
   type LeaderboardFilters,
   type LeaderboardSources,
   type LeaderboardRow,
+  type SubscriptionSelection,
 } from "./leaderboard.ts";
-import type {
-  ModelMappingEntry,
-  ThroughputSnapshot,
-  VendorReportedEntry,
-  VendorReportedSnapshot,
+import {
+  PICKER_FAMILIES,
+  type ModelMappingEntry,
+  type PickerFamilyId,
+  type ThroughputSnapshot,
+  type VendorReportedEntry,
+  type VendorReportedSnapshot,
 } from "./schema.ts";
 
 // Value-asserting throughput tests use this fixture rather than the live
@@ -57,21 +61,29 @@ const fixtureSources: LeaderboardSources = {
 const liveEntries = [...deepsweSnapshot.entries, ...vendorReportedSnapshot.entries];
 
 // A family's access routes in row order: the API, then its tiers.
-const familyRoutes = (family: "claude" | "chatgpt"): AccessRoute[] => [
+const familyRoutes = (family: PickerFamilyId): AccessRoute[] => [
   "api",
   ...tiers.filter((tier) => tier.family === family).map((tier) => tier.id),
 ];
 
-// Synthetic family-"none" models: rows come from the snapshot.
-const mappingFixture = (models: string[]): ModelMappingEntry[] =>
-  models.map((model) => ({
+// The live flagships' entries, which the Subscriptions picker's notes need
+// whatever the snapshot holds.
+const flagshipEntries = modelMapping.filter((entry) =>
+  Object.values(subscriptionFamilies).some((f) => f.flagship?.model === entry.leaderboardModel),
+);
+
+// Synthetic family-"none" models, plus the flagships: rows come from the
+// snapshot, so the flagships add none.
+const mappingFixture = (models: string[]): ModelMappingEntry[] => [
+  ...models.map((model) => ({
     leaderboardModel: model,
     displayName: model,
     vendor: "Test",
     openrouterId: null,
     family: "none" as const,
-    usageMultiplier: 1,
-  }));
+  })),
+  ...flagshipEntries,
+];
 
 // Models whose best entry exercises each branch of the Best rule. "inverted"
 // is a Claude-family model so its entries fan out over every Claude route.
@@ -159,36 +171,36 @@ describe("rows", () => {
     ]);
   });
 
-  test("claude-pro rows of standard Claude models use factor 0.05", () => {
-    // 20 / 400 at the default usage multiplier.
-    const proRows = deepsweRows.filter(
-      (row) => row.accessRoute === "claude-pro" && row.model !== "claude-fable-5",
-    );
-    expect(proRows.length).toBeGreaterThan(0);
-    for (const row of proRows) {
-      expect(row.cost?.effective).toBeCloseTo(sourceEntry(row).average_cost_usd * 0.05, 10);
-    }
+  // A live model's subsidisation factor on a tier: its effective cost there
+  // from a $1 entry, since some live entries (Fable 5.1's) state no cost.
+  const factorOf = (model: string, accessRoute: AccessRoute) => {
+    const snapshot = {
+      ...deepsweSnapshot,
+      entries: [{ ...deepsweSnapshot.entries[0], model, average_cost_usd: 1 }],
+    };
+    const { rows } = createLeaderboard({ ...fixtureSources, snapshot });
+    return rows.find((row) => row.accessRoute === accessRoute)?.cost?.effective;
+  };
+  const expectFactor = (model: string, accessRoute: AccessRoute, factor: number) =>
+    expect(factorOf(model, accessRoute), `${model} on ${accessRoute}`).toBeCloseTo(factor, 10);
+
+  test("a measured model's tier rows use its own API-equivalent value", () => {
+    expectFactor("claude-fable-5-1", "claude-max-20x", 200 / 2485);
+    // The previous generation keeps its own value, not its successor's.
+    expectFactor("claude-opus-5", "claude-max-20x", 200 / 17275);
+    expectFactor("gpt-6-astra", "chatgpt-pro-500", 500 / 6955);
   });
 
-  test("the usage multiplier scales the factor: Fable 5 Max rows are 0.10 and 0.05", () => {
-    // claude-max-5x: 100 / (2000 × 0.5) = 0.10; claude-max-20x: 200 / (8000 × 0.5)
-    // = 0.05, not 0.05 and 0.025.
-    for (const [accessRoute, factor] of [
-      ["claude-max-5x", 0.1],
-      ["claude-max-20x", 0.05],
-    ] as const) {
-      const maxRows = deepsweRows.filter(
-        (row) => row.accessRoute === accessRoute && row.model === "claude-fable-5",
-      );
-      expect(maxRows.length, accessRoute).toBeGreaterThan(0);
-      for (const row of maxRows) {
-        expect(row.cost?.effective).toBeCloseTo(sourceEntry(row).average_cost_usd * factor, 10);
-      }
-    }
+  test("an unmeasured model's tier rows use its family's daily driver's value", () => {
+    // Claude Opus 5.5 and GPT-6.1 Sol.
+    expectFactor("claude-sonnet-4-6", "claude-max-20x", 200 / 11726);
+    expectFactor("gpt-5-6-sol", "chatgpt-pro-200", 200 / 2084);
+    expectFactor("gpt-5-6-sol", "chatgpt-pro-500", 500 / 5386);
   });
 
   // Pro runs Fable on usage credits, billed at standard API rates.
-  test("Fable 5 claude-pro rows are at API cost: Pro excludes it", () => {
+  test("Fable 5 and Fable 5.1 claude-pro rows are at API cost: Pro excludes them", () => {
+    expectFactor("claude-fable-5-1", "claude-pro", 1);
     const proRows = deepsweRows.filter(
       (row) => row.accessRoute === "claude-pro" && row.model === "claude-fable-5",
     );
@@ -210,22 +222,48 @@ describe("rows", () => {
       excludedTiers: ["claude-max-5x" as const],
     }));
     const { rows } = createLeaderboard({ ...fixtureSources, snapshot, mapping });
+    // Unmeasured, so priced at Claude Opus 5.5's values off the excluded tier.
     expect(rows.map((row) => [row.accessRoute, row.cost?.effective])).toEqual([
       ["api", 4],
-      ["claude-pro", expect.closeTo(4 * 0.05, 10)],
+      ["claude-pro", expect.closeTo((4 * 20) / 1178, 10)],
       ["claude-max-5x", 4],
-      ["claude-max-20x", expect.closeTo(4 * 0.025, 10)],
+      ["claude-max-20x", expect.closeTo((4 * 200) / 11726, 10)],
     ]);
   });
 
-  test("ChatGPT tier rows use their own tier figures", () => {
-    // chatgpt-plus: 20 / 700.
+  test("Kimi K3's tier rows use its own values on every Kimi Code tier", () => {
+    expectFactor("kimi-k3", "kimi-code-plus", 19 / 47);
+    expectFactor("kimi-k3", "kimi-code-pro", 39 / 209);
+    expectFactor("kimi-k3", "kimi-code-max", 99 / 647);
+    expectFactor("kimi-k3", "kimi-code-ultra", 199 / 1343);
+  });
+
+  test("GLM 5.3 and GLM 5.3 Flash tier rows use their own values on every GLM Coding tier", () => {
+    expectFactor("glm-5-3", "glm-coding-lite", 18 / 139);
+    expectFactor("glm-5-3", "glm-coding-pro", 80 / 830);
+    expectFactor("glm-5-3", "glm-coding-max", 168 / 1942);
+    expectFactor("glm-5-3-flash", "glm-coding-lite", 18 / 24);
+    expectFactor("glm-5-3-flash", "glm-coding-pro", 80 / 143);
+    expectFactor("glm-5-3-flash", "glm-coding-max", 168 / 336);
+  });
+
+  // Vendor models no source puts on the family's tiers stay out of it (ADR
+  // 0011): Kimi Code serves only "K2.7 Code HighSpeed", which may not be the
+  // model DeepSWE ran, and Z.ai routes GLM 5.2 requests to GLM 5.3.
+  test.each(["kimi-k2-7-code", "glm-5-2"])("%s keeps only its API rows", (model) => {
+    const modelRows = rows.filter((row) => row.model === model);
+    expect(modelRows.length).toBeGreaterThan(0);
+    expect(modelRows.every((row) => row.family === "none" && row.accessRoute === "api")).toBe(true);
+  });
+
+  test("ChatGPT tier rows use their own tier's values", () => {
+    // chatgpt-plus at GPT-6.1 Sol's value: 20 / 211.
     const entry = deepsweSnapshot.entries.find((e) => e.model === "gpt-5-5");
     const row = rows.find(
       (r) =>
         r.model === "gpt-5-5" && r.effort === entry?.effort && r.accessRoute === "chatgpt-plus",
     );
-    expect(row?.cost?.effective).toBeCloseTo(entry!.average_cost_usd * (20 / 700), 10);
+    expect(row?.cost?.effective).toBeCloseTo(entry!.average_cost_usd * (20 / 211), 10);
   });
 
   test("tier rows carry the entry's API cost beside the effective cost", () => {
@@ -256,14 +294,15 @@ describe("rows", () => {
   });
 
   test("cost per solved task follows the row's effective cost", () => {
-    // claude-pro scales cost by 0.05, so cost per solved task scales the same.
+    // Claude Opus 5's claude-pro factor scales cost, so cost per solved task
+    // scales the same.
     const api = rows.find((r) => r.model === "claude-opus-5" && r.accessRoute === "api");
     const tier = rows.find(
       (r) =>
         r.model === "claude-opus-5" && r.effort === api?.effort && r.accessRoute === "claude-pro",
     );
     expect(tier?.costPerSolvedTask?.effective).toBeCloseTo(
-      api!.costPerSolvedTask!.effective * 0.05,
+      api!.costPerSolvedTask!.effective * (20 / 1437),
       10,
     );
   });
@@ -286,7 +325,6 @@ describe("rows", () => {
     expect(opus?.displayName).toBe("Claude Opus 5");
     expect(opus?.vendor).toBe("Anthropic");
     expect(opus?.family).toBe("claude");
-    expect(rows.find((row) => row.model === "kimi-k3")?.family).toBe("none");
   });
 
   test("rows use the snapshot's cost-adjusted average cost, not the raw value", () => {
@@ -399,7 +437,6 @@ const opusNineMapping: ModelMappingEntry = {
   vendor: "Anthropic",
   openrouterId: "anthropic/claude-opus-9",
   family: "claude",
-  usageMultiplier: 1,
 };
 const opusNineClaim: VendorReportedEntry = {
   model: "claude-opus-9",
@@ -450,10 +487,10 @@ describe("vendor-reported entries", () => {
     expect(api?.outputTokens).toBe(74200);
     expect(api?.steps).toBe(80);
     expect(api?.averageTimeSeconds).toBeCloseTo(1648.889, 3);
-    // claude-pro scales cost by 0.05.
+    // claude-pro at Claude Opus 5.5's value: 20 / 1178.
     expect(pro?.cost?.api).toBe(2);
-    expect(pro?.cost?.effective).toBeCloseTo(0.1, 10);
-    expect(pro?.costPerSolvedTask?.effective).toBeCloseTo(0.134771, 6);
+    expect(pro?.cost?.effective).toBeCloseTo((2 * 20) / 1178, 10);
+    expect(pro?.costPerSolvedTask?.effective).toBeCloseTo((2 * 20) / 1178 / 0.742, 10);
   });
 
   // Harness and trials stay in the data file as a record of the source, but
@@ -488,7 +525,7 @@ describe("vendor-reported entries", () => {
       { ...opusNineClaim, effort: "high", pass_at_1: 0.752 },
     );
     for (const claude of familyRoutes("claude")) {
-      const subscriptions = { claude, chatgpt: "api" as const };
+      const subscriptions = { ...leaderboard.defaultFilters().subscriptions, claude };
       const shown = (effortView: "best" | "all") =>
         leaderboard
           .visibleRows({ ...leaderboard.defaultFilters(), effortView, subscriptions })
@@ -595,12 +632,24 @@ describe("modelOptions", () => {
 
 describe("pickerFamilies", () => {
   const { pickerFamilies } = live();
-  const family = (id: "claude" | "chatgpt") => pickerFamilies.find((f) => f.family === id)!;
+  const family = (id: PickerFamilyId) => pickerFamilies.find((f) => f.family === id)!;
 
-  test("lists both families, Claude first, with their tiers in tiers.json order", () => {
-    expect(pickerFamilies.map((f) => f.family)).toEqual(["claude", "chatgpt"]);
+  test("lists Claude, ChatGPT, then the rest by vendor, with tiers in tiers.json order", () => {
+    expect(pickerFamilies.map((f) => f.family)).toEqual(["claude", "chatgpt", "kimi", "glm"]);
     // The vendor mark for each column is the family's vendor.
-    expect(pickerFamilies.map((f) => f.vendor)).toEqual(["Anthropic", "OpenAI"]);
+    expect(pickerFamilies.map((f) => f.vendor)).toEqual([
+      "Anthropic",
+      "OpenAI",
+      "Moonshot",
+      "Z.ai",
+    ]);
+    // Each column's header is its family's label in tiers.json.
+    expect(pickerFamilies.map((f) => f.label)).toEqual([
+      "Claude",
+      "ChatGPT",
+      "Kimi Code",
+      "GLM Coding",
+    ]);
     expect(family("claude").tiers.map((tier) => tier.id)).toEqual([
       "claude-pro",
       "claude-max-5x",
@@ -608,106 +657,120 @@ describe("pickerFamilies", () => {
     ]);
     expect(family("chatgpt").tiers.map((tier) => tier.id)).toEqual([
       "chatgpt-plus",
-      "chatgpt-pro-5x",
-      "chatgpt-pro-20x",
+      "chatgpt-pro-100",
+      "chatgpt-pro-200",
+      "chatgpt-pro-500",
+    ]);
+    expect(family("kimi").tiers.map((tier) => tier.id)).toEqual([
+      "kimi-code-plus",
+      "kimi-code-pro",
+      "kimi-code-max",
+      "kimi-code-ultra",
+    ]);
+    expect(family("glm").tiers.map((tier) => tier.id)).toEqual([
+      "glm-coding-lite",
+      "glm-coding-pro",
+      "glm-coding-max",
     ]);
   });
 
-  test("each tier carries its short label, monthly price and tier-wide discount", () => {
-    // claude-pro: 1 − 20/400 = 0.95; claude-max-20x: 1 − 200/8000 = 0.975.
-    const pro = family("claude").tiers.find((tier) => tier.id === "claude-pro");
+  // PICKER_FAMILIES is hand-ordered, so a new family can't slip in out of
+  // vendor order.
+  test("families after Claude and ChatGPT run alphabetically by vendor", () => {
+    const rest = pickerFamilies.slice(2).map((f) => f.vendor);
+    expect(rest).toEqual(rest.toSorted((a, b) => a.localeCompare(b, "en")));
+  });
+
+  const tier = (family: PickerFamilyId, id: string) =>
+    pickerFamilies.find((f) => f.family === family)!.tiers.find((t) => t.id === id);
+
+  test("each tier carries its short label, monthly price and daily driver's discount", () => {
+    // Claude Opus 5.5: 1 − 20/1178 on Pro, 1 − 200/11726 on Max 20x.
+    const pro = tier("claude", "claude-pro");
     expect(pro?.shortLabel).toBe("Pro");
     expect(pro?.priceUsdPerMonth).toBe(20);
-    expect(pro?.tierDiscount).toBeCloseTo(0.95, 10);
-    const max20 = family("claude").tiers.find((tier) => tier.id === "claude-max-20x");
+    expect(pro?.tierDiscount).toBeCloseTo(1 - 20 / 1178, 10);
+    const max20 = tier("claude", "claude-max-20x");
     expect(max20?.priceUsdPerMonth).toBe(200);
-    expect(max20?.tierDiscount).toBeCloseTo(0.975, 10);
+    expect(max20?.tierDiscount).toBeCloseTo(1 - 200 / 11726, 10);
+    // GPT-6.1 Sol.
+    expect(tier("chatgpt", "chatgpt-pro-200")?.tierDiscount).toBeCloseTo(1 - 200 / 2084, 10);
+    const pro500 = tier("chatgpt", "chatgpt-pro-500");
+    expect(pro500?.shortLabel).toBe("Pro 500");
+    expect(pro500?.priceUsdPerMonth).toBe(500);
+    expect(pro500?.tierDiscount).toBeCloseTo(1 - 500 / 5386, 10);
+    // Kimi K3.
+    const ultra = tier("kimi", "kimi-code-ultra");
+    expect(ultra?.shortLabel).toBe("Ultra");
+    expect(ultra?.priceUsdPerMonth).toBe(199);
+    expect(ultra?.tierDiscount).toBeCloseTo(1 - 199 / 1343, 10);
+    expect(tier("kimi", "kimi-code-plus")?.tierDiscount).toBeCloseTo(1 - 19 / 47, 10);
+    // GLM 5.3.
+    const lite = tier("glm", "glm-coding-lite");
+    expect(lite?.shortLabel).toBe("Lite");
+    expect(lite?.priceUsdPerMonth).toBe(18);
+    expect(lite?.tierDiscount).toBeCloseTo(1 - 18 / 139, 10);
+    expect(tier("glm", "glm-coding-pro")?.tierDiscount).toBeCloseTo(1 - 80 / 830, 10);
+    expect(tier("glm", "glm-coding-max")?.tierDiscount).toBeCloseTo(1 - 168 / 1942, 10);
   });
 
-  test("models with non-standard usage limits get their own note per tier", () => {
-    // Fable 5 at multiplier 0.5: 1 − 100/(2000 × 0.5) = 0.90 on Max 5x,
-    // 1 − 200/(8000 × 0.5) = 0.95 on Max 20x.
-    const max5 = family("claude").tiers.find((tier) => tier.id === "claude-max-5x");
-    expect(max5?.notes).toEqual([{ name: "Fable", tierDiscount: expect.closeTo(0.9, 10) }]);
-    const max20 = family("claude").tiers.find((tier) => tier.id === "claude-max-20x");
-    expect(max20?.notes).toEqual([{ name: "Fable", tierDiscount: expect.closeTo(0.95, 10) }]);
-  });
-
-  test("a tier excluding a model notes it at no discount", () => {
-    // Pro excludes Fable 5: its note reads at full price.
-    const pro = family("claude").tiers.find((tier) => tier.id === "claude-pro");
-    expect(pro?.notes).toEqual([{ name: "Fable", tierDiscount: 0 }]);
-  });
-
-  test("an excluded model gets a note even at the standard usage multiplier", () => {
-    const mapping = modelMapping.map((entry) =>
-      entry.leaderboardModel === "gpt-5-5"
-        ? { ...entry, excludedTiers: ["chatgpt-plus" as const] }
-        : entry,
+  // The flagship is the one model noted: every other model either shares the
+  // headline or is an older generation the picker leaves to the table.
+  test("each tier notes its family's flagship under the family's flagship label", () => {
+    expect(
+      pickerFamilies
+        .filter((f) => subscriptionFamilies[f.family].flagship !== undefined)
+        .flatMap(({ tiers }) => tiers.map((t) => [t.id, t.flagshipNote?.label])),
+    ).toEqual([
+      ["claude-pro", "Fable"],
+      ["claude-max-5x", "Fable"],
+      ["claude-max-20x", "Fable"],
+      ["chatgpt-plus", "Astra"],
+      ["chatgpt-pro-100", "Astra"],
+      ["chatgpt-pro-200", "Astra"],
+      ["chatgpt-pro-500", "Astra"],
+      ["glm-coding-lite", "Flash"],
+      ["glm-coding-pro", "Flash"],
+      ["glm-coding-max", "Flash"],
+    ]);
+    // Fable 5.1, GPT-6 Astra and GLM 5.3 Flash at their measured values.
+    expect(tier("claude", "claude-max-20x")?.flagshipNote?.tierDiscount).toBeCloseTo(
+      1 - 200 / 2485,
+      10,
     );
-    const { pickerFamilies } = createLeaderboard({ ...fixtureSources, mapping });
-    const tiers = pickerFamilies.find((f) => f.family === "chatgpt")!.tiers;
-    expect(tiers.map((tier) => [tier.id, tier.notes])).toEqual([
-      ["chatgpt-plus", [{ name: "GPT-5.5", tierDiscount: 0 }]],
-      ["chatgpt-pro-5x", []],
-      ["chatgpt-pro-20x", []],
-    ]);
-  });
-
-  test("standard-limit families have no notes", () => {
-    for (const tier of family("chatgpt").tiers) {
-      expect(tier.notes).toEqual([]);
-    }
-  });
-
-  // Fable 5 and Fable 5.1 share Fable's halved limits, so one "Fable" note
-  // covers both.
-  test("models sharing a short name and usage multiplier share one note", () => {
-    const fable = modelMapping.find((entry) => entry.leaderboardModel === "claude-fable-5")!;
-    const fable9 = { ...fable, leaderboardModel: "claude-fable-9", openrouterId: null };
-    const mapping = [...modelMapping, fable9];
-    const { pickerFamilies } = createLeaderboard({ ...fixtureSources, mapping });
-    // Max 5x, not Pro: Pro excludes Fable. 1 − 100/(2000 × 0.5)
-    const maxFive = pickerFamilies
-      .find((f) => f.family === "claude")!
-      .tiers.find((tier) => tier.id === "claude-max-5x");
-    expect(maxFive?.notes).toEqual([{ name: "Fable", tierDiscount: expect.closeTo(0.9, 10) }]);
-  });
-
-  test("models sharing a short name at different multipliers get a note each", () => {
-    const fable = modelMapping.find((entry) => entry.leaderboardModel === "claude-fable-5")!;
-    const fable9 = {
-      ...fable,
-      leaderboardModel: "claude-fable-9",
-      openrouterId: null,
-      usageMultiplier: 0.25,
-    };
-    const mapping = [...modelMapping.filter((e) => e.shortName !== "Fable"), fable, fable9];
-    const { pickerFamilies } = createLeaderboard({ ...fixtureSources, mapping });
-    const maxFive = pickerFamilies
-      .find((f) => f.family === "claude")!
-      .tiers.find((tier) => tier.id === "claude-max-5x");
-    // 1 − 100/(2000 × 0.5) and 1 − 100/(2000 × 0.25)
-    expect(maxFive?.notes).toEqual([
-      { name: "Fable", tierDiscount: expect.closeTo(0.9, 10) },
-      { name: "Fable", tierDiscount: expect.closeTo(0.8, 10) },
-    ]);
-  });
-
-  test("a note uses the mapping's short name, falling back to the display name", () => {
-    const mapping = modelMapping.map((entry) =>
-      entry.leaderboardModel === "gpt-5-5"
-        ? { ...entry, usageMultiplier: 2, shortName: undefined }
-        : entry,
+    expect(tier("chatgpt", "chatgpt-plus")?.flagshipNote?.tierDiscount).toBeCloseTo(
+      1 - 20 / 162,
+      10,
     );
-    const { pickerFamilies } = createLeaderboard({ ...fixtureSources, mapping });
-    const plus = pickerFamilies
-      .find((f) => f.family === "chatgpt")!
-      .tiers.find((tier) => tier.id === "chatgpt-plus");
-    // 1 − 20/(700 × 2)
-    expect(plus?.notes).toEqual([
-      { name: "GPT-5.5", tierDiscount: expect.closeTo(1 - 20 / 1400, 10) },
-    ]);
+    expect(tier("chatgpt", "chatgpt-pro-500")?.flagshipNote?.tierDiscount).toBeCloseTo(
+      1 - 500 / 6955,
+      10,
+    );
+    expect(tier("glm", "glm-coding-pro")?.flagshipNote?.tierDiscount).toBeCloseTo(1 - 80 / 143, 10);
+  });
+
+  // Kimi Code serves one model, so its rungs carry the headline alone.
+  test("a family without a flagship notes nothing on its tiers", () => {
+    const kimi = family("kimi").tiers;
+    expect(kimi.length).toBeGreaterThan(0);
+    expect(kimi.every((t) => t.flagshipNote === undefined)).toBe(true);
+  });
+
+  // Pro excludes Fable 5.1: its subscribers pay usage credits at API rates.
+  test("a tier excluding the flagship notes it at no discount", () => {
+    expect(tier("claude", "claude-pro")?.flagshipNote).toEqual({ label: "Fable", tierDiscount: 0 });
+  });
+
+  test("a tier notes the flagship even when its discount equals the headline", () => {
+    const tiers = sources.tiers.map((t) =>
+      t.id === "chatgpt-plus"
+        ? { ...t, apiEquivalentValuesUsdPerMonth: { "gpt-6-1-sol": 211, "gpt-6-astra": 211 } }
+        : t,
+    );
+    const plus = createLeaderboard({ ...fixtureSources, tiers })
+      .pickerFamilies.find((f) => f.family === "chatgpt")!
+      .tiers.find((t) => t.id === "chatgpt-plus")!;
+    expect(plus.flagshipNote).toEqual({ label: "Astra", tierDiscount: plus.tierDiscount });
   });
 });
 
@@ -718,6 +781,7 @@ describe("visibleRows", () => {
     ...leaderboard.defaultFilters(),
     ...overrides,
   });
+  const apiOnly = leaderboard.defaultFilters().subscriptions;
 
   test("the default view shows one API row per model", () => {
     const visible = leaderboard.visibleRows(leaderboard.defaultFilters());
@@ -770,7 +834,7 @@ describe("visibleRows", () => {
 
   test("picking a tier replaces that family's API rows and touches nothing else", () => {
     const visible = leaderboard.visibleRows(
-      filters({ effortView: "all", subscriptions: { claude: "claude-pro", chatgpt: "api" } }),
+      filters({ effortView: "all", subscriptions: { ...apiOnly, claude: "claude-pro" } }),
     );
     expect(visible).toHaveLength(liveEntries.length);
     const claudeRows = visible.filter((row) => row.family === "claude");
@@ -783,7 +847,12 @@ describe("visibleRows", () => {
     const visible = leaderboard.visibleRows(
       filters({
         effortView: "all",
-        subscriptions: { claude: "claude-max-20x", chatgpt: "chatgpt-pro-20x" },
+        subscriptions: {
+          claude: "claude-max-20x",
+          chatgpt: "chatgpt-pro-500",
+          kimi: "kimi-code-ultra",
+          glm: "glm-coding-max",
+        },
       }),
     );
     const noneRows = visible.filter((row) => row.family === "none");
@@ -795,16 +864,18 @@ describe("visibleRows", () => {
     // Exactly one route per family means every entry appears on exactly one
     // row: every entry in the All view and one per model in Best, whatever
     // the picker says.
-    for (const claude of familyRoutes("claude")) {
-      for (const chatgpt of familyRoutes("chatgpt")) {
-        const subscriptions = { claude, chatgpt };
-        expect(leaderboard.visibleRows(filters({ effortView: "all", subscriptions }))).toHaveLength(
-          liveEntries.length,
-        );
-        expect(leaderboard.visibleRows(filters({ subscriptions }))).toHaveLength(
-          modelOptions.length,
-        );
-      }
+    const everySelection = PICKER_FAMILIES.reduce<SubscriptionSelection[]>(
+      (selections, family) =>
+        selections.flatMap((selection) =>
+          familyRoutes(family).map((route) => ({ ...selection, [family]: route })),
+        ),
+      [apiOnly],
+    );
+    for (const subscriptions of everySelection) {
+      expect(leaderboard.visibleRows(filters({ effortView: "all", subscriptions }))).toHaveLength(
+        liveEntries.length,
+      );
+      expect(leaderboard.visibleRows(filters({ subscriptions }))).toHaveLength(modelOptions.length);
     }
   });
 
@@ -815,7 +886,7 @@ describe("visibleRows", () => {
     const visible = leaderboard.visibleRows(
       filters({
         effortView: "all",
-        subscriptions: { claude: "claude-pro", chatgpt: "api" },
+        subscriptions: { ...apiOnly, claude: "claude-pro" },
         models,
       }),
     );
@@ -850,7 +921,12 @@ describe("filter transitions", () => {
     setRoute(initial, "claude", "claude-pro");
     setEffortView(initial, "all");
     expect(initial.models).toEqual(before);
-    expect(initial.subscriptions).toEqual({ claude: "api", chatgpt: "api" });
+    expect(initial.subscriptions).toEqual({
+      claude: "api",
+      chatgpt: "api",
+      kimi: "api",
+      glm: "api",
+    });
     expect(initial.effortView).toBe("best");
   });
 
@@ -860,10 +936,17 @@ describe("filter transitions", () => {
       "chatgpt",
       "chatgpt-plus",
     );
-    expect(picked.subscriptions).toEqual({ claude: "claude-max-5x", chatgpt: "chatgpt-plus" });
+    expect(picked.subscriptions).toEqual({
+      claude: "claude-max-5x",
+      chatgpt: "chatgpt-plus",
+      kimi: "api",
+      glm: "api",
+    });
     expect(setRoute(picked, "claude", "api").subscriptions).toEqual({
       claude: "api",
       chatgpt: "chatgpt-plus",
+      kimi: "api",
+      glm: "api",
     });
   });
 
@@ -973,7 +1056,7 @@ describe("compareModel", () => {
   test("tiers.json lists each family's tiers in ascending price order", () => {
     // The Subscriptions picker lists tiers in file order and the spec says
     // "ascending price", so this guards the price invariant behind it.
-    for (const family of ["claude", "chatgpt"]) {
+    for (const family of PICKER_FAMILIES) {
       const prices = tiers
         .filter((tier) => tier.family === family)
         .map((tier) => tier.priceUsdPerMonth);

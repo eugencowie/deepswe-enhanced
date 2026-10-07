@@ -1,7 +1,28 @@
 {
-  "source": "SemiAnalysis, transcribed by user 2026-08-20",
-  "sourceUrl": "https://x.com/SemiAnalysis_/status/2064815044085318040",
-  "publishedAt": "2026-06-10T21:00:43Z",
+  "source": "SemiAnalysis, transcribed 2026-10-07",
+  "sourceUrl": "https://newsletter.semianalysis.com/p/anthropic-subscriptions-offer-5x",
+  "publishedAt": "2026-10-05T20:01:09Z",
+  "families": {
+    "claude": {
+      "label": "Claude",
+      "dailyDriverModel": "claude-opus-5-5",
+      "flagship": { "model": "claude-fable-5-1", "label": "Fable" }
+    },
+    "chatgpt": {
+      "label": "ChatGPT",
+      "dailyDriverModel": "gpt-6-1-sol",
+      "flagship": { "model": "gpt-6-astra", "label": "Astra" }
+    },
+    "kimi": {
+      "label": "Kimi Code",
+      "dailyDriverModel": "kimi-k3"
+    },
+    "glm": {
+      "label": "GLM Coding",
+      "dailyDriverModel": "glm-5-3",
+      "flagship": { "model": "glm-5-3-flash", "label": "Flash" }
+    }
+  },
   "tiers": [
     {
       "id": "claude-pro",
@@ -9,7 +30,11 @@
       "label": "Claude Pro",
       "shortLabel": "Pro",
       "priceUsdPerMonth": 20,
-      "equivalentApiSpendUsdPerMonth": 400
+      "apiEquivalentValuesUsdPerMonth": {
+        "claude-sonnet-5-5": 1241,
+        "claude-opus-5-5": 1178,
+        "claude-opus-5": 1437
+      }
     },
     {
       "id": "claude-max-5x",
@@ -17,7 +42,13 @@
       "label": "Claude Max 5x",
       "shortLabel": "Max 5x",
       "priceUsdPerMonth": 100,
-      "equivalentApiSpendUsdPerMonth": 2000
+      "apiEquivalentValuesUsdPerMonth": {
+        "claude-sonnet-5-5": 5919,
+        "claude-opus-5-5": 5725,
+        "claude-fable-5-1": 1273,
+        "claude-opus-5": 8770,
+        "claude-fable-5": 2350
+      }
     },
     {
       "id": "claude-max-20x",
@@ -25,7 +56,13 @@
       "label": "Claude Max 20x",
       "shortLabel": "Max 20x",
       "priceUsdPerMonth": 200,
-      "equivalentApiSpendUsdPerMonth": 8000
+      "apiEquivalentValuesUsdPerMonth": {
+        "claude-sonnet-5-5": 12529,
+        "claude-opus-5-5": 11726,
+        "claude-fable-5-1": 2485,
+        "claude-opus-5": 17275,
+        "claude-fable-5": 4713
+      }
     },
     {
       "id": "chatgpt-plus",
@@ -33,23 +70,120 @@
       "label": "ChatGPT Plus",
       "shortLabel": "Plus",
       "priceUsdPerMonth": 20,
-      "equivalentApiSpendUsdPerMonth": 700
+      "apiEquivalentValuesUsdPerMonth": {
+        "gpt-6-astra": 162,
+        "gpt-6-1-sol": 211,
+        "gpt-6-sol": 262
+      }
     },
     {
-      "id": "chatgpt-pro-5x",
+      "id": "chatgpt-pro-100",
       "family": "chatgpt",
-      "label": "ChatGPT Pro 5x",
-      "shortLabel": "Pro 5x",
+      "label": "ChatGPT Pro 100",
+      "shortLabel": "Pro 100",
       "priceUsdPerMonth": 100,
-      "equivalentApiSpendUsdPerMonth": 3500
+      "apiEquivalentValuesUsdPerMonth": {
+        "gpt-6-astra": 1322,
+        "gpt-6-1-sol": 1055,
+        "gpt-6-sol": 1482
+      }
     },
     {
-      "id": "chatgpt-pro-20x",
+      "id": "chatgpt-pro-200",
       "family": "chatgpt",
-      "label": "ChatGPT Pro 20x",
-      "shortLabel": "Pro 20x",
+      "label": "ChatGPT Pro 200",
+      "shortLabel": "Pro 200",
       "priceUsdPerMonth": 200,
-      "equivalentApiSpendUsdPerMonth": 14000
+      "apiEquivalentValuesUsdPerMonth": {
+        "gpt-6-astra": 2897,
+        "gpt-6-1-sol": 2084,
+        "gpt-6-sol": 2910
+      }
+    },
+    {
+      "id": "chatgpt-pro-500",
+      "family": "chatgpt",
+      "label": "ChatGPT Pro 500",
+      "shortLabel": "Pro 500",
+      "priceUsdPerMonth": 500,
+      "apiEquivalentValuesUsdPerMonth": {
+        "gpt-6-astra": 6955,
+        "gpt-6-1-sol": 5386,
+        "gpt-6-sol": 7352
+      }
+    },
+    {
+      "id": "kimi-code-plus",
+      "family": "kimi",
+      "label": "Kimi Code Plus",
+      "shortLabel": "Plus",
+      "priceUsdPerMonth": 19,
+      "apiEquivalentValuesUsdPerMonth": {
+        "kimi-k3": 47
+      }
+    },
+    {
+      "id": "kimi-code-pro",
+      "family": "kimi",
+      "label": "Kimi Code Pro",
+      "shortLabel": "Pro",
+      "priceUsdPerMonth": 39,
+      "apiEquivalentValuesUsdPerMonth": {
+        "kimi-k3": 209
+      }
+    },
+    {
+      "id": "kimi-code-max",
+      "family": "kimi",
+      "label": "Kimi Code Max",
+      "shortLabel": "Max",
+      "priceUsdPerMonth": 99,
+      "apiEquivalentValuesUsdPerMonth": {
+        "kimi-k3": 647
+      }
+    },
+    {
+      "id": "kimi-code-ultra",
+      "family": "kimi",
+      "label": "Kimi Code Ultra",
+      "shortLabel": "Ultra",
+      "priceUsdPerMonth": 199,
+      "apiEquivalentValuesUsdPerMonth": {
+        "kimi-k3": 1343
+      }
+    },
+    {
+      "id": "glm-coding-lite",
+      "family": "glm",
+      "label": "GLM Coding Lite",
+      "shortLabel": "Lite",
+      "priceUsdPerMonth": 18,
+      "apiEquivalentValuesUsdPerMonth": {
+        "glm-5-3": 139,
+        "glm-5-3-flash": 24
+      }
+    },
+    {
+      "id": "glm-coding-pro",
+      "family": "glm",
+      "label": "GLM Coding Pro",
+      "shortLabel": "Pro",
+      "priceUsdPerMonth": 80,
+      "apiEquivalentValuesUsdPerMonth": {
+        "glm-5-3": 830,
+        "glm-5-3-flash": 143
+      }
+    },
+    {
+      "id": "glm-coding-max",
+      "family": "glm",
+      "label": "GLM Coding Max",
+      "shortLabel": "Max",
+      "priceUsdPerMonth": 168,
+      "apiEquivalentValuesUsdPerMonth": {
+        "glm-5-3": 1942,
+        "glm-5-3-flash": 336
+      }
     }
   ]
 }

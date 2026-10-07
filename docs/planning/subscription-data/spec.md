@@ -1,38 +1,82 @@
 # Spec: Subscription data
 
-Adds subscription-subsidised effective costs to the [leaderboard table](../leaderboard-table/spec.md): the SemiAnalysis tier figures, tier rows, the subsidisation maths, the access tag, and the struck-out API cost. Vocabulary: access route, access tag, tier, equivalent API spend, usage multiplier, subsidisation factor, API cost, effective cost in [docs/context.md](../../context.md).
+Adds subscription-subsidised effective costs to the [leaderboard table](../leaderboard-table/spec.md): the SemiAnalysis tier figures, tier rows, the subsidisation maths, the access tag, and the struck-out API cost. Vocabulary: access route, access tag, tier, API-equivalent value, daily driver, flagship, excluded tier, subsidisation factor, API cost, effective cost in [docs/context.md](../../context.md).
 
 ## Data file: `data/tiers.json`
 
-The SemiAnalysis figures, verbatim from the user:
+SemiAnalysis's agentic-workload API-equivalent values, per tier and measured model, from [Anthropic Subscriptions Offer 5x+ More Value Than OpenAI](https://newsletter.semianalysis.com/p/anthropic-subscriptions-offer-5x) (2026-10-05). Every figure is transcribed, with its chart, in [research/semianalysis-2026-10-05.md](research/semianalysis-2026-10-05.md) (ticket 03). Values are keyed by leaderboard model id. The Kimi Code tiers are SemiAnalysis's appendix figures for Kimi K3 ([ticket 08](tickets/08-kimi-code-tiers.md)), and the GLM Coding tiers its figures for GLM 5.3 and GLM 5.3 Flash at Z.ai's undiscounted list prices, used as published although they may include Z.ai's promos ([ticket 09](tickets/09-glm-coding-tiers.md)). The ChatGPT tiers are named by price, as OpenAI now sells them, and Pro 200 takes the values after OpenAI's 2026-09-29 cut. Pro 200 subscriptions bought before the cut keep the old limits until 2026-10-29, which is ignored ([ticket 06](tickets/06-chatgpt-tier-lineup.md)).
 
 ```json
 {
-  "source": "SemiAnalysis, transcribed by user 2026-08-20",
+  "source": "SemiAnalysis, transcribed 2026-10-07",
+  "sourceUrl": "https://newsletter.semianalysis.com/p/anthropic-subscriptions-offer-5x",
+  "publishedAt": "2026-10-05T20:01:09Z",
+  "families": {
+    "claude":  { "label": "Claude",     "dailyDriverModel": "claude-opus-5-5", "flagship": { "model": "claude-fable-5-1", "label": "Fable" } },
+    "chatgpt": { "label": "ChatGPT",    "dailyDriverModel": "gpt-6-1-sol",     "flagship": { "model": "gpt-6-astra",      "label": "Astra" } },
+    "kimi":    { "label": "Kimi Code",  "dailyDriverModel": "kimi-k3" },
+    "glm":     { "label": "GLM Coding", "dailyDriverModel": "glm-5-3",         "flagship": { "model": "glm-5-3-flash",    "label": "Flash" } }
+  },
   "tiers": [
-    { "id": "claude-pro",     "family": "claude",  "label": "Claude Pro",      "priceUsdPerMonth": 20,  "equivalentApiSpendUsdPerMonth": 400 },
-    { "id": "claude-max-5x",  "family": "claude",  "label": "Claude Max 5x",   "priceUsdPerMonth": 100, "equivalentApiSpendUsdPerMonth": 2000 },
-    { "id": "claude-max-20x", "family": "claude",  "label": "Claude Max 20x",  "priceUsdPerMonth": 200, "equivalentApiSpendUsdPerMonth": 8000 },
-    { "id": "chatgpt-plus",   "family": "chatgpt", "label": "ChatGPT Plus",    "priceUsdPerMonth": 20,  "equivalentApiSpendUsdPerMonth": 700 },
-    { "id": "chatgpt-pro-5x", "family": "chatgpt", "label": "ChatGPT Pro 5x",  "priceUsdPerMonth": 100, "equivalentApiSpendUsdPerMonth": 3500 },
-    { "id": "chatgpt-pro-20x","family": "chatgpt", "label": "ChatGPT Pro 20x", "priceUsdPerMonth": 200, "equivalentApiSpendUsdPerMonth": 14000 }
+    {
+      "id": "claude-max-20x", "family": "claude", "label": "Claude Max 20x", "shortLabel": "Max 20x", "priceUsdPerMonth": 200,
+      "apiEquivalentValuesUsdPerMonth": {
+        "claude-sonnet-5-5": 12529, "claude-opus-5-5": 11726, "claude-fable-5-1": 2485, "claude-opus-5": 17275, "claude-fable-5": 4713
+      }
+    }
   ]
 }
 ```
 
+(One tier shown; the file has them all.)
+
+| Tier | Price | Sonnet 5.5 | Opus 5.5 | Fable 5.1 | Opus 5 | Fable 5 |
+|---|---|---|---|---|---|---|
+| claude-pro | $20 | $1,241 | $1,178 | excluded | $1,437 | excluded |
+| claude-max-5x | $100 | $5,919 | $5,725 | $1,273 | $8,770 | $2,350 |
+| claude-max-20x | $200 | $12,529 | $11,726 | $2,485 | $17,275 | $4,713 |
+
+| Tier | Price | GPT-6 Astra | GPT-6.1 Sol | GPT-6 Sol |
+|---|---|---|---|---|
+| chatgpt-plus | $20 | $162 | $211 | $262 |
+| chatgpt-pro-100 | $100 | $1,322 | $1,055 | $1,482 |
+| chatgpt-pro-200 | $200 | $2,897 | $2,084 | $2,910 |
+| chatgpt-pro-500 | $500 | $6,955 | $5,386 | $7,352 |
+
+| Tier | Price | Kimi K3 |
+|---|---|---|
+| kimi-code-plus | $19 | $47 |
+| kimi-code-pro | $39 | $209 |
+| kimi-code-max | $99 | $647 |
+| kimi-code-ultra | $199 | $1,343 |
+
+| Tier | Price | GLM 5.3 | GLM 5.3 Flash |
+|---|---|---|---|
+| glm-coding-lite | $18 | $139 | $24 |
+| glm-coding-pro | $80 | $830 | $143 |
+| glm-coding-max | $168 | $1,942 | $336 |
+
+`families` names each family's label, which heads its Subscriptions picker column, its daily driver and, optionally, its flagship with the flagship's label. They are the same on every tier of a family, so they are per family, not per tier. The flagship labels the one note on each Subscriptions picker rung ([ticket 05](tickets/05-flagship-note.md)); a family without one, like Kimi, shows no note (ADR 0011).
+
+Load-time validation (ADR 0004) rejects:
+
+- a value for a model missing from the mapping, or for a model outside the tier's family;
+- a tier with no value for its family's daily driver (an exclusion can't stand in, since unmeasured models fall back to it);
+- a tier with neither a value nor an exclusion for its family's flagship, when the family declares one.
+
 ## Model mapping fields
 
-`family`, `usageMultiplier` and `excludedTiers` in the [model mapping](../model-data/spec.md). Family membership asserts genuine subscription access (user's best knowledge of the plans, not research-verified). If a mapped model turns out to be API-only, flip its family to `none` — one-line fix.
+`family` and `excludedTiers` in the [model mapping](../model-data/spec.md). Family membership asserts genuine subscription access. A model joins a family only when a primary source says the family's tiers serve it (ADR 0011): Kimi Code serves Kimi K3, but of K2.7 Code only "K2.7 Code HighSpeed", which may not be the model DeepSWE ran, so Kimi K2.7 Code stays in `none`. GLM Coding serves GLM 5.3 and GLM 5.3 Flash, but Z.ai routes GLM 5.2 requests to GLM 5.3, so GLM 5.2 stays in `none` too. Claude and ChatGPT membership predates the rule and rests on the user's knowledge of the plans. If a mapped model turns out to be API-only, flip its family to `none` — one-line fix. The refresh copies a new model's family from its vendor's entries only when they share one; a vendor whose entries span families (Moonshot, Z.ai) gets `none` and a warning in the Refresh PR.
 
-`excludedTiers` is optional: the ids of tiers whose usage limits don't cover the model, validated against the tier ids. Fable 5 sets `["claude-pro"]`: Anthropic's [Claude Fable models on your plan](https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan) says Pro runs Fable on usage credits, which [are billed at standard API rates](https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans). The same page caps Fable at 50% of Max's weekly limits, which the 0.5 multiplier encodes. (Added in ticket 02.)
+`excludedTiers` is optional: the ids of tiers whose usage limits don't cover the model, validated against the tier ids. Fable 5 and Fable 5.1 set `["claude-pro"]`: Anthropic's [Claude Fable models on your plan](https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan) says Pro runs Fable on usage credits, which [are billed at standard API rates](https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans). It stays in the mapping, not `tiers.json`, because it comes from Anthropic's docs rather than SemiAnalysis. (Added in ticket 02.)
 
 ## Derivation rules
 
-Row expansion: entries whose family is claude or chatgpt get one row per tier of that family beside their API row. Current data: 62 entries → 62 API rows + (21 Claude entries + 20 ChatGPT entries) × 3 tiers = **185 rows**. (An earlier revision said 191 via 22 ChatGPT entries — that was an arithmetic error; the checked-in data and research capture both have 20.)
+Row expansion: entries in a family other than `none` get one row per tier of that family beside their API row: three Claude tiers, four ChatGPT tiers, four Kimi Code tiers, three GLM Coding tiers. Tests assert the relationship, never the count (ADR 0004).
 
 Per row:
 
-- `subsidisationFactor` = `tier.priceUsdPerMonth / (tier.equivalentApiSpendUsdPerMonth × usageMultiplier)` (tier rows only). E.g. claude-pro = 0.05; for Fable 5 on claude-max-5x, 100 / (2000 × 0.5) = 0.10. On a tier in the entry's `excludedTiers` the factor is 1. The excluded tier keeps its row, because the picker changes pricing, never row count (ticket 02).
+- `subsidisationFactor` = `tier.priceUsdPerMonth / apiEquivalentValue` (tier rows only), where `apiEquivalentValue` is the model's own value on the tier or, for a model SemiAnalysis didn't measure, the family daily driver's (ADR 0010). E.g. Fable 5.1 on claude-max-20x = 200 / 2,485; Sonnet 4.6 there takes Opus 5.5's value, 200 / 11,726. On a tier in the entry's `excludedTiers` the factor is 1. The excluded tier keeps its row, because the picker changes pricing, never row count (ticket 02).
 - `effectiveCost` = `average_cost_usd` (API rows) or `average_cost_usd × subsidisationFactor` (tier rows). [Cost per task data](../cost-per-task-data/spec.md) divides the effective cost, so tier rows recompute it.
 
 ## App
@@ -40,16 +84,23 @@ Per row:
 - Access route is **not** a column — it renders inside the Model cell as a tag on tier rows (exact styling decided in ticket 01).
 - Tier-row Cost and Cost/perf cells show the API cost first, struck through and muted, then the effective value in normal weight (the Cost/perf struck value is API cost ÷ Pass@1; Pass@1 = 0 renders one blank cell, no struck blank). Where the two are equal (an excluded tier) the cell shows the cost once, unstruck, and the access tag stays (ticket 02). No per-cell "(e)" marker — the estimate caveat lives in the Subscriptions picker's disclaimer instead. Both columns sort by effective values. API-row Avg cost is the unadjusted average cost. (Strikeout added in subscription-filter ticket 01's grilling; the "(e)" removed in the same ticket's follow-up.)
 - Sub-cent costs collapse to $0.01 or $0.00, which is deliberate — tiny tier costs should read as "effectively free" rather than invite comparison of raw values.
-- Masthead provenance line: SemiAnalysis linked with the figures' publication date, as "SemiAnalysis (2026-06-10)" in the Sources list. The estimate caveat lives in the Subscriptions picker only (ticket 01 had "Subscription costs are rough estimates from SemiAnalysis figures" in the masthead; shortened in [design ticket 02](../design/tickets/02-ledger-page-layout.md)).
+- Masthead provenance line: SemiAnalysis linked with the figures' publication date, as "SemiAnalysis (2026-10-05)" in the Sources list. The estimate caveat lives in the Subscriptions picker only (ticket 01 had "Subscription costs are rough estimates from SemiAnalysis figures" in the masthead; shortened in [design ticket 02](../design/tickets/02-ledger-page-layout.md)).
 
 ## Acceptance criteria
 
-- The dataset derives 185 rows. Spot-checked maths: Fable 5's Max tier rows use half the equivalent spend (claude-max-5x factor 0.10, not 0.05), and its claude-pro rows use factor 1.
-- Unit tests cover row expansion and subsidisation (incl. multiplier and excluded tiers).
+- Every entry in a family derives one row per tier of its family beside its API row. Spot-checked maths: Fable 5.1 on claude-max-20x uses factor 200 / 2,485, an unmeasured Claude model there uses Opus 5.5's 200 / 11,726, and Fable's claude-pro rows use factor 1 (ticket 04); GPT-6 Astra on chatgpt-pro-500 uses 500 / 6,955 and an unmeasured ChatGPT model there GPT-6.1 Sol's 500 / 5,386 (ticket 06); Kimi K3 on kimi-code-ultra uses 199 / 1,343 and Kimi K2.7 Code has only API rows (ticket 08); GLM 5.3 Flash on glm-coding-max uses 168 / 336 and GLM 5.2 has only API rows (ticket 09).
+- Unit tests cover row expansion and subsidisation (incl. measured values, the daily-driver fallback and excluded tiers).
 
 ## Tickets
 
 - [01: Tier rows and subsidisation](tickets/01-tier-rows-subsidisation.md)
 - [02: Fable models on Claude Pro](tickets/02-fable-excluded-from-pro.md)
+- [03: Transcribe the Oct 5 SemiAnalysis figures](tickets/03-transcribe-semianalysis-2026-10-05.md)
+- [04: Price tier rows from measured per-model values](tickets/04-per-model-api-equivalent-values.md)
+- [05: Flagship note in the Subscriptions picker](tickets/05-flagship-note.md)
+- [06: ChatGPT Plus / Pro 100 / Pro 200 / Pro 500](tickets/06-chatgpt-tier-lineup.md)
+- [07: Coding plans from other labs](tickets/07-other-labs-coding-plans.md)
+- [08: Kimi Code tiers](tickets/08-kimi-code-tiers.md)
+- [09: GLM Coding tiers](tickets/09-glm-coding-tiers.md)
 
 The struck-out API cost was built in [subscription-filter ticket 01](../subscription-filter/tickets/01-strikeout-api-cost-exclusive-picker.md).

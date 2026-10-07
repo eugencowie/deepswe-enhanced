@@ -12,10 +12,10 @@ describe("formatTierDiscount", () => {
     expect(formatTierDiscount(0.9)).toBe("−90%");
   });
 
-  test("keeps one decimal where rounding needs it", () => {
-    expect(formatTierDiscount(0.975)).toBe("−97.5%");
-    expect(formatTierDiscount(1 - 20 / 700)).toBe("−97.1%");
-    expect(formatTierDiscount(1 - 200 / 14000)).toBe("−98.6%");
+  test("rounds to the nearest whole percent", () => {
+    expect(formatTierDiscount(1 - 20 / 211)).toBe("−91%");
+    expect(formatTierDiscount(1 - 80 / 830)).toBe("−90%");
+    expect(formatTierDiscount(0.975)).toBe("−98%");
   });
 
   // A model the tier excludes (Fable on Pro) runs at API rates.

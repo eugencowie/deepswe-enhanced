@@ -19,22 +19,19 @@ import {
   type PickerFamily,
 } from "@/data/leaderboard";
 
-const familyLabels = { claude: "Claude", chatgpt: "ChatGPT" } as const;
-
 // The rung formatters are exported for their unit tests only: the route card
 // is a portal, so it renders nothing with react-dom/server and the figures
 // can't be asserted on markup the way the column formatters are. The
 // accepted cost is fast refresh for this file, which is what the suppressed
 // rule protects.
 
-// A tier discount (0.95 for 95% off) as a percentage: one decimal where
-// needed ("−95%", "−97.5%"), minus sign U+2212. No discount reads "full
-// price", like the API rung: a tier that excludes a model notes it so.
+// A tier discount (0.95 for 95% off) as a whole percentage ("−95%"), minus
+// sign U+2212. No discount reads "full price", like the API rung: a tier that
+// excludes the flagship notes it so.
 // oxlint-disable-next-line react/only-export-components
 export function formatTierDiscount(discount: number): string {
   if (discount === 0) return "full price";
-  const percent = Math.round(discount * 1000) / 10;
-  return `−${percent}%`;
+  return `−${Math.round(discount * 100)}%`;
 }
 
 // A tier's monthly price as published: "$20/mo".
@@ -55,7 +52,7 @@ export function SubscriptionsPicker({
   pickerFamilies: PickerFamily[];
 }) {
   // The trigger surfaces only non-API picks: quiet on the default view, the
-  // chosen tiers at a glance otherwise (column order, Claude first).
+  // chosen tiers at a glance otherwise (column order).
   const tierPicks = pickerFamilies.flatMap(({ family, vendor, tiers }) => {
     const tier = tiers.find((t) => t.id === filters.subscriptions[family]);
     return tier ? [{ family, vendor, tier }] : [];
@@ -63,7 +60,7 @@ export function SubscriptionsPicker({
 
   return (
     <DropdownMenu>
-      {/* The trigger reads "Subscriptions" while both families are on the
+      {/* The trigger reads "Subscriptions" while every family is on the
           API, and otherwise shows only the tier picks, each with its vendor
           mark. The explicit label keeps the accessible name prefixed and
           comma-separated: name-from-content pads a hidden separator with
@@ -122,10 +119,11 @@ function RouteRung(props: Omit<MenuPrimitive.RadioItem.Props, "className">) {
   );
 }
 
-// The Subscriptions picker's popover: one price ladder per family, side by
-// side where there is room. The tier-wide discount is the one loud figure on
-// each rung; the price and Fable's exception sit under it. No fill or edge
-// inside is grey; secondary text stays muted.
+// The Subscriptions picker's popover: one price ladder per family, two side
+// by side where there is room, wrapping onto further rows. The daily driver's
+// discount is the one loud figure on each rung; the price and any flagship's
+// discount sit under it. No fill or edge inside is grey; secondary text stays
+// muted.
 function RouteCard({
   filters,
   onChange,
@@ -144,7 +142,7 @@ function RouteCard({
       )}
     >
       <div className="grid gap-2 sm:grid-cols-2">
-        {pickerFamilies.map(({ family, vendor, tiers }) => (
+        {pickerFamilies.map(({ family, label, vendor, tiers }) => (
           <DropdownMenuRadioGroup
             key={family}
             value={filters.subscriptions[family]}
@@ -153,7 +151,7 @@ function RouteCard({
           >
             <DropdownMenuLabel className="flex items-center gap-2 px-2.5 pt-1 pb-2 text-sm text-foreground">
               <VendorMark vendor={vendor} />
-              {familyLabels[family]}
+              {label}
             </DropdownMenuLabel>
             <RouteRung value="api">
               <span className="flex-1">API</span>
@@ -171,11 +169,12 @@ function RouteCard({
                   <span className="text-[15px] font-semibold">
                     {formatTierDiscount(tier.tierDiscount)}
                   </span>
-                  {tier.notes.map((note) => (
-                    <span key={note.name} className="text-[11px] text-muted-foreground">
-                      {note.name}: {formatTierDiscount(note.tierDiscount)}
+                  {tier.flagshipNote && (
+                    <span className="text-[11px] text-muted-foreground">
+                      {tier.flagshipNote.label}:{" "}
+                      {formatTierDiscount(tier.flagshipNote.tierDiscount)}
                     </span>
-                  ))}
+                  )}
                 </span>
               </RouteRung>
             ))}
@@ -184,7 +183,8 @@ function RouteCard({
       </div>
       <DropdownMenuSeparator className="mt-2 bg-brand/20" />
       <p className="px-2.5 py-1.5 text-xs text-muted-foreground">
-        Subscription costs are estimates: the struck-out API cost scaled by the tier's discount.
+        Subscription costs are estimates: the struck-out API cost scaled by SemiAnalysis's measured
+        value for that tier and model (agentic workload).
       </p>
     </DropdownMenuContent>
   );

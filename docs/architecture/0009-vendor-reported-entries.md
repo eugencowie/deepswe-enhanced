@@ -32,4 +32,5 @@ Text, tables and charts all count; where text and a chart give a figure for the 
 - A generated OpenRouter id of `null` defeats the second match. The Refresh PR body lists new DeepSWE models beside the vendor-reported ones still standing, so a duplicate under two ids rests on the reviewer.
 - Chart readings enter the data only after the maintainer checks them against the source, so a chart-read figure is as trustworthy as the maintainer's reading of it.
 - A PR adding or correcting entries carries its evidence, since the data file can't: its body lists each entry with its source, effort and figures, marking chart readings and the maintainer's sign-off on each; what settled any "highest" effort; each rejected claim with the rule it failed; and the source of each new mapping fact, such as a usage multiplier or excluded tiers.
+- Superseded in part by [ADR 0010](0010-per-model-api-equivalent-values.md): the usage multiplier is gone, so a new mapping entry's only subscription fact is its excluded tiers.
 - The file is pinned to v1.1. When the project moves to a new DeepSWE version, the same change clears or replaces it.

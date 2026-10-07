@@ -14,6 +14,10 @@ const entryCount = deepsweSnapshot.entries.length + vendorReportedSnapshot.entri
 
 const bodyRows = (page: Page) => page.getByRole("table").locator("tbody tr");
 
+// A Subscriptions picker column, named by its vendor mark and header: Plus
+// and Pro rungs recur across families.
+const familyColumn = (page: Page, name: string) => page.getByRole("group", { name });
+
 test("the effort toggle switches between best and all entries", async ({ page }) => {
   await page.goto("./");
 
@@ -34,16 +38,25 @@ test("the subscriptions picker swaps a family to one tier and shows discounts", 
   await page.goto("./");
   await page.getByRole("button", { name: /^Subscriptions/ }).click();
 
-  // Each rung carries the monthly price and the tier-wide discount, plus
-  // Fable's non-standard limit where it applies.
+  // Each rung carries the monthly price, the daily driver's discount and one
+  // note: the family flagship's discount. Older models get none.
   const maxTwenty = page.getByRole("menuitemradio", { name: /Max 20x/ });
   await expect(maxTwenty).toContainText("$200/mo");
-  await expect(maxTwenty).toContainText("−97.5%");
-  await expect(maxTwenty).toContainText("Fable: −95%");
-  await expect(page.getByRole("menuitemradio", { name: /^Plus/ })).not.toContainText("Fable");
+  await expect(maxTwenty).toContainText("−98%");
+  await expect(maxTwenty).toContainText("Fable: −92%");
+  await expect(maxTwenty).not.toContainText("Opus");
+  const plus = familyColumn(page, "OpenAI ChatGPT").getByRole("menuitemradio", { name: /^Plus/ });
+  await expect(plus).toContainText("Astra: −88%");
+  await expect(plus).not.toContainText("Sol");
+  const proFiveHundred = page.getByRole("menuitemradio", { name: /^Pro 500/ });
+  await expect(proFiveHundred).toContainText("$500/mo");
+  await expect(proFiveHundred).toContainText("−91%");
+  await expect(proFiveHundred).toContainText("Astra: −93%");
 
   // The estimate disclaimer replaced the per-cell "(e)" marker.
-  await expect(page.getByText("Subscription costs are estimates")).toBeVisible();
+  await expect(page.getByText("Subscription costs are estimates")).toContainText(
+    "SemiAnalysis's measured value",
+  );
 
   // Picking a tier replaces the family's API rows: same count, new pricing.
   await maxTwenty.click();
@@ -65,6 +78,50 @@ test("the subscriptions picker swaps a family to one tier and shows discounts", 
   await expect(page.getByRole("button", { name: /^Subscriptions$/ })).toBeVisible();
 });
 
+// Kimi Code serves Kimi K3 alone, so its rungs carry no flagship note, and
+// Kimi K2.7 Code stays on the API (ADR 0011).
+test("the Kimi Code column prices Kimi K3 and notes no flagship", async ({ page }) => {
+  await page.goto("./");
+  await page.getByRole("button", { name: /^Subscriptions/ }).click();
+  const kimi = familyColumn(page, "Moonshot Kimi Code");
+  await expect(kimi.getByRole("menuitemradio")).toHaveText([
+    /^API/,
+    /^Plus/,
+    /^Pro/,
+    /^Max/,
+    /^Ultra/,
+  ]);
+  // Label, fee and headline, and no note after them.
+  await expect(kimi.getByRole("menuitemradio", { name: /^Ultra/ })).toHaveText("Ultra$199/mo−85%");
+
+  await kimi.getByRole("menuitemradio", { name: /^Plus/ }).click();
+  await expect(page.getByRole("button", { name: "Subscriptions: Moonshot Plus" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("cell", { name: /Kimi K3\b/ })).toContainText("Plus");
+  await expect(page.getByRole("cell", { name: /Kimi K2\.7 Code/ })).not.toContainText("Plus");
+});
+
+// GLM Coding notes GLM 5.3 Flash under each GLM 5.3 headline, and GLM 5.2
+// stays on the API: Z.ai routes it to GLM 5.3 (ADR 0011).
+test("the GLM Coding column notes Flash on each rung", async ({ page }) => {
+  await page.goto("./");
+  await page.getByRole("button", { name: /^Subscriptions/ }).click();
+  const glm = familyColumn(page, "Z.ai GLM Coding");
+  await expect(glm.getByRole("menuitemradio")).toHaveText([/^API/, /^Lite/, /^Pro/, /^Max/]);
+  const lite = glm.getByRole("menuitemradio", { name: /^Lite/ });
+  await expect(lite).toContainText("$18/mo");
+  await expect(lite).toContainText("−87%");
+  await expect(lite).toContainText("Flash: −25%");
+  await expect(glm.getByRole("menuitemradio", { name: /^Pro/ })).toContainText("Flash: −44%");
+  await expect(glm.getByRole("menuitemradio", { name: /^Max/ })).toContainText("Flash: −50%");
+
+  await lite.click();
+  await expect(page.getByRole("button", { name: "Subscriptions: Z.ai Lite" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("cell", { name: /GLM 5\.3 Flash/ })).toContainText("Lite");
+  await expect(page.getByRole("cell", { name: /GLM 5\.2/ })).not.toContainText("Lite");
+});
+
 test("tier rows show the API cost struck out beside the effective cost", async ({ page }) => {
   await page.goto("./");
   await page.getByRole("button", { name: /^Subscriptions/ }).click();
@@ -78,7 +135,7 @@ test("tier rows show the API cost struck out beside the effective cost", async (
 });
 
 // Pro excludes Fable: it runs on usage credits at API rates, so its rows
-// show the API cost once and the rung notes it at full price.
+// show the API cost once and the rung's flagship note reads full price.
 test("Fable's Pro rows show the API cost unstruck", async ({ page }) => {
   await page.goto("./");
   await page.getByRole("button", { name: /^Subscriptions/ }).click();
@@ -98,7 +155,7 @@ test("Fable's Pro rows show the API cost unstruck", async ({ page }) => {
   ).toHaveCount(2);
 });
 
-test("changing filters never resets the sort and both picks surface in the trigger", async ({
+test("changing filters never resets the sort and every pick surfaces in the trigger", async ({
   page,
 }) => {
   await page.goto("./");
@@ -111,13 +168,18 @@ test("changing filters never resets the sort and both picks surface in the trigg
   await page.getByRole("button", { name: "All effort levels" }).click();
   await page.getByRole("button", { name: /^Subscriptions/ }).click();
   await page.getByRole("menuitemradio", { name: /Max 5x/ }).click();
-  await page.getByRole("menuitemradio", { name: /^Plus/ }).click();
+  await familyColumn(page, "OpenAI ChatGPT").getByRole("menuitemradio", { name: /^Plus/ }).click();
+  await familyColumn(page, "Moonshot Kimi Code")
+    .getByRole("menuitemradio", { name: /^Max/ })
+    .click();
   await page.keyboard.press("Escape");
 
   await expect(cost).toHaveAttribute("aria-sort", "ascending");
-  // Both non-API picks in the trigger, Claude first (column order).
+  // Every non-API pick in the trigger, in column order.
   await expect(
-    page.getByRole("button", { name: "Subscriptions: Anthropic Max 5x, OpenAI Plus" }),
+    page.getByRole("button", {
+      name: "Subscriptions: Anthropic Max 5x, OpenAI Plus, Moonshot Max",
+    }),
   ).toBeVisible();
 });
 

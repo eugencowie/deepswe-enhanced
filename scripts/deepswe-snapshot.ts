@@ -124,7 +124,7 @@ export function normalize(input: {
   if (unmapped.length > 0) {
     throw new Error(
       `Leaderboard model(s) missing from data/model-mapping.json: ${unmapped.join(", ")}. ` +
-        `Add mapping entries (family, OpenRouter id, usage multiplier) before refreshing.`,
+        `Add mapping entries (family, OpenRouter id) before refreshing.`,
     );
   }
   const stale = [...mappedModels].filter(

@@ -22,20 +22,30 @@ const count = z.number().int().nonnegative();
 // `source_url`, which is the fetched artifact itself.
 const provenanceFields = { source: nonEmpty, sourceUrl: z.url() };
 
-const subscriptionFamilySchema = z.enum(["claude", "chatgpt", "none"]);
+const subscriptionFamilySchema = z.enum(["claude", "chatgpt", "kimi", "glm", "none"]);
 export type SubscriptionFamily = z.infer<typeof subscriptionFamilySchema>;
 
-// The families the Subscriptions picker shows, in column order: Claude first.
-export type PickerFamilyId = Exclude<SubscriptionFamily, "none">;
-export const PICKER_FAMILIES: readonly PickerFamilyId[] = ["claude", "chatgpt"];
+// The families the Subscriptions picker shows, in column order: Claude,
+// ChatGPT, then the rest alphabetically by vendor.
+const pickerFamilySchema = subscriptionFamilySchema.exclude(["none"]);
+export type PickerFamilyId = z.infer<typeof pickerFamilySchema>;
+export const PICKER_FAMILIES: readonly PickerFamilyId[] = ["claude", "chatgpt", "kimi", "glm"];
 
 const tierIdSchema = z.enum([
   "claude-pro",
   "claude-max-5x",
   "claude-max-20x",
   "chatgpt-plus",
-  "chatgpt-pro-5x",
-  "chatgpt-pro-20x",
+  "chatgpt-pro-100",
+  "chatgpt-pro-200",
+  "chatgpt-pro-500",
+  "kimi-code-plus",
+  "kimi-code-pro",
+  "kimi-code-max",
+  "kimi-code-ultra",
+  "glm-coding-lite",
+  "glm-coding-pro",
+  "glm-coding-max",
 ]);
 export type TierId = z.infer<typeof tierIdSchema>;
 
@@ -154,11 +164,9 @@ const modelMappingEntrySchema = z.strictObject({
   // null yields blank throughput/time (avg-time-data ticket 01).
   openrouterId: nonEmpty.nullable(),
   family: subscriptionFamilySchema,
-  usageMultiplier: z.number().positive(), // scales equivalent API spend; zero would divide the subsidisation factor by nothing
   // Tiers whose usage limits don't cover the model, so it runs on usage
   // credits at API rates there: Pro excludes Fable (subscription-data ticket 02).
   excludedTiers: z.array(tierIdSchema).min(1).optional(),
-  shortName: nonEmpty.optional(), // UI short label, falling back to displayName (subscription-filter ticket 01)
 });
 export type ModelMappingEntry = z.infer<typeof modelMappingEntrySchema>;
 
@@ -210,13 +218,29 @@ export type ThroughputSnapshot = z.infer<typeof throughputSnapshotSchema>;
 
 const tierSchema = z.strictObject({
   id: tierIdSchema,
-  family: subscriptionFamilySchema.exclude(["none"]),
+  family: pickerFamilySchema,
   label: nonEmpty,
   shortLabel: nonEmpty, // UI tag text; explicit data, never derived from label
   priceUsdPerMonth: nonNegative,
-  equivalentApiSpendUsdPerMonth: nonNegative,
+  // Keyed by leaderboard model, for the models SemiAnalysis measured on the
+  // tier (agentic workload). Positive: the subsidisation factor divides by it.
+  apiEquivalentValuesUsdPerMonth: z.record(nonEmpty, z.number().positive()),
 });
 export type Tier = z.infer<typeof tierSchema>;
+
+// Each family's label heads its Subscriptions picker column. Its daily driver
+// prices every model SemiAnalysis didn't measure. Its flagship, when it has
+// one, is the model each rung notes under its flagship label
+// (subscription-data ticket 05); a family without one notes nothing (ADR 0011).
+const subscriptionFamiliesSchema = z.record(
+  pickerFamilySchema,
+  z.strictObject({
+    label: nonEmpty,
+    dailyDriverModel: nonEmpty,
+    flagship: z.strictObject({ model: nonEmpty, label: nonEmpty }).optional(),
+  }),
+);
+export type SubscriptionFamilies = z.infer<typeof subscriptionFamiliesSchema>;
 
 // data/tiers.json: the tiers snapshot.
 export const tiersSnapshotSchema = z.strictObject({
@@ -224,6 +248,7 @@ export const tiersSnapshotSchema = z.strictObject({
   // When SemiAnalysis published the figures (the linked post's date), not
   // when they were transcribed: the masthead shows how old the numbers are.
   publishedAt: nonEmpty,
+  families: subscriptionFamiliesSchema,
   tiers: z.array(tierSchema),
 });
 export type TiersSnapshot = z.infer<typeof tiersSnapshotSchema>;
@@ -249,6 +274,46 @@ export function assertMappingCoverage(
   }
   if (orphaned.length > 0) {
     parts.push(`mapping entries matching no model: ${orphaned.join(", ")}`);
+  }
+  if (parts.length > 0) {
+    throw new Error(parts.join("; "));
+  }
+}
+
+// Each tier's values must price its own family's mapped models, and every
+// tier must cover its family's daily driver and any flagship it declares: the
+// daily driver with a value, since unmeasured models fall back to it, and the
+// flagship with a value or an exclusion.
+export function assertTierValues(tiers: TiersSnapshot, mapping: ModelMappingEntry[]): void {
+  const byModel = new Map(mapping.map((entry) => [entry.leaderboardModel, entry]));
+  const parts: string[] = [];
+  for (const tier of tiers.tiers) {
+    for (const model of Object.keys(tier.apiEquivalentValuesUsdPerMonth)) {
+      const entry = byModel.get(model);
+      if (entry === undefined) {
+        parts.push(
+          `API-equivalent value for a model missing from the mapping: ${tier.id} → ${model}`,
+        );
+      } else if (entry.family !== tier.family) {
+        parts.push(
+          `API-equivalent value for a model outside the tier's family: ${tier.id} → ${model}`,
+        );
+      }
+    }
+    const { dailyDriverModel, flagship } = tiers.families[tier.family];
+    const measured = (model: string) => model in tier.apiEquivalentValuesUsdPerMonth;
+    if (!measured(dailyDriverModel)) {
+      parts.push(
+        `${tier.family} daily driver ${dailyDriverModel} has no API-equivalent value on ${tier.id}`,
+      );
+    }
+    if (flagship === undefined) continue;
+    const excluded = byModel.get(flagship.model)?.excludedTiers?.includes(tier.id) ?? false;
+    if (!measured(flagship.model) && !excluded) {
+      parts.push(
+        `${tier.family} flagship ${flagship.model} has neither an API-equivalent value nor an exclusion on ${tier.id}`,
+      );
+    }
   }
   if (parts.length > 0) {
     throw new Error(parts.join("; "));

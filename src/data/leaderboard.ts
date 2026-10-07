@@ -10,6 +10,7 @@ import {
   PICKER_FAMILIES,
   type PickerFamilyId,
   type SubscriptionFamily,
+  type SubscriptionFamilies,
   type ThroughputSnapshot,
   type Tier,
   type TierId,
@@ -69,22 +70,22 @@ export type ModelOption = {
   vendorReported: boolean; // coloured like its rows in the Models picker
 };
 
-// A family model with a non-standard usage limit, badged per tier in the
-// Subscriptions picker because its discount differs from the tier-wide one;
-// 0 on a tier that excludes it.
-export type UsageLimitNote = { name: string; tierDiscount: number };
+// The family flagship's discount on a tier, under the family's flagship
+// label; 0 on a tier that excludes it.
+export type FlagshipNote = { label: string; tierDiscount: number };
 
 export type PickerTier = {
   id: TierId;
   shortLabel: string;
   priceUsdPerMonth: number;
-  // 1 − subsidisation factor at usage multiplier 1.0.
+  // The family daily driver's discount on the tier.
   tierDiscount: number;
-  notes: UsageLimitNote[];
+  flagshipNote?: FlagshipNote; // absent when the family has no flagship
 };
 
 export type PickerFamily = {
   family: PickerFamilyId;
+  label: string; // the route card column's heading
   vendor: string; // the family's vendor; VendorMark renders its mark
   tiers: PickerTier[];
 };
@@ -92,10 +93,7 @@ export type PickerFamily = {
 // The Subscriptions picker: exactly one access route per family, so every
 // entry appears on exactly one row and the picker changes pricing, never row
 // count. Rows whose family is "none" ignore the picker entirely.
-export type SubscriptionSelection = {
-  claude: AccessRoute;
-  chatgpt: AccessRoute;
-};
+export type SubscriptionSelection = Record<PickerFamilyId, AccessRoute>;
 
 export type LeaderboardFilters = {
   effortView: "best" | "all";
@@ -110,8 +108,8 @@ export type Leaderboard = {
   rows: LeaderboardRow[];
   // One option per model, sorted by display name, for the Models picker.
   modelOptions: ModelOption[];
-  // The Subscriptions picker's sections: Claude first, tiers in tiers.json
-  // (ascending price) order.
+  // The Subscriptions picker's sections in PICKER_FAMILIES order, tiers in
+  // tiers.json (ascending price) order.
   pickerFamilies: PickerFamily[];
   // Best view, API routes, every model listed and selected.
   defaultFilters: () => LeaderboardFilters;
@@ -124,6 +122,7 @@ export type LeaderboardSources = {
   mapping: ModelMappingEntry[];
   throughput: ThroughputSnapshot;
   tiers: Tier[];
+  subscriptionFamilies: SubscriptionFamilies;
   familyVendors: FamilyVendors;
 };
 
@@ -133,9 +132,16 @@ export function createLeaderboard({
   mapping,
   throughput,
   tiers,
+  subscriptionFamilies,
   familyVendors,
 }: LeaderboardSources): Leaderboard {
-  const rows = deriveRows(leaderboardEntries(snapshot, vendorReported), mapping, throughput, tiers);
+  const rows = deriveRows(
+    leaderboardEntries(snapshot, vendorReported),
+    mapping,
+    throughput,
+    tiers,
+    subscriptionFamilies,
+  );
   const modelOptions = [...new Map(rows.map((row) => [row.model, row]))]
     .map(([model, { displayName, vendor, provenance }]) => ({
       model,
@@ -147,6 +153,7 @@ export function createLeaderboard({
     .toSorted((a, b) => a.displayName.localeCompare(b.displayName, "en"));
   const pickerFamilies = PICKER_FAMILIES.map((family) => ({
     family,
+    label: subscriptionFamilies[family].label,
     vendor: familyVendors[family],
     tiers: tiers
       .filter((tier) => tier.family === family)
@@ -154,8 +161,8 @@ export function createLeaderboard({
         id: tier.id,
         shortLabel: tier.shortLabel,
         priceUsdPerMonth: tier.priceUsdPerMonth,
-        tierDiscount: tierDiscount(tier, 1),
-        notes: usageLimitNotes(mapping, family, tier),
+        tierDiscount: 1 - dailyDriverFactor(tier, subscriptionFamilies),
+        flagshipNote: flagshipNote(mapping, tier, subscriptionFamilies),
       })),
   }));
   return {
@@ -164,7 +171,10 @@ export function createLeaderboard({
     pickerFamilies,
     defaultFilters: () => ({
       effortView: "best",
-      subscriptions: { claude: "api", chatgpt: "api" },
+      // PICKER_FAMILIES lists every picker family, so every key is set.
+      subscriptions: Object.fromEntries(
+        PICKER_FAMILIES.map((family) => [family, "api"]),
+      ) as SubscriptionSelection,
       models: new Set(modelOptions.map(({ model }) => model)),
       includeVendorReported: true,
     }),
@@ -244,6 +254,7 @@ function deriveRows(
   mapping: ModelMappingEntry[],
   throughput: ThroughputSnapshot,
   tiers: Tier[],
+  subscriptionFamilies: SubscriptionFamilies,
 ): LeaderboardRow[] {
   const byModel = new Map(mapping.map((entry) => [entry.leaderboardModel, entry]));
   const bestByModel = bestEntries(entries);
@@ -300,7 +311,7 @@ function deriveRows(
         row(
           tier.id,
           { label: tier.shortLabel, family: tier.family },
-          costAt(entrySubsidisationFactor(tier, mapped)),
+          costAt(subsidisationFactor(tier, mapped, subscriptionFamilies)),
         ),
       ),
     ];
@@ -394,40 +405,67 @@ function effortRank(effort: string | null | undefined): number {
   return rank === -1 ? EFFORT_ORDER.length : rank;
 }
 
-// What a dollar of API cost becomes on a tier. The usage multiplier scales the
-// equivalent API spend for models with non-standard usage limits.
-function subsidisationFactor(tier: Tier, usageMultiplier: number): number {
-  return tier.priceUsdPerMonth / (tier.equivalentApiSpendUsdPerMonth * usageMultiplier);
+// The family daily driver's API-equivalent value on a tier, which every model
+// SemiAnalysis didn't measure takes. assertTierValues guarantees it at load.
+function dailyDriverValue(tier: Tier, subscriptionFamilies: SubscriptionFamilies): number {
+  const { dailyDriverModel } = subscriptionFamilies[tier.family];
+  const value: number | undefined = tier.apiEquivalentValuesUsdPerMonth[dailyDriverModel];
+  if (value === undefined) {
+    throw new Error(
+      `Tier "${tier.id}" has no API-equivalent value for daily driver "${dailyDriverModel}"; add one to data/tiers.json.`,
+    );
+  }
+  return value;
 }
 
-// A mapped model's subsidisation factor on a tier: 1 on a tier that excludes
-// it, whose subscribers pay usage credits at API rates.
-function entrySubsidisationFactor(tier: Tier, entry: ModelMappingEntry): number {
+// A model's API-equivalent value on a tier: SemiAnalysis's measured value, or
+// the daily driver's for a model it didn't measure.
+function apiEquivalentValue(
+  tier: Tier,
+  model: string,
+  subscriptionFamilies: SubscriptionFamilies,
+): number {
+  const measured: number | undefined = tier.apiEquivalentValuesUsdPerMonth[model];
+  return measured ?? dailyDriverValue(tier, subscriptionFamilies);
+}
+
+// What a dollar of API cost becomes for a mapped model on a tier: 1 on a tier
+// that excludes it, whose subscribers pay usage credits at API rates.
+function subsidisationFactor(
+  tier: Tier,
+  entry: ModelMappingEntry,
+  subscriptionFamilies: SubscriptionFamilies,
+): number {
   return entry.excludedTiers?.includes(tier.id)
     ? 1
-    : subsidisationFactor(tier, entry.usageMultiplier);
+    : tier.priceUsdPerMonth /
+        apiEquivalentValue(tier, entry.leaderboardModel, subscriptionFamilies);
 }
 
-// A family's models whose factor on the tier differs from the tier-wide one
-// (a non-standard usage multiplier, or a tier that excludes the model), one
-// note per distinct label and factor: models sharing both (Fable 5 and
-// Fable 5.1, both "Fable" at 0.5) share one note.
-function usageLimitNotes(
+// The tier's headline factor, which every unmeasured model shares.
+function dailyDriverFactor(tier: Tier, subscriptionFamilies: SubscriptionFamilies): number {
+  return tier.priceUsdPerMonth / dailyDriverValue(tier, subscriptionFamilies);
+}
+
+// The one note on a tier rung: the family flagship's discount, shown even
+// when it rounds to the headline; none for a family without a flagship.
+// assertTierValues guarantees the flagship is mapped and either measured or
+// excluded on every tier.
+function flagshipNote(
   mapping: ModelMappingEntry[],
-  family: PickerFamilyId,
   tier: Tier,
-): UsageLimitNote[] {
-  const notes = new Map<string, UsageLimitNote>();
-  for (const entry of mapping) {
-    const factor = entrySubsidisationFactor(tier, entry);
-    if (entry.family !== family || factor === subsidisationFactor(tier, 1)) continue;
-    const name = entry.shortName ?? entry.displayName;
-    notes.set(`${name}@${factor}`, { name, tierDiscount: 1 - factor });
+  subscriptionFamilies: SubscriptionFamilies,
+): FlagshipNote | undefined {
+  const { flagship } = subscriptionFamilies[tier.family];
+  if (flagship === undefined) return undefined;
+  const entry = mapping.find((e) => e.leaderboardModel === flagship.model);
+  if (entry === undefined) {
+    throw new Error(
+      `Flagship "${flagship.model}" is missing from the model mapping; add it to data/model-mapping.json.`,
+    );
   }
-  return [...notes.values()];
-}
-
-// A subsidisation factor as the discount it amounts to.
-function tierDiscount(tier: Tier, usageMultiplier: number): number {
-  return 1 - subsidisationFactor(tier, usageMultiplier);
+  return {
+    label: flagship.label,
+    tierDiscount: 1 - subsidisationFactor(tier, entry, subscriptionFamilies),
+  };
 }
