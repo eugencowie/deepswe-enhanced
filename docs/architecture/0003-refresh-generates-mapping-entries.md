@@ -17,3 +17,4 @@ Derivation: `openrouterId` by matching the leaderboard model id against OpenRout
 - A generated `openrouterId` of `null` shows as blank throughput and is the reviewer's cue to pin an id by hand.
 - A default that happens to be wrong merges unless the reviewer catches it in the diff: a future half-rate Anthropic model at multiplier 1.0, or one a tier excludes generated without `excludedTiers` (a new Fable on Pro).
 - Superseded in part by [ADR 0010](0010-per-model-api-equivalent-values.md): the usage multiplier is gone, so a generated entry falls back to its family daily driver's API-equivalent value. The reviewer checks `excludedTiers`, and whether the new model should become a daily driver or flagship.
+- Amended by [ADR 0011](0011-optional-flagship-sourced-family-membership.md): `family` is copied only when the vendor's entries share one. A vendor whose entries span families gets `none` and a warning.

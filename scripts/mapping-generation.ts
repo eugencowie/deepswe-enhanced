@@ -3,7 +3,7 @@
 // review replaces hand-editing. Pure: the fetch lives in the refresh shell.
 
 import { z } from "zod";
-import type { ModelMappingEntry } from "../src/data/schema.ts";
+import type { ModelMappingEntry, SubscriptionFamily } from "../src/data/schema.ts";
 
 export const openrouterModelsUrl = "https://openrouter.ai/api/v1/models";
 
@@ -37,13 +37,17 @@ function displayNameFrom(listing: OpenrouterListing, revisioned: boolean): strin
   return revisioned ? stripped.replace(/ \d{4}$/, "") : stripped;
 }
 
-type VendorInfo = Pick<ModelMappingEntry, "vendor" | "family">;
+// A known vendor and every family its entries are in.
+type VendorInfo = { vendor: ModelMappingEntry["vendor"]; families: Set<SubscriptionFamily> };
 
 function knownVendorsBySlug(mapping: ModelMappingEntry[]): Map<string, VendorInfo> {
   const bySlug = new Map<string, VendorInfo>();
   for (const entry of mapping) {
     if (entry.openrouterId !== null) {
-      bySlug.set(orgSlug(entry.openrouterId), { vendor: entry.vendor, family: entry.family });
+      const slug = orgSlug(entry.openrouterId);
+      const known = bySlug.get(slug) ?? { vendor: entry.vendor, families: new Set() };
+      known.families.add(entry.family);
+      bySlug.set(slug, known);
     }
   }
   return bySlug;
@@ -80,6 +84,23 @@ export function generateMappingEntries(
       continue;
     }
 
+    // The family the vendor's entries share, or "none" when they span
+    // several: a family takes a model only when a primary source says its
+    // tiers serve it, which is the reviewer's call (ADR 0011).
+    const [sharedFamily, ...otherFamilies] = vendorInfo.families;
+    const spansFamilies = sharedFamily === undefined || otherFamilies.length > 0;
+    if (spansFamilies) {
+      warnings.push(
+        `"${model}": ${vendorInfo.vendor}'s entries span families ` +
+          `${[...vendorInfo.families].join(", ")}; generated with family "none" — set it by ` +
+          `hand if the family's tiers serve the model.`,
+      );
+    }
+    const vendorAndFamily = {
+      vendor: vendorInfo.vendor,
+      family: spansFamilies ? "none" : sharedFamily,
+    };
+
     // Ambiguous listings are the same model under dot/dash-variant ids, so
     // either name serves; only the id needs a human to pin one.
     if (candidates.length > 1) {
@@ -88,7 +109,7 @@ export function generateMappingEntries(
           `(${candidates.map(({ listing }) => listing.id).join(", ")}); generated with a null ` +
           `OpenRouter id — pin one by hand.`,
       );
-      generated.push(entryFor(model, vendorInfo, null, displayNameFrom(match, false)));
+      generated.push(entryFor(model, vendorAndFamily, null, displayNameFrom(match, false)));
       continue;
     }
 
@@ -110,11 +131,11 @@ export function generateMappingEntries(
           `(${datedSiblings.map((listing) => listing.id).join(", ")}); generated with a null ` +
           `OpenRouter id — pin the right revision by hand.`,
       );
-      generated.push(entryFor(model, vendorInfo, null, displayNameFrom(match, true)));
+      generated.push(entryFor(model, vendorAndFamily, null, displayNameFrom(match, true)));
       continue;
     }
 
-    generated.push(entryFor(model, vendorInfo, match.id, displayNameFrom(match, false)));
+    generated.push(entryFor(model, vendorAndFamily, match.id, displayNameFrom(match, false)));
   }
 
   return { generated, warnings };
@@ -122,15 +143,9 @@ export function generateMappingEntries(
 
 function entryFor(
   leaderboardModel: string,
-  vendorInfo: VendorInfo,
+  { vendor, family }: Pick<ModelMappingEntry, "vendor" | "family">,
   openrouterId: string | null,
   displayName: string,
 ): ModelMappingEntry {
-  return {
-    leaderboardModel,
-    displayName,
-    vendor: vendorInfo.vendor,
-    openrouterId,
-    family: vendorInfo.family,
-  };
+  return { leaderboardModel, displayName, vendor, openrouterId, family };
 }

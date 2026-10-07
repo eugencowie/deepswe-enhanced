@@ -53,6 +53,16 @@ describe("file schemas are strict", () => {
     expect(() => tiersSnapshotSchema.parse({ ...rawTiers, families })).toThrowError(/chatgpt/);
   });
 
+  // The rung note needs both, so a flagship is the pair or nothing.
+  test("rejects a flagship without its label", () => {
+    const { claude } = rawTiers.families;
+    const families = {
+      ...rawTiers.families,
+      claude: { ...claude, flagship: { model: claude.flagship.model } },
+    };
+    expect(() => tiersSnapshotSchema.parse({ ...rawTiers, families })).toThrowError(/label/);
+  });
+
   test("rejects a Pass@1 above 1", () => {
     const entry = { ...rawSnapshot.entries[0], effort: "tampered", pass_at_1: 1.5 };
     const tampered = { ...rawSnapshot, entries: [...rawSnapshot.entries, entry] };
@@ -278,11 +288,26 @@ describe("assertTierValues", () => {
     const tiers = editValues("chatgpt-plus", without("gpt-6-astra"));
     expect(() => assertTierValues(tiers, excluding("gpt-6-astra", "chatgpt-plus"))).not.toThrow();
   });
+
+  // Kimi Code declares none; a family that drops its flagship needs no value
+  // for the former one either.
+  test("accepts a family without a flagship", () => {
+    const { flagship: _dropped, ...chatgpt } = tiersSnapshot.families.chatgpt;
+    const tiers = {
+      ...editValues("chatgpt-plus", without("gpt-6-astra")),
+      families: { ...tiersSnapshot.families, chatgpt },
+    };
+    expect(() => assertTierValues(tiers, modelMapping)).not.toThrow();
+  });
 });
 
 describe("familyVendors", () => {
   test("returns each picker family's one vendor, Claude first", () => {
-    expect(familyVendors(modelMapping)).toEqual({ claude: "Anthropic", chatgpt: "OpenAI" });
+    expect(familyVendors(modelMapping)).toEqual({
+      claude: "Anthropic",
+      chatgpt: "OpenAI",
+      kimi: "Moonshot",
+    });
   });
 
   test("rejects a family with no mapping entry", () => {

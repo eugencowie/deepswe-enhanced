@@ -14,6 +14,10 @@ const entryCount = deepsweSnapshot.entries.length + vendorReportedSnapshot.entri
 
 const bodyRows = (page: Page) => page.getByRole("table").locator("tbody tr");
 
+// A Subscriptions picker column, named by its vendor mark and header: Plus
+// and Pro rungs recur across families.
+const familyColumn = (page: Page, name: string) => page.getByRole("group", { name });
+
 test("the effort toggle switches between best and all entries", async ({ page }) => {
   await page.goto("./");
 
@@ -41,7 +45,7 @@ test("the subscriptions picker swaps a family to one tier and shows discounts", 
   await expect(maxTwenty).toContainText("−98.3%");
   await expect(maxTwenty).toContainText("Fable: −92%");
   await expect(maxTwenty).not.toContainText("Opus");
-  const plus = page.getByRole("menuitemradio", { name: /^Plus/ });
+  const plus = familyColumn(page, "OpenAI ChatGPT").getByRole("menuitemradio", { name: /^Plus/ });
   await expect(plus).toContainText("Astra: −87.7%");
   await expect(plus).not.toContainText("Sol");
   const proFiveHundred = page.getByRole("menuitemradio", { name: /^Pro 500/ });
@@ -72,6 +76,31 @@ test("the subscriptions picker swaps a family to one tier and shows discounts", 
   await page.getByRole("button", { name: "Subscriptions: Anthropic Max 20x" }).click();
   await page.getByRole("menuitemradio", { name: /^API/ }).first().click();
   await expect(page.getByRole("button", { name: /^Subscriptions$/ })).toBeVisible();
+});
+
+// Kimi Code serves Kimi K3 alone, so its rungs carry no flagship note, and
+// Kimi K2.7 Code stays on the API (ADR 0011).
+test("the Kimi Code column prices Kimi K3 and notes no flagship", async ({ page }) => {
+  await page.goto("./");
+  await page.getByRole("button", { name: /^Subscriptions/ }).click();
+  const kimi = familyColumn(page, "Moonshot Kimi Code");
+  await expect(kimi.getByRole("menuitemradio")).toHaveText([
+    /^API/,
+    /^Plus/,
+    /^Pro/,
+    /^Max/,
+    /^Ultra/,
+  ]);
+  // Label, fee and headline, and no note after them.
+  await expect(kimi.getByRole("menuitemradio", { name: /^Ultra/ })).toHaveText(
+    "Ultra$199/mo−85.2%",
+  );
+
+  await kimi.getByRole("menuitemradio", { name: /^Plus/ }).click();
+  await expect(page.getByRole("button", { name: "Subscriptions: Moonshot Plus" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("cell", { name: /Kimi K3\b/ })).toContainText("Plus");
+  await expect(page.getByRole("cell", { name: /Kimi K2\.7 Code/ })).not.toContainText("Plus");
 });
 
 test("tier rows show the API cost struck out beside the effective cost", async ({ page }) => {
@@ -107,7 +136,7 @@ test("Fable's Pro rows show the API cost unstruck", async ({ page }) => {
   ).toHaveCount(2);
 });
 
-test("changing filters never resets the sort and both picks surface in the trigger", async ({
+test("changing filters never resets the sort and every pick surfaces in the trigger", async ({
   page,
 }) => {
   await page.goto("./");
@@ -120,13 +149,18 @@ test("changing filters never resets the sort and both picks surface in the trigg
   await page.getByRole("button", { name: "All effort levels" }).click();
   await page.getByRole("button", { name: /^Subscriptions/ }).click();
   await page.getByRole("menuitemradio", { name: /Max 5x/ }).click();
-  await page.getByRole("menuitemradio", { name: /^Plus/ }).click();
+  await familyColumn(page, "OpenAI ChatGPT").getByRole("menuitemradio", { name: /^Plus/ }).click();
+  await familyColumn(page, "Moonshot Kimi Code")
+    .getByRole("menuitemradio", { name: /^Max/ })
+    .click();
   await page.keyboard.press("Escape");
 
   await expect(cost).toHaveAttribute("aria-sort", "ascending");
-  // Both non-API picks in the trigger, Claude first (column order).
+  // Every non-API pick in the trigger, in column order.
   await expect(
-    page.getByRole("button", { name: "Subscriptions: Anthropic Max 5x, OpenAI Plus" }),
+    page.getByRole("button", {
+      name: "Subscriptions: Anthropic Max 5x, OpenAI Plus, Moonshot Max",
+    }),
   ).toBeVisible();
 });
 

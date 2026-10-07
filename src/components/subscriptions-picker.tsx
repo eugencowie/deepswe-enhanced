@@ -19,7 +19,12 @@ import {
   type PickerFamily,
 } from "@/data/leaderboard";
 
-const familyLabels = { claude: "Claude", chatgpt: "ChatGPT" } as const;
+// Each family's column header.
+const familyLabels = {
+  claude: "Claude",
+  chatgpt: "ChatGPT",
+  kimi: "Kimi Code",
+} satisfies Record<PickerFamily["family"], string>;
 
 // The rung formatters are exported for their unit tests only: the route card
 // is a portal, so it renders nothing with react-dom/server and the figures
@@ -55,7 +60,7 @@ export function SubscriptionsPicker({
   pickerFamilies: PickerFamily[];
 }) {
   // The trigger surfaces only non-API picks: quiet on the default view, the
-  // chosen tiers at a glance otherwise (column order, Claude first).
+  // chosen tiers at a glance otherwise (column order).
   const tierPicks = pickerFamilies.flatMap(({ family, vendor, tiers }) => {
     const tier = tiers.find((t) => t.id === filters.subscriptions[family]);
     return tier ? [{ family, vendor, tier }] : [];
@@ -63,7 +68,7 @@ export function SubscriptionsPicker({
 
   return (
     <DropdownMenu>
-      {/* The trigger reads "Subscriptions" while both families are on the
+      {/* The trigger reads "Subscriptions" while every family is on the
           API, and otherwise shows only the tier picks, each with its vendor
           mark. The explicit label keeps the accessible name prefixed and
           comma-separated: name-from-content pads a hidden separator with
@@ -122,10 +127,11 @@ function RouteRung(props: Omit<MenuPrimitive.RadioItem.Props, "className">) {
   );
 }
 
-// The Subscriptions picker's popover: one price ladder per family, side by
-// side where there is room. The daily driver's discount is the one loud
-// figure on each rung; the price and the flagship's discount sit under it. No
-// fill or edge inside is grey; secondary text stays muted.
+// The Subscriptions picker's popover: one price ladder per family, two side
+// by side where there is room, wrapping onto further rows. The daily driver's
+// discount is the one loud figure on each rung; the price and any flagship's
+// discount sit under it. No fill or edge inside is grey; secondary text stays
+// muted.
 function RouteCard({
   filters,
   onChange,
@@ -171,9 +177,12 @@ function RouteCard({
                   <span className="text-[15px] font-semibold">
                     {formatTierDiscount(tier.tierDiscount)}
                   </span>
-                  <span className="text-[11px] text-muted-foreground">
-                    {tier.flagshipNote.label}: {formatTierDiscount(tier.flagshipNote.tierDiscount)}
-                  </span>
+                  {tier.flagshipNote && (
+                    <span className="text-[11px] text-muted-foreground">
+                      {tier.flagshipNote.label}:{" "}
+                      {formatTierDiscount(tier.flagshipNote.tierDiscount)}
+                    </span>
+                  )}
                 </span>
               </RouteRung>
             ))}

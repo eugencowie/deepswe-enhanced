@@ -5,13 +5,14 @@
   "families": {
     "claude": {
       "dailyDriverModel": "claude-opus-5-5",
-      "flagshipModel": "claude-fable-5-1",
-      "flagshipLabel": "Fable"
+      "flagship": { "model": "claude-fable-5-1", "label": "Fable" }
     },
     "chatgpt": {
       "dailyDriverModel": "gpt-6-1-sol",
-      "flagshipModel": "gpt-6-astra",
-      "flagshipLabel": "Astra"
+      "flagship": { "model": "gpt-6-astra", "label": "Astra" }
+    },
+    "kimi": {
+      "dailyDriverModel": "kimi-k3"
     }
   },
   "tiers": [
@@ -101,6 +102,46 @@
         "gpt-6-astra": 6955,
         "gpt-6-1-sol": 5386,
         "gpt-6-sol": 7352
+      }
+    },
+    {
+      "id": "kimi-code-plus",
+      "family": "kimi",
+      "label": "Kimi Code Plus",
+      "shortLabel": "Plus",
+      "priceUsdPerMonth": 19,
+      "apiEquivalentValuesUsdPerMonth": {
+        "kimi-k3": 47
+      }
+    },
+    {
+      "id": "kimi-code-pro",
+      "family": "kimi",
+      "label": "Kimi Code Pro",
+      "shortLabel": "Pro",
+      "priceUsdPerMonth": 39,
+      "apiEquivalentValuesUsdPerMonth": {
+        "kimi-k3": 209
+      }
+    },
+    {
+      "id": "kimi-code-max",
+      "family": "kimi",
+      "label": "Kimi Code Max",
+      "shortLabel": "Max",
+      "priceUsdPerMonth": 99,
+      "apiEquivalentValuesUsdPerMonth": {
+        "kimi-k3": 647
+      }
+    },
+    {
+      "id": "kimi-code-ultra",
+      "family": "kimi",
+      "label": "Kimi Code Ultra",
+      "shortLabel": "Ultra",
+      "priceUsdPerMonth": 199,
+      "apiEquivalentValuesUsdPerMonth": {
+        "kimi-k3": 1343
       }
     }
   ]

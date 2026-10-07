@@ -1,7 +1,7 @@
 # 08: Kimi Code tiers
 
 Type: task
-Status: ready-for-agent
+Status: resolved
 Blocked by: 07
 
 ## Problem
@@ -31,14 +31,23 @@ Only Claude and ChatGPT have subscription families. Kimi K3 is on the leaderboar
 
 ## Acceptance criteria
 
-- [ ] The picker shows a Kimi Code column after ChatGPT: API, Plus, Pro, Max, Ultra, with the fees and discounts above and no note.
-- [ ] Every Kimi K3 entry gets one row per Kimi Code tier, priced at the tier's price over K3's value. Kimi K2.7 Code keeps only its API rows.
-- [ ] Claude and ChatGPT rungs are unchanged.
-- [ ] Loading still fails for a tier missing its family's daily driver, or missing a flagship the family declares.
-- [ ] Glossary, ADR 0011, both specs and the research file are updated.
-- [ ] Unit tests cover a family without a flagship. The e2e picker tests cover the Kimi column.
-- [ ] `vp check` and `vp test` pass.
+- [x] The picker shows a Kimi Code column after ChatGPT: API, Plus, Pro, Max, Ultra, with the fees and discounts above and no note.
+- [x] Every Kimi K3 entry gets one row per Kimi Code tier, priced at the tier's price over K3's value. Kimi K2.7 Code keeps only its API rows.
+- [x] Claude and ChatGPT rungs are unchanged.
+- [x] Loading still fails for a tier missing its family's daily driver, or missing a flagship the family declares.
+- [x] Glossary, ADR 0011, both specs and the research file are updated.
+- [x] Unit tests cover a family without a flagship. The e2e picker tests cover the Kimi column.
+- [x] `vp check` and `vp test` pass.
 
 ## Comments
 
 **From the grilling (2026-10-07, [ticket 07](07-other-labs-coding-plans.md)):** Kimi goes first because it's the simpler family (one model, no note) and carries the general changes, so [ticket 09](09-glm-coding-tiers.md) only adds data and a flagship.
+
+**Resolved (2026-10-07):** The picker's Kimi Code column reads Plus −59.6%, Pro −81.3%, Max −84.7%, Ultra −85.2%, with no note. Kimi K3's rows take its own values and Kimi K2.7 Code keeps only its API rows. Departures from the brief:
+
+- **The flagship is one nested object.** `families` holds `flagship: { model, label }`, optional as a pair, instead of two flat fields, so a flagship can't go without its label.
+- **The refresh no longer inherits a mixed vendor's family.** It copied a new model's family from whichever same-vendor mapping entry came last. A vendor whose entries span families (Moonshot) now gets `none` and a warning in the Refresh PR (ADR 0011, with back-links from ADRs 0003 and 0010).
+- **Kimi's access tag is sky blue**, beside Claude's amber and ChatGPT's teal.
+- **Column order is a hand-ordered `PICKER_FAMILIES`**, and a unit test checks that families after Claude and ChatGPT run alphabetically by vendor.
+- **The subscription-filter spec drops its stale row counts** ("Best is always 25 rows, All always 62") for the relationship, per ADR 0004.
+- **The site description still says "a Claude or ChatGPT subscription".** It was agreed word for word in the site-metadata spec, so changing it is left to the user.

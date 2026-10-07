@@ -22,13 +22,14 @@ const count = z.number().int().nonnegative();
 // `source_url`, which is the fetched artifact itself.
 const provenanceFields = { source: nonEmpty, sourceUrl: z.url() };
 
-const subscriptionFamilySchema = z.enum(["claude", "chatgpt", "none"]);
+const subscriptionFamilySchema = z.enum(["claude", "chatgpt", "kimi", "none"]);
 export type SubscriptionFamily = z.infer<typeof subscriptionFamilySchema>;
 
-// The families the Subscriptions picker shows, in column order: Claude first.
+// The families the Subscriptions picker shows, in column order: Claude,
+// ChatGPT, then the rest alphabetically by vendor.
 const pickerFamilySchema = subscriptionFamilySchema.exclude(["none"]);
 export type PickerFamilyId = z.infer<typeof pickerFamilySchema>;
-export const PICKER_FAMILIES: readonly PickerFamilyId[] = ["claude", "chatgpt"];
+export const PICKER_FAMILIES: readonly PickerFamilyId[] = ["claude", "chatgpt", "kimi"];
 
 const tierIdSchema = z.enum([
   "claude-pro",
@@ -38,6 +39,10 @@ const tierIdSchema = z.enum([
   "chatgpt-pro-100",
   "chatgpt-pro-200",
   "chatgpt-pro-500",
+  "kimi-code-plus",
+  "kimi-code-pro",
+  "kimi-code-max",
+  "kimi-code-ultra",
 ]);
 export type TierId = z.infer<typeof tierIdSchema>;
 
@@ -220,12 +225,13 @@ const tierSchema = z.strictObject({
 });
 export type Tier = z.infer<typeof tierSchema>;
 
-// A family's daily driver prices every model SemiAnalysis didn't measure;
-// its flagship and label are for the Subscriptions picker (ticket 05).
+// A family's daily driver prices every model SemiAnalysis didn't measure.
+// Its flagship, when it has one, is the model each Subscriptions picker rung
+// notes under its label (ticket 05); a family without one notes nothing
+// (ADR 0011).
 const familyModelsSchema = z.strictObject({
   dailyDriverModel: nonEmpty,
-  flagshipModel: nonEmpty,
-  flagshipLabel: nonEmpty,
+  flagship: z.strictObject({ model: nonEmpty, label: nonEmpty }).optional(),
 });
 
 // data/tiers.json: the tiers snapshot.
@@ -268,9 +274,9 @@ export function assertMappingCoverage(
 }
 
 // Each tier's values must price its own family's mapped models, and every
-// tier must cover its family's daily driver and flagship: the daily driver
-// with a value, since unmeasured models fall back to it, and the flagship with
-// a value or an exclusion.
+// tier must cover its family's daily driver and any flagship it declares: the
+// daily driver with a value, since unmeasured models fall back to it, and the
+// flagship with a value or an exclusion.
 export function assertTierValues(tiers: TiersSnapshot, mapping: ModelMappingEntry[]): void {
   const byModel = new Map(mapping.map((entry) => [entry.leaderboardModel, entry]));
   const parts: string[] = [];
@@ -287,17 +293,18 @@ export function assertTierValues(tiers: TiersSnapshot, mapping: ModelMappingEntr
         );
       }
     }
-    const { dailyDriverModel, flagshipModel } = tiers.families[tier.family];
+    const { dailyDriverModel, flagship } = tiers.families[tier.family];
     const measured = (model: string) => model in tier.apiEquivalentValuesUsdPerMonth;
     if (!measured(dailyDriverModel)) {
       parts.push(
         `${tier.family} daily driver ${dailyDriverModel} has no API-equivalent value on ${tier.id}`,
       );
     }
-    const excluded = byModel.get(flagshipModel)?.excludedTiers?.includes(tier.id) ?? false;
-    if (!measured(flagshipModel) && !excluded) {
+    if (flagship === undefined) continue;
+    const excluded = byModel.get(flagship.model)?.excludedTiers?.includes(tier.id) ?? false;
+    if (!measured(flagship.model) && !excluded) {
       parts.push(
-        `${tier.family} flagship ${flagshipModel} has neither an API-equivalent value nor an exclusion on ${tier.id}`,
+        `${tier.family} flagship ${flagship.model} has neither an API-equivalent value nor an exclusion on ${tier.id}`,
       );
     }
   }

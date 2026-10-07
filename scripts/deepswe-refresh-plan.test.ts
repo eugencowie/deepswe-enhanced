@@ -60,7 +60,7 @@ const claim = (model: string): VendorReportedEntry => ({
   publishedAt: "2026-09-29",
 });
 
-// Two DeepSWE models, one per subscription family the site needs a vendor
+// Three DeepSWE models, one per subscription family the site needs a vendor
 // for, and two vendor-reported ones, as checked in before the run: the files
 // pass every load-time check. GPT-9 Luna's id is a wrong guess
 // at DeepSWE's: its OpenRouter id is right, so the refresh still catches it.
@@ -73,6 +73,7 @@ const mapping: ModelMappingEntry[] = [
     vendor: "Anthropic",
     family: "claude",
   },
+  { ...mappingEntry("kimi-k3", "moonshotai/kimi-k3"), vendor: "Moonshot", family: "kimi" },
 ];
 const vendorReported = vendorReportedSnapshotSchema.parse({
   benchmark_version: "v1.1",
@@ -87,7 +88,7 @@ const plan = (
 ) =>
   planDeepsweRefresh({
     manifest,
-    artifact: artifact(["claude-opus-5", ...models]),
+    artifact: artifact(["claude-opus-5", "kimi-k3", ...models]),
     rawSha256: "abc123",
     mapping: checkedIn,
     vendorReported,

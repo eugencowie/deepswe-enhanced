@@ -6,13 +6,15 @@ The post is paywalled. Only the parts before the third-party section ("Third par
 
 ## Which figures are used
 
-[Ticket 04](../tickets/04-per-model-api-equivalent-values.md) and [ticket 06](../tickets/06-chatgpt-tier-lineup.md) use only the **agentic** values in the Claude table and the post-cut ChatGPT table. That includes the previous-generation columns (Opus 5, Fable 5 and GPT-6 Sol), which price those models' own rows.
+[Ticket 04](../tickets/04-per-model-api-equivalent-values.md) and [ticket 06](../tickets/06-chatgpt-tier-lineup.md) use only the **agentic** values in the Claude table and the post-cut ChatGPT table. That includes the previous-generation columns (Opus 5, Fable 5 and GPT-6 Sol), which price those models' own rows. [Ticket 08](../tickets/08-kimi-code-tiers.md) uses the appendix's Kimi Code values for Kimi K3, and [ticket 09](../tickets/09-glm-coding-tiers.md) is to use its GLM Coding values.
 
 These figures are recorded for context and **aren't used**:
 
 - the pre-cut ChatGPT Pro 200 values;
 - the chat-workload values;
-- other vendors' plans (appendix), until [ticket 07](../tickets/07-other-labs-coding-plans.md) is triaged.
+- the other vendors' plans in the appendix ([ticket 07](../tickets/07-other-labs-coding-plans.md)):
+  - **SuperGrok Heavy and Muse Code Power Usage.** Their figures come from one dashboard screenshot with its "Promo" toggle on, so they may include promotional limits. Their models, Grok 4.7 and Muse Spark 1.3, have only vendor-reported results on the leaderboard, and Muse Code says it covers the "latest Muse models" with 1.2 as the default, never naming 1.3.
+  - **MiniMax Token plans and Cursor Ultra.** MiniMax-M3 and Composer 2.5 aren't on the leaderboard.
 
 ## Method
 
@@ -86,7 +88,7 @@ Source: [Max 20x by model and workload](https://substack-post-media.s3.amazonaws
 
 The public charts have chat-workload figures only for Max 20x. DeepSWE measures agentic coding, so the agentic values are used everywhere.
 
-## Appendix: other vendors (for ticket 07)
+## Appendix: other vendors (ticket 07)
 
 All values are agentic, per month.
 

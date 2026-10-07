@@ -80,7 +80,7 @@ export type PickerTier = {
   priceUsdPerMonth: number;
   // The family daily driver's discount on the tier.
   tierDiscount: number;
-  flagshipNote: FlagshipNote;
+  flagshipNote?: FlagshipNote; // absent when the family has no flagship
 };
 
 export type PickerFamily = {
@@ -92,10 +92,7 @@ export type PickerFamily = {
 // The Subscriptions picker: exactly one access route per family, so every
 // entry appears on exactly one row and the picker changes pricing, never row
 // count. Rows whose family is "none" ignore the picker entirely.
-export type SubscriptionSelection = {
-  claude: AccessRoute;
-  chatgpt: AccessRoute;
-};
+export type SubscriptionSelection = Record<PickerFamilyId, AccessRoute>;
 
 export type LeaderboardFilters = {
   effortView: "best" | "all";
@@ -110,8 +107,8 @@ export type Leaderboard = {
   rows: LeaderboardRow[];
   // One option per model, sorted by display name, for the Models picker.
   modelOptions: ModelOption[];
-  // The Subscriptions picker's sections: Claude first, tiers in tiers.json
-  // (ascending price) order.
+  // The Subscriptions picker's sections in PICKER_FAMILIES order, tiers in
+  // tiers.json (ascending price) order.
   pickerFamilies: PickerFamily[];
   // Best view, API routes, every model listed and selected.
   defaultFilters: () => LeaderboardFilters;
@@ -172,7 +169,7 @@ export function createLeaderboard({
     pickerFamilies,
     defaultFilters: () => ({
       effortView: "best",
-      subscriptions: { claude: "api", chatgpt: "api" },
+      subscriptions: { claude: "api", chatgpt: "api", kimi: "api" },
       models: new Set(modelOptions.map(({ model }) => model)),
       includeVendorReported: true,
     }),
@@ -441,22 +438,24 @@ function dailyDriverFactor(tier: Tier, familyModels: FamilyModels): number {
 }
 
 // The one note on a tier rung: the family flagship's discount, shown even
-// when it rounds to the headline. assertTierValues guarantees the flagship is
-// mapped and either measured or excluded on every tier.
+// when it rounds to the headline; none for a family without a flagship.
+// assertTierValues guarantees the flagship is mapped and either measured or
+// excluded on every tier.
 function flagshipNote(
   mapping: ModelMappingEntry[],
   tier: Tier,
   familyModels: FamilyModels,
-): FlagshipNote {
-  const { flagshipModel, flagshipLabel } = familyModels[tier.family];
-  const entry = mapping.find((e) => e.leaderboardModel === flagshipModel);
+): FlagshipNote | undefined {
+  const { flagship } = familyModels[tier.family];
+  if (flagship === undefined) return undefined;
+  const entry = mapping.find((e) => e.leaderboardModel === flagship.model);
   if (entry === undefined) {
     throw new Error(
-      `Flagship "${flagshipModel}" is missing from the model mapping; add it to data/model-mapping.json.`,
+      `Flagship "${flagship.model}" is missing from the model mapping; add it to data/model-mapping.json.`,
     );
   }
   return {
-    label: flagshipLabel,
+    label: flagship.label,
     tierDiscount: 1 - subsidisationFactor(tier, entry, familyModels),
   };
 }

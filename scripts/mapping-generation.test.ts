@@ -61,6 +61,22 @@ describe("generateMappingEntries", () => {
     ]);
   });
 
+  // A family takes a model only when a source says its tiers serve it (ADR 0011).
+  it("generates family none, with a warning, for a vendor whose entries span families", () => {
+    const moonshot = [
+      entry("kimi-k3", "Moonshot", "moonshotai/kimi-k3", "kimi"),
+      entry("kimi-k2-7-code", "Moonshot", "moonshotai/kimi-k2.7-code"),
+    ];
+    const kimiListing = [{ id: "moonshotai/kimi-k3.1", name: "MoonshotAI: Kimi K3.1" }];
+    for (const order of [moonshot, moonshot.toReversed()]) {
+      const { generated, warnings } = generateMappingEntries(["kimi-k3-1"], order, kimiListing);
+      expect(generated).toEqual([
+        expect.objectContaining({ vendor: "Moonshot", displayName: "Kimi K3.1", family: "none" }),
+      ]);
+      expect(warnings).toEqual([expect.stringMatching(/"kimi-k3-1".*span families/)]);
+    }
+  });
+
   it("nulls the id and strips the revision token when date-pinned listings exist", () => {
     const { generated, warnings } = generateMappingEntries(["deepseek-v5"], mapping, listings);
     expect(generated).toEqual([
