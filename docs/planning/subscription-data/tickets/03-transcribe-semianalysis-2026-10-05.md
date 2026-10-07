@@ -64,7 +64,7 @@ Other labs ([Chinese labs](https://substack-post-media.s3.amazonaws.com/public/i
   - SuperGrok Heavy, $300, Grok 4.7: $5,832.
   - Cursor Ultra, $200, Composer 2.5: $3,041.
 
-**Resolved (2026-10-07):** [research/semianalysis-2026-10-05.md](../research/semianalysis-2026-10-05.md). Every figure was re-read from its chart image, and the reading above matches. Two additions:
+**Resolved (2026-10-07):** [research/semianalysis-2026-10-05.md](../research/semianalysis-2026-10-05.md). The author re-read every figure from its chart image. A separate review agent then checked all 92 figures and nine chart links against the images, and every one matched. The reading above holds. Two additions:
 
 - The successor chart's GPT-6 Sol Pro 200 tokens (9.7B) are about half the pre-cut 19.6B, which confirms the GPT-6 Sol values are post-cut.
 - The dashboard screenshot's "Promo" toggle is selected, so the single-plan values (Muse Code, SuperGrok Heavy, Cursor Ultra) may include promotional limits. Ticket 07 should check before using them.
