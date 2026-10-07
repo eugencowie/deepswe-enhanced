@@ -49,7 +49,6 @@ const mappingEntry = (model: string, openrouterId: string): ModelMappingEntry =>
   vendor: "OpenAI",
   openrouterId,
   family: "chatgpt",
-  usageMultiplier: 1,
 });
 
 const claim = (model: string): VendorReportedEntry => ({

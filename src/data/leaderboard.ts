@@ -5,6 +5,7 @@
 
 import {
   type DeepsweSnapshot,
+  type FamilyModels,
   type FamilyVendors,
   type ModelMappingEntry,
   PICKER_FAMILIES,
@@ -69,16 +70,15 @@ export type ModelOption = {
   vendorReported: boolean; // coloured like its rows in the Models picker
 };
 
-// A family model with a non-standard usage limit, badged per tier in the
-// Subscriptions picker because its discount differs from the tier-wide one;
-// 0 on a tier that excludes it.
+// A family model badged per tier in the Subscriptions picker because its
+// discount differs from the daily driver's; 0 on a tier that excludes it.
 export type UsageLimitNote = { name: string; tierDiscount: number };
 
 export type PickerTier = {
   id: TierId;
   shortLabel: string;
   priceUsdPerMonth: number;
-  // 1 − subsidisation factor at usage multiplier 1.0.
+  // The family daily driver's discount on the tier.
   tierDiscount: number;
   notes: UsageLimitNote[];
 };
@@ -124,6 +124,7 @@ export type LeaderboardSources = {
   mapping: ModelMappingEntry[];
   throughput: ThroughputSnapshot;
   tiers: Tier[];
+  familyModels: FamilyModels;
   familyVendors: FamilyVendors;
 };
 
@@ -133,9 +134,16 @@ export function createLeaderboard({
   mapping,
   throughput,
   tiers,
+  familyModels,
   familyVendors,
 }: LeaderboardSources): Leaderboard {
-  const rows = deriveRows(leaderboardEntries(snapshot, vendorReported), mapping, throughput, tiers);
+  const rows = deriveRows(
+    leaderboardEntries(snapshot, vendorReported),
+    mapping,
+    throughput,
+    tiers,
+    familyModels,
+  );
   const modelOptions = [...new Map(rows.map((row) => [row.model, row]))]
     .map(([model, { displayName, vendor, provenance }]) => ({
       model,
@@ -154,8 +162,8 @@ export function createLeaderboard({
         id: tier.id,
         shortLabel: tier.shortLabel,
         priceUsdPerMonth: tier.priceUsdPerMonth,
-        tierDiscount: tierDiscount(tier, 1),
-        notes: usageLimitNotes(mapping, family, tier),
+        tierDiscount: 1 - dailyDriverFactor(tier, familyModels),
+        notes: usageLimitNotes(mapping, family, tier, familyModels),
       })),
   }));
   return {
@@ -244,6 +252,7 @@ function deriveRows(
   mapping: ModelMappingEntry[],
   throughput: ThroughputSnapshot,
   tiers: Tier[],
+  familyModels: FamilyModels,
 ): LeaderboardRow[] {
   const byModel = new Map(mapping.map((entry) => [entry.leaderboardModel, entry]));
   const bestByModel = bestEntries(entries);
@@ -300,7 +309,7 @@ function deriveRows(
         row(
           tier.id,
           { label: tier.shortLabel, family: tier.family },
-          costAt(entrySubsidisationFactor(tier, mapped)),
+          costAt(subsidisationFactor(tier, mapped, familyModels)),
         ),
       ),
     ];
@@ -394,40 +403,61 @@ function effortRank(effort: string | null | undefined): number {
   return rank === -1 ? EFFORT_ORDER.length : rank;
 }
 
-// What a dollar of API cost becomes on a tier. The usage multiplier scales the
-// equivalent API spend for models with non-standard usage limits.
-function subsidisationFactor(tier: Tier, usageMultiplier: number): number {
-  return tier.priceUsdPerMonth / (tier.equivalentApiSpendUsdPerMonth * usageMultiplier);
+// The family daily driver's API-equivalent value on a tier, which every model
+// SemiAnalysis didn't measure takes. assertTierValues guarantees it at load.
+function dailyDriverValue(tier: Tier, familyModels: FamilyModels): number {
+  const { dailyDriverModel } = familyModels[tier.family];
+  const value: number | undefined = tier.apiEquivalentValuesUsdPerMonth[dailyDriverModel];
+  if (value === undefined) {
+    throw new Error(
+      `Tier "${tier.id}" has no API-equivalent value for daily driver "${dailyDriverModel}"; add one to data/tiers.json.`,
+    );
+  }
+  return value;
 }
 
-// A mapped model's subsidisation factor on a tier: 1 on a tier that excludes
-// it, whose subscribers pay usage credits at API rates.
-function entrySubsidisationFactor(tier: Tier, entry: ModelMappingEntry): number {
+// A model's API-equivalent value on a tier: SemiAnalysis's measured value, or
+// the daily driver's for a model it didn't measure.
+function apiEquivalentValue(tier: Tier, model: string, familyModels: FamilyModels): number {
+  const measured: number | undefined = tier.apiEquivalentValuesUsdPerMonth[model];
+  return measured ?? dailyDriverValue(tier, familyModels);
+}
+
+// What a dollar of API cost becomes for a mapped model on a tier: 1 on a tier
+// that excludes it, whose subscribers pay usage credits at API rates.
+function subsidisationFactor(
+  tier: Tier,
+  entry: ModelMappingEntry,
+  familyModels: FamilyModels,
+): number {
   return entry.excludedTiers?.includes(tier.id)
     ? 1
-    : subsidisationFactor(tier, entry.usageMultiplier);
+    : tier.priceUsdPerMonth / apiEquivalentValue(tier, entry.leaderboardModel, familyModels);
 }
 
-// A family's models whose factor on the tier differs from the tier-wide one
-// (a non-standard usage multiplier, or a tier that excludes the model), one
-// note per distinct label and factor: models sharing both (Fable 5 and
-// Fable 5.1, both "Fable" at 0.5) share one note.
+// The tier's headline factor, which every unmeasured model shares.
+function dailyDriverFactor(tier: Tier, familyModels: FamilyModels): number {
+  return tier.priceUsdPerMonth / dailyDriverValue(tier, familyModels);
+}
+
+// A family's models whose factor on the tier differs from the daily driver's
+// (a measured value of their own, or a tier that excludes them), one note per
+// distinct label and factor: models sharing both (Fable 5 and Fable 5.1, both
+// "Fable" and excluded from Pro) share one note.
 function usageLimitNotes(
   mapping: ModelMappingEntry[],
   family: PickerFamilyId,
   tier: Tier,
+  familyModels: FamilyModels,
 ): UsageLimitNote[] {
+  const headline = dailyDriverFactor(tier, familyModels);
   const notes = new Map<string, UsageLimitNote>();
   for (const entry of mapping) {
-    const factor = entrySubsidisationFactor(tier, entry);
-    if (entry.family !== family || factor === subsidisationFactor(tier, 1)) continue;
+    if (entry.family !== family) continue;
+    const factor = subsidisationFactor(tier, entry, familyModels);
+    if (factor === headline) continue;
     const name = entry.shortName ?? entry.displayName;
     notes.set(`${name}@${factor}`, { name, tierDiscount: 1 - factor });
   }
   return [...notes.values()];
-}
-
-// A subsidisation factor as the discount it amounts to.
-function tierDiscount(tier: Tier, usageMultiplier: number): number {
-  return 1 - subsidisationFactor(tier, usageMultiplier);
 }

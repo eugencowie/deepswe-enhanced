@@ -10,6 +10,7 @@ import rawVendorReported from "../../data/vendor-reported.json" with { type: "js
 import {
   assertMappingCoverage,
   assertNoOverlap,
+  assertTierValues,
   familyVendors,
   deepsweSnapshotSchema,
   modelMappingSchema,
@@ -19,7 +20,7 @@ import {
   vendorMappingSchema,
   vendorReportedSnapshotSchema,
 } from "./schema.ts";
-import { deepsweSnapshot, modelMapping, vendorReportedSnapshot } from "./sources.ts";
+import { deepsweSnapshot, modelMapping, tiersSnapshot, vendorReportedSnapshot } from "./sources.ts";
 
 // The app parses the five files it imports at load; the refresh shells parse
 // the other two. This is the one place every committed data file is parsed on
@@ -44,6 +45,12 @@ describe("file schemas are strict", () => {
   test("rejects an unknown key on a tier", () => {
     const tampered = { ...rawTiers, tiers: [{ ...rawTiers.tiers[0], colour: "orange" }] };
     expect(() => tiersSnapshotSchema.parse(tampered)).toThrowError(/colour/);
+  });
+
+  // Every tier row reads its family's daily driver.
+  test("rejects a families block missing a picker family", () => {
+    const { chatgpt: _dropped, ...families } = rawTiers.families;
+    expect(() => tiersSnapshotSchema.parse({ ...rawTiers, families })).toThrowError(/chatgpt/);
   });
 
   test("rejects a Pass@1 above 1", () => {
@@ -200,6 +207,76 @@ describe("assertNoOverlap", () => {
   test("accepts a vendor-reported model DeepSWE hasn't published", () => {
     const unpublished = vendorReportedSnapshotSchema.parse(vendorReported(vendorEntry));
     expect(() => assertNoOverlap(deepsweSnapshot, unpublished)).not.toThrow();
+  });
+});
+
+describe("assertTierValues", () => {
+  type Values = Record<string, number>;
+  // The live tiers with one tier's API-equivalent values edited.
+  const editValues = (id: string, edit: (values: Values) => Values) => ({
+    ...tiersSnapshot,
+    tiers: tiersSnapshot.tiers.map((tier) =>
+      tier.id === id
+        ? { ...tier, apiEquivalentValuesUsdPerMonth: edit(tier.apiEquivalentValuesUsdPerMonth) }
+        : tier,
+    ),
+  });
+  const without =
+    (model: string) =>
+    ({ [model]: _dropped, ...rest }: Values) =>
+      rest;
+  // The live mapping with one model excluded from one more tier.
+  const excluding = (model: string, tierId: "claude-pro" | "claude-max-5x" | "chatgpt-plus") =>
+    modelMapping.map((entry) =>
+      entry.leaderboardModel === model
+        ? { ...entry, excludedTiers: [...(entry.excludedTiers ?? []), tierId] }
+        : entry,
+    );
+
+  test("accepts the live tiers and mapping", () => {
+    expect(() => assertTierValues(tiersSnapshot, modelMapping)).not.toThrow();
+  });
+
+  test("rejects a value for a model missing from the mapping", () => {
+    const tiers = editValues("claude-max-5x", (values) => ({ ...values, "ghost-model": 100 }));
+    expect(() => assertTierValues(tiers, modelMapping)).toThrowError(
+      "API-equivalent value for a model missing from the mapping: claude-max-5x → ghost-model",
+    );
+  });
+
+  test("rejects a value for a model from another family", () => {
+    const tiers = editValues("claude-max-5x", (values) => ({ ...values, "gpt-6-1-sol": 100 }));
+    expect(() => assertTierValues(tiers, modelMapping)).toThrowError(
+      "API-equivalent value for a model outside the tier's family: claude-max-5x → gpt-6-1-sol",
+    );
+  });
+
+  test("rejects a tier with no value for its family's daily driver", () => {
+    const tiers = editValues("claude-max-5x", without("claude-opus-5-5"));
+    expect(() => assertTierValues(tiers, modelMapping)).toThrowError(
+      "claude daily driver claude-opus-5-5 has no API-equivalent value on claude-max-5x",
+    );
+  });
+
+  // Every unmeasured model falls back to the daily driver's value, so an
+  // exclusion can't stand in for it.
+  test("rejects a daily driver excluded from a tier", () => {
+    const tiers = editValues("claude-pro", without("claude-opus-5-5"));
+    expect(() => assertTierValues(tiers, excluding("claude-opus-5-5", "claude-pro"))).toThrowError(
+      "claude daily driver claude-opus-5-5 has no API-equivalent value on claude-pro",
+    );
+  });
+
+  test("rejects a tier with neither a value nor an exclusion for its family's flagship", () => {
+    const tiers = editValues("chatgpt-plus", without("gpt-6-astra"));
+    expect(() => assertTierValues(tiers, modelMapping)).toThrowError(
+      "chatgpt flagship gpt-6-astra has neither an API-equivalent value nor an exclusion on chatgpt-plus",
+    );
+  });
+
+  test("accepts a flagship excluded from a tier in place of a value", () => {
+    const tiers = editValues("chatgpt-plus", without("gpt-6-astra"));
+    expect(() => assertTierValues(tiers, excluding("gpt-6-astra", "chatgpt-plus"))).not.toThrow();
   });
 });
 

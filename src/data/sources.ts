@@ -7,6 +7,7 @@ import type { LeaderboardSources } from "./leaderboard.ts";
 import {
   assertMappingCoverage,
   assertNoOverlap,
+  assertTierValues,
   deepsweSnapshotSchema,
   familyVendors as readFamilyVendors,
   modelMappingSchema,
@@ -25,7 +26,9 @@ assertMappingCoverage(deepsweSnapshot, vendorReportedSnapshot, modelMapping);
 
 export const throughputSnapshot = throughputSnapshotSchema.parse(rawThroughput);
 export const tiersSnapshot = tiersSnapshotSchema.parse(rawTiers);
+assertTierValues(tiersSnapshot, modelMapping);
 export const tiers = tiersSnapshot.tiers;
+export const familyModels = tiersSnapshot.families;
 export const familyVendors = readFamilyVendors(modelMapping);
 
 // The one place the live data is assembled for the leaderboard constructor;
@@ -36,5 +39,6 @@ export const leaderboardSources: LeaderboardSources = {
   mapping: modelMapping,
   throughput: throughputSnapshot,
   tiers,
+  familyModels,
   familyVendors,
 };

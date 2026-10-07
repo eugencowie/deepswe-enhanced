@@ -34,12 +34,12 @@ test("the subscriptions picker swaps a family to one tier and shows discounts", 
   await page.goto("./");
   await page.getByRole("button", { name: /^Subscriptions/ }).click();
 
-  // Each rung carries the monthly price and the tier-wide discount, plus
-  // Fable's non-standard limit where it applies.
+  // Each rung carries the monthly price and the daily driver's discount, plus
+  // notes for measured models that differ, Fable 5.1 among them.
   const maxTwenty = page.getByRole("menuitemradio", { name: /Max 20x/ });
   await expect(maxTwenty).toContainText("$200/mo");
-  await expect(maxTwenty).toContainText("−97.5%");
-  await expect(maxTwenty).toContainText("Fable: −95%");
+  await expect(maxTwenty).toContainText("−98.3%");
+  await expect(maxTwenty).toContainText("Fable: −92%");
   await expect(page.getByRole("menuitemradio", { name: /^Plus/ })).not.toContainText("Fable");
 
   // The estimate disclaimer replaced the per-cell "(e)" marker.

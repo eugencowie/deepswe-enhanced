@@ -18,7 +18,6 @@ function entry(
     vendor,
     openrouterId,
     family,
-    usageMultiplier: 1,
   };
 }
 
@@ -51,7 +50,6 @@ describe("generateMappingEntries", () => {
         vendor: "Z.ai",
         openrouterId: "z-ai/glm-5.3-flash",
         family: "none",
-        usageMultiplier: 1,
       },
     ]);
   });

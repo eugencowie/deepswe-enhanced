@@ -132,6 +132,5 @@ function entryFor(
     vendor: vendorInfo.vendor,
     openrouterId,
     family: vendorInfo.family,
-    usageMultiplier: 1.0,
   };
 }

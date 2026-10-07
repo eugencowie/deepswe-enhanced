@@ -68,7 +68,6 @@ function mappingFor(models: string[]): ModelMappingEntry[] {
     vendor: "Vendor",
     openrouterId: null,
     family: "none",
-    usageMultiplier: 1,
   }));
 }
 

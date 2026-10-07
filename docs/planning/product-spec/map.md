@@ -8,7 +8,7 @@ A spec at `docs/planning/product-spec/spec.md`, executable by a build session wi
 
 ## Notes
 
-- Vocabulary lives in [docs/context.md](../../context.md); use its terms (effective cost, access route, usage multiplier, …).
+- Vocabulary lives in [docs/context.md](../../context.md); use its terms (effective cost, access route, API-equivalent value, …).
 - This is deliberately a **rough approximation** tool: consistent roughness beats false precision. Don't gold-plate the maths.
 - User preferences: Vite/React/TypeScript ecosystem; GitHub Pages hosting; user can transcribe source data by hand if no machine-readable source exists.
 - Research tickets are **not** auto-run (see `docs/agents/issue-tracker.md`): leave them unclaimed for the user to launch.

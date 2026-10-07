@@ -123,8 +123,8 @@ function RouteRung(props: Omit<MenuPrimitive.RadioItem.Props, "className">) {
 }
 
 // The Subscriptions picker's popover: one price ladder per family, side by
-// side where there is room. The tier-wide discount is the one loud figure on
-// each rung; the price and Fable's exception sit under it. No fill or edge
+// side where there is room. The daily driver's discount is the one loud
+// figure on each rung; the price and the models that differ sit under it. No fill or edge
 // inside is grey; secondary text stays muted.
 function RouteCard({
   filters,
@@ -172,7 +172,10 @@ function RouteCard({
                     {formatTierDiscount(tier.tierDiscount)}
                   </span>
                   {tier.notes.map((note) => (
-                    <span key={note.name} className="text-[11px] text-muted-foreground">
+                    <span
+                      key={`${note.name}@${note.tierDiscount}`}
+                      className="text-[11px] text-muted-foreground"
+                    >
                       {note.name}: {formatTierDiscount(note.tierDiscount)}
                     </span>
                   ))}

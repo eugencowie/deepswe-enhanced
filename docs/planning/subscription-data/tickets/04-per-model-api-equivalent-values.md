@@ -1,7 +1,7 @@
 # 04: Price tier rows from measured per-model values
 
 Type: task
-Status: ready-for-agent
+Status: resolved
 Blocked by: 03
 
 ## Problem
@@ -37,7 +37,7 @@ Today each tier carries one equivalent API spend figure, and each model scales i
 
 ## Acceptance criteria
 
-- [ ] Each of these rows has the factor shown:
+- [x] Each of these rows has the factor shown:
 
   | Model | Tier | Factor | Why |
   |---|---|---|---|
@@ -46,15 +46,15 @@ Today each tier carries one equivalent API spend figure, and each model scales i
   | Sonnet 4.6 | Claude Max 20x | 200 / 11,726 | Opus 5.5 fallback |
   | Fable 5 and Fable 5.1 | Claude Pro | 1 | excluded |
   | GPT-5.6 Sol | Pro 20x | 200 / 2,084 | GPT-6.1 Sol fallback |
-- [ ] No schema, data file, script or test mentions `usageMultiplier` or equivalent API spend.
-- [ ] Each of these fails validation, with a test for each:
+- [x] No schema, data file, script or test mentions `usageMultiplier` or equivalent API spend.
+- [x] Each of these fails validation, with a test for each:
   - a value for an unknown model;
   - a value for a model from another family;
   - a daily driver or flagship missing on a tier.
-- [ ] The picker headlines show the daily driver's discount, e.g. Max 20x −98%.
-- [ ] The masthead links the Oct 5 post.
-- [ ] The glossary, spec and ADR 0010 are updated.
-- [ ] `vp check` and `vp test` pass.
+- [x] The picker headlines show the daily driver's discount, e.g. Max 20x −98%.
+- [x] The masthead links the Oct 5 post.
+- [x] The glossary, spec and ADR 0010 are updated.
+- [x] `vp check` and `vp test` pass.
 
 ## Comments
 
@@ -64,3 +64,12 @@ Today each tier carries one equivalent API spend figure, and each model scales i
 - Values live in `tiers.json`, not the mapping. That file holds SemiAnalysis's figures, the refresh auto-generates mapping entries (ADR 0003), and `excludedTiers` stays in the mapping because it comes from Anthropic's docs.
 - The family pointers are per family, not per tier, because the daily driver and flagship are the same on every tier of a family.
 - Previous-generation values (Opus 5, Fable 5, GPT-6 Sol) still price their own rows. Without one, Fable 5 would fall back to Opus 5.5's value.
+
+**Resolved (2026-10-07):** [ADR 0010](../../../architecture/0010-per-model-api-equivalent-values.md). The Max 20x headline reads −98.3%. Departures from the brief:
+
+- **The daily driver needs a measured value on every tier.** An exclusion counts only for the flagship, because every unmeasured model falls back to the daily driver's value and an excluded one would leave them unpriced.
+- **Fable 5.1 is priced through a fixture.** Its live entry is vendor-reported with Pass@1 only, so its rows have no cost to check. The factor tests price a $1 entry of each live model instead.
+- **Interim notes.** Fable 5 and Fable 5.1 share the short name "Fable" at different values, so each Max rung shows two "Fable" notes, plus Opus 5 and Sonnet 5.5 (four on Max 20x). The picker keys notes by name and discount, since two now share a name. Ticket 05 replaces them.
+- **Publication time.** `publishedAt` is `2026-10-05T20:01:09Z`, the post's `datePublished` metadata. The research file gives only the date.
+- **Live values in tests.** The factor, headline and note tests assert live `tiers.json` values, as the acceptance table asks and the old `20 / 400` tests did. ADR 0004's fixture rule exists so a refresh can't turn tests red, and no refresh writes `tiers.json`. A generated mapping entry has no value or exclusion, so it adds no note.
+- **Two more specs.** The model-data spec drops the multiplier column and field, and the subscription-filter spec's rung description reads the daily driver's discount.

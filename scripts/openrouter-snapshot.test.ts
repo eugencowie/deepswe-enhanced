@@ -40,7 +40,6 @@ function mappingEntry(
     vendor,
     openrouterId,
     family: "none",
-    usageMultiplier: 1,
   };
 }
 

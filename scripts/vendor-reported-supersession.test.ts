@@ -20,7 +20,6 @@ function entry(leaderboardModel: string, openrouterId: string | null): ModelMapp
     vendor: "Test",
     openrouterId,
     family: "none",
-    usageMultiplier: 1,
   };
 }
 
