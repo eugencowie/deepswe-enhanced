@@ -4,7 +4,7 @@ Adds subscription-subsidised effective costs to the [leaderboard table](../leade
 
 ## Data file: `data/tiers.json`
 
-SemiAnalysis's agentic-workload API-equivalent values, per tier and measured model, from [Anthropic Subscriptions Offer 5x+ More Value Than OpenAI](https://newsletter.semianalysis.com/p/anthropic-subscriptions-offer-5x) (2026-10-05). Every figure is transcribed, with its chart, in [research/semianalysis-2026-10-05.md](research/semianalysis-2026-10-05.md) (ticket 03). Values are keyed by leaderboard model id. The ChatGPT tier ids are unchanged for now: Pro 5x takes the Pro 100 values and Pro 20x the post-cut Pro 200 values ([ticket 06](tickets/06-chatgpt-tier-lineup.md) renames them).
+SemiAnalysis's agentic-workload API-equivalent values, per tier and measured model, from [Anthropic Subscriptions Offer 5x+ More Value Than OpenAI](https://newsletter.semianalysis.com/p/anthropic-subscriptions-offer-5x) (2026-10-05). Every figure is transcribed, with its chart, in [research/semianalysis-2026-10-05.md](research/semianalysis-2026-10-05.md) (ticket 03). Values are keyed by leaderboard model id. The ChatGPT tiers are named by price, as OpenAI now sells them, and Pro 200 takes the values after OpenAI's 2026-09-29 cut. Pro 200 subscriptions bought before the cut keep the old limits until 2026-10-29, which is ignored ([ticket 06](tickets/06-chatgpt-tier-lineup.md)).
 
 ```json
 {
@@ -26,7 +26,7 @@ SemiAnalysis's agentic-workload API-equivalent values, per tier and measured mod
 }
 ```
 
-(One tier shown; the file has all six.)
+(One tier shown; the file has all seven.)
 
 | Tier | Price | Sonnet 5.5 | Opus 5.5 | Fable 5.1 | Opus 5 | Fable 5 |
 |---|---|---|---|---|---|---|
@@ -37,8 +37,9 @@ SemiAnalysis's agentic-workload API-equivalent values, per tier and measured mod
 | Tier | Price | GPT-6 Astra | GPT-6.1 Sol | GPT-6 Sol |
 |---|---|---|---|---|
 | chatgpt-plus | $20 | $162 | $211 | $262 |
-| chatgpt-pro-5x | $100 | $1,322 | $1,055 | $1,482 |
-| chatgpt-pro-20x | $200 | $2,897 | $2,084 | $2,910 |
+| chatgpt-pro-100 | $100 | $1,322 | $1,055 | $1,482 |
+| chatgpt-pro-200 | $200 | $2,897 | $2,084 | $2,910 |
+| chatgpt-pro-500 | $500 | $6,955 | $5,386 | $7,352 |
 
 `families` names each family's daily driver and flagship, with the flagship's label. They are the same on every tier of a family, so they are per family, not per tier. The flagship fields label the one note on each Subscriptions picker rung ([ticket 05](tickets/05-flagship-note.md)).
 
@@ -56,7 +57,7 @@ Load-time validation (ADR 0004) rejects:
 
 ## Derivation rules
 
-Row expansion: entries whose family is claude or chatgpt get one row per tier of that family beside their API row. Current data: 62 entries → 62 API rows + (21 Claude entries + 20 ChatGPT entries) × 3 tiers = **185 rows**. (An earlier revision said 191 via 22 ChatGPT entries — that was an arithmetic error; the checked-in data and research capture both have 20.)
+Row expansion: entries whose family is claude or chatgpt get one row per tier of that family beside their API row: three Claude tiers, four ChatGPT tiers. Tests assert the relationship, never the count (ADR 0004).
 
 Per row:
 
@@ -72,7 +73,7 @@ Per row:
 
 ## Acceptance criteria
 
-- The dataset derives 185 rows. Spot-checked maths: Fable 5.1 on claude-max-20x uses factor 200 / 2,485, an unmeasured Claude model there uses Opus 5.5's 200 / 11,726, and Fable's claude-pro rows use factor 1 (ticket 04).
+- Every claude or chatgpt entry derives one row per tier of its family beside its API row. Spot-checked maths: Fable 5.1 on claude-max-20x uses factor 200 / 2,485, an unmeasured Claude model there uses Opus 5.5's 200 / 11,726, and Fable's claude-pro rows use factor 1 (ticket 04); GPT-6 Astra on chatgpt-pro-500 uses 500 / 6,955 and an unmeasured ChatGPT model there GPT-6.1 Sol's 500 / 5,386 (ticket 06).
 - Unit tests cover row expansion and subsidisation (incl. measured values, the daily-driver fallback and excluded tiers).
 
 ## Tickets

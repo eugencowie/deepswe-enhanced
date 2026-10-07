@@ -35,8 +35,9 @@ const tierIdSchema = z.enum([
   "claude-max-5x",
   "claude-max-20x",
   "chatgpt-plus",
-  "chatgpt-pro-5x",
-  "chatgpt-pro-20x",
+  "chatgpt-pro-100",
+  "chatgpt-pro-200",
+  "chatgpt-pro-500",
 ]);
 export type TierId = z.infer<typeof tierIdSchema>;
 

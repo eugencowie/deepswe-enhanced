@@ -1,7 +1,7 @@
 # 06: ChatGPT Plus / Pro 100 / Pro 200 / Pro 500
 
 Type: task
-Status: ready-for-agent
+Status: resolved
 Blocked by: 04
 
 ## Problem
@@ -18,7 +18,15 @@ The ChatGPT tiers are still called Pro 5x and Pro 20x. OpenAI dropped the relati
 
 ## Acceptance criteria
 
-- [ ] The picker shows Plus / Pro 100 / Pro 200 / Pro 500 under ChatGPT. Pro 500 reads $500/mo and −91%.
-- [ ] Every ChatGPT entry gets a Pro 500 row. GPT-6 Astra's factor there is 500 / 6,955, and unmeasured models use 500 / 5,386.
-- [ ] No code, data or doc outside resolved tickets mentions `pro-5x`, `pro-20x`, "Pro 5x" or "Pro 20x".
-- [ ] `vp check` and `vp test` pass.
+- [x] The picker shows Plus / Pro 100 / Pro 200 / Pro 500 under ChatGPT. Pro 500 reads $500/mo and −91%.
+- [x] Every ChatGPT entry gets a Pro 500 row. GPT-6 Astra's factor there is 500 / 6,955, and unmeasured models use 500 / 5,386.
+- [x] No code, data or doc outside resolved tickets mentions `pro-5x`, `pro-20x`, "Pro 5x" or "Pro 20x".
+- [x] `vp check` and `vp test` pass.
+
+## Comments
+
+**Resolved (2026-10-07):** ChatGPT's column now reads API, Plus, Pro 100, Pro 200 and Pro 500. Pro 500 reads $500/mo and −90.7%, with "Astra: −92.8%". Departures from the brief:
+
+- **One decimal, not whole percents.** The picker keeps its one-decimal format, so Pro 500's −91% and "Astra: −93%" read −90.7% and −92.8%.
+- **The subscription-data spec's row count.** Its "× 3 tiers = 185 rows" no longer held with a fourth ChatGPT tier, so the spec now gives three Claude and four ChatGPT tiers per entry and drops the count (ADR 0004: no count literals).
+- **Old names left in resolved tickets.** Resolved tickets keep Pro 5x and Pro 20x as history, as the criterion allows.

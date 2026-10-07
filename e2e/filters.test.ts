@@ -44,6 +44,10 @@ test("the subscriptions picker swaps a family to one tier and shows discounts", 
   const plus = page.getByRole("menuitemradio", { name: /^Plus/ });
   await expect(plus).toContainText("Astra: −87.7%");
   await expect(plus).not.toContainText("Sol");
+  const proFiveHundred = page.getByRole("menuitemradio", { name: /^Pro 500/ });
+  await expect(proFiveHundred).toContainText("$500/mo");
+  await expect(proFiveHundred).toContainText("−90.7%");
+  await expect(proFiveHundred).toContainText("Astra: −92.8%");
 
   // The estimate disclaimer replaced the per-cell "(e)" marker.
   await expect(page.getByText("Subscription costs are estimates")).toContainText(

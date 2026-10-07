@@ -185,12 +185,14 @@ describe("rows", () => {
     expectFactor("claude-fable-5-1", "claude-max-20x", 200 / 2485);
     // The previous generation keeps its own value, not its successor's.
     expectFactor("claude-opus-5", "claude-max-20x", 200 / 17275);
+    expectFactor("gpt-6-astra", "chatgpt-pro-500", 500 / 6955);
   });
 
   test("an unmeasured model's tier rows use its family's daily driver's value", () => {
     // Claude Opus 5.5 and GPT-6.1 Sol.
     expectFactor("claude-sonnet-4-6", "claude-max-20x", 200 / 11726);
-    expectFactor("gpt-5-6-sol", "chatgpt-pro-20x", 200 / 2084);
+    expectFactor("gpt-5-6-sol", "chatgpt-pro-200", 200 / 2084);
+    expectFactor("gpt-5-6-sol", "chatgpt-pro-500", 500 / 5386);
   });
 
   // Pro runs Fable on usage credits, billed at standard API rates.
@@ -616,8 +618,9 @@ describe("pickerFamilies", () => {
     ]);
     expect(family("chatgpt").tiers.map((tier) => tier.id)).toEqual([
       "chatgpt-plus",
-      "chatgpt-pro-5x",
-      "chatgpt-pro-20x",
+      "chatgpt-pro-100",
+      "chatgpt-pro-200",
+      "chatgpt-pro-500",
     ]);
   });
 
@@ -634,7 +637,11 @@ describe("pickerFamilies", () => {
     expect(max20?.priceUsdPerMonth).toBe(200);
     expect(max20?.tierDiscount).toBeCloseTo(1 - 200 / 11726, 10);
     // GPT-6.1 Sol.
-    expect(tier("chatgpt", "chatgpt-pro-20x")?.tierDiscount).toBeCloseTo(1 - 200 / 2084, 10);
+    expect(tier("chatgpt", "chatgpt-pro-200")?.tierDiscount).toBeCloseTo(1 - 200 / 2084, 10);
+    const pro500 = tier("chatgpt", "chatgpt-pro-500");
+    expect(pro500?.shortLabel).toBe("Pro 500");
+    expect(pro500?.priceUsdPerMonth).toBe(500);
+    expect(pro500?.tierDiscount).toBeCloseTo(1 - 500 / 5386, 10);
   });
 
   // The flagship is the one model noted: every other model either shares the
@@ -647,8 +654,9 @@ describe("pickerFamilies", () => {
       ["claude-max-5x", "Fable"],
       ["claude-max-20x", "Fable"],
       ["chatgpt-plus", "Astra"],
-      ["chatgpt-pro-5x", "Astra"],
-      ["chatgpt-pro-20x", "Astra"],
+      ["chatgpt-pro-100", "Astra"],
+      ["chatgpt-pro-200", "Astra"],
+      ["chatgpt-pro-500", "Astra"],
     ]);
     // Fable 5.1 and GPT-6 Astra at their measured values.
     expect(tier("claude", "claude-max-20x")?.flagshipNote.tierDiscount).toBeCloseTo(
@@ -657,6 +665,10 @@ describe("pickerFamilies", () => {
     );
     expect(tier("chatgpt", "chatgpt-plus")?.flagshipNote.tierDiscount).toBeCloseTo(
       1 - 20 / 162,
+      10,
+    );
+    expect(tier("chatgpt", "chatgpt-pro-500")?.flagshipNote.tierDiscount).toBeCloseTo(
+      1 - 500 / 6955,
       10,
     );
   });
@@ -751,7 +763,7 @@ describe("visibleRows", () => {
     const visible = leaderboard.visibleRows(
       filters({
         effortView: "all",
-        subscriptions: { claude: "claude-max-20x", chatgpt: "chatgpt-pro-20x" },
+        subscriptions: { claude: "claude-max-20x", chatgpt: "chatgpt-pro-500" },
       }),
     );
     const noneRows = visible.filter((row) => row.family === "none");
