@@ -1,7 +1,7 @@
 # 03: Transcribe the Oct 5 SemiAnalysis figures
 
 Type: task
-Status: ready-for-agent
+Status: resolved
 Blocked by: none
 
 ## Problem
@@ -22,10 +22,10 @@ Add a research file under this feature's `research/` directory, matching the exi
 
 ## Acceptance criteria
 
-- [ ] Every value that tickets 04 and 06 use appears in the research file, next to the URL of the chart it was read from.
-- [ ] A reviewer has checked each figure against its chart, not against the reading in Comments below.
-- [ ] Previous-generation, pre-cut and chat-workload figures are labelled, and the file says which ones are used.
-- [ ] `vp check` passes.
+- [x] Every value that tickets 04 and 06 use appears in the research file, next to the URL of the chart it was read from.
+- [x] A reviewer has checked each figure against its chart, not against the reading in Comments below.
+- [x] Previous-generation, pre-cut and chat-workload figures are labelled, and the file says which ones are used.
+- [x] `vp check` passes.
 
 ## Comments
 
@@ -63,3 +63,8 @@ Other labs ([Chinese labs](https://substack-post-media.s3.amazonaws.com/public/i
   - Muse Code Power Usage, $50, Muse Spark 1.3: $2,566.
   - SuperGrok Heavy, $300, Grok 4.7: $5,832.
   - Cursor Ultra, $200, Composer 2.5: $3,041.
+
+**Resolved (2026-10-07):** [research/semianalysis-2026-10-05.md](../research/semianalysis-2026-10-05.md). Every figure was re-read from its chart image, and the reading above matches. Two additions:
+
+- The successor chart's GPT-6 Sol Pro 200 tokens (9.7B) are about half the pre-cut 19.6B, which confirms the GPT-6 Sol values are post-cut.
+- The dashboard screenshot's "Promo" toggle is selected, so the single-plan values (Muse Code, SuperGrok Heavy, Cursor Ultra) may include promotional limits. Ticket 07 should check before using them.
