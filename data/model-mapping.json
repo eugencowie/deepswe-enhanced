@@ -12,8 +12,7 @@
     "vendor": "Anthropic",
     "openrouterId": "anthropic/claude-fable-5",
     "family": "claude",
-    "excludedTiers": ["claude-pro"],
-    "shortName": "Fable"
+    "excludedTiers": ["claude-pro"]
   },
   {
     "leaderboardModel": "claude-sonnet-5",
@@ -217,8 +216,7 @@
     "vendor": "Anthropic",
     "openrouterId": "anthropic/claude-fable-5.1",
     "family": "claude",
-    "excludedTiers": ["claude-pro"],
-    "shortName": "Fable"
+    "excludedTiers": ["claude-pro"]
   },
   {
     "leaderboardModel": "gpt-6-1-sol",

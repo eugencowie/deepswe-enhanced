@@ -1,7 +1,7 @@
 # 05: Flagship note in the Subscriptions picker
 
 Type: task
-Status: ready-for-agent
+Status: resolved
 Blocked by: 04
 
 ## Problem
@@ -28,13 +28,20 @@ With ticket 04's data, the rungs read:
 
 ## Acceptance criteria
 
-- [ ] Every tier rung shows exactly one note, labelled with the family's flagship label. The table above holds.
-- [ ] No older model (Opus 5, Fable 5, GPT-6 Sol) appears in any note. Their table rows still use their measured values.
-- [ ] `shortName` is gone from the schema, the data and the code.
-- [ ] The disclaimer shows the new copy.
-- [ ] Unit tests cover the note (discounted, full price, equal to the headline). The e2e picker tests are updated.
-- [ ] `vp check` and `vp test` pass.
+- [x] Every tier rung shows exactly one note, labelled with the family's flagship label. The table above holds.
+- [x] No older model (Opus 5, Fable 5, GPT-6 Sol) appears in any note. Their table rows still use their measured values.
+- [x] `shortName` is gone from the schema, the data and the code.
+- [x] The disclaimer shows the new copy.
+- [x] Unit tests cover the note (discounted, full price, equal to the headline). The e2e picker tests are updated.
+- [x] `vp check` and `vp test` pass.
 
 ## Comments
 
 **From the grilling (2026-10-06):** The user asked for a flagship pointer next to the daily driver so the picker shows current-generation discounts only. They also suggested a `flagshipLabel` setting stored with the pointers instead of `shortName` on mapping entries, so the label and the pointer change together.
+
+**Resolved (2026-10-07):** Each rung's single note is the flagship's: Max 20x reads −98.3% with "Fable: −92%", Plus −90.5% with "Astra: −87.7%", Pro "Fable: full price". Departures from the brief:
+
+- **The table above rounds to whole percents.** The picker keeps its one-decimal format: headlines read −98.3% on every Claude rung and −90.5%, −90.5%, −90.4% on ChatGPT's; notes read "Fable: −92.1%" on Max 5x and "Astra: −87.7%", "−92.4%", "−93.1%".
+- **The disclaimer says "plan".** The glossary avoids "plan" for a tier, but the copy is user-facing and was agreed word for word, so it stays.
+- **A missing flagship throws.** The note needs the flagship's mapping entry for its exclusions. `assertTierValues` already guarantees one, so fixture mappings in the leaderboard tests now carry the live flagship entries; they add no rows.
+- **The model-data spec** drops `shortName` from the entry shape too.

@@ -66,7 +66,7 @@ The model a subscription family's tiers are headlined by: Opus 5.5 for Claude, G
 _Avoid_: default model
 
 **Flagship**:
-A family's top model, on tighter usage limits than the daily driver: Fable 5.1 for Claude, GPT-6 Astra for ChatGPT. Each has a flagship label, "Fable" and "Astra", for the Subscriptions picker. Every tier of the family measures it or excludes it.
+A family's top model, on tighter usage limits than the daily driver: Fable 5.1 for Claude, GPT-6 Astra for ChatGPT. Each has a flagship label, "Fable" and "Astra", which heads the one note on every tier rung of the Subscriptions picker. Every tier of the family measures it or excludes it.
 
 **Excluded tier**:
 A tier whose usage limits don't cover a model, so its subscribers run the model on usage credits at API rates. The model's subsidisation factor there is 1. Pro excludes Fable.
@@ -76,7 +76,7 @@ _Avoid_: unsupported tier (the model still runs)
 Tier price ÷ the model's API-equivalent value on that tier, or 1 on an excluded tier. What a dollar of API cost becomes on that tier.
 
 **Tier discount**:
-A subsidisation factor expressed as a percentage discount: 1 − factor. Shown in the Subscriptions picker per tier as the daily driver's, unless labelled with a specific model.
+A subsidisation factor expressed as a percentage discount: 1 − factor. Shown in the Subscriptions picker per tier as the daily driver's, with the flagship's beneath under its flagship label.
 _Avoid_: discount multiplier
 
 **API cost**:
@@ -127,7 +127,7 @@ _Avoid_: extra, add-on, custom column
 A leaderboard column this project computes rather than takes from the DeepSWE leaderboard (cost per solved task, average time, throughput). The distinction is per-column, not per-cell: effective cost on tier rows is computed, but the Cost column is still a source column.
 
 **Model mapping**:
-The reviewed link from a leaderboard model to its display name, vendor, OpenRouter id, subscription family, optional excluded tiers, and optional short name (falling back to the display name). Entries are written by hand or generated, always landing through human review.
+The reviewed link from a leaderboard model to its display name, vendor, OpenRouter id, subscription family, and optional excluded tiers. Entries are written by hand or generated, always landing through human review.
 _Avoid_: hand-curated (entries for known vendors are generated)
 
 **Display name**:

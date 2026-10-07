@@ -36,7 +36,7 @@ One entry per leaderboard model (effort levels share it), written by hand or gen
 
 The table had a usage multiplier column (Fable 5 at 0.5) until [subscription-data ticket 04](../subscription-data/tickets/04-per-model-api-equivalent-values.md) replaced it with per-model API-equivalent values in `tiers.json`.
 
-Entry shape: `{ "leaderboardModel": string, "displayName": string, "vendor": string, "openrouterId": string | null, "family": "claude" | "chatgpt" | "none", "excludedTiers"?: TierId[], "shortName"?: string }`. The `openrouterId` field is specified by [average time data](../avg-time-data/spec.md), `family` and `excludedTiers` by [subscription data](../subscription-data/spec.md), and `shortName` by [subscription filter](../subscription-filter/spec.md). A leaderboard model missing from the mapping makes derive throw, and a unit test enforces full coverage — the failure surfaces through `vp run validate` and CI (don't silently drop rows).
+Entry shape: `{ "leaderboardModel": string, "displayName": string, "vendor": string, "openrouterId": string | null, "family": "claude" | "chatgpt" | "none", "excludedTiers"?: TierId[] }`. The `openrouterId` field is specified by [average time data](../avg-time-data/spec.md), and `family` and `excludedTiers` by [subscription data](../subscription-data/spec.md). A leaderboard model missing from the mapping makes derive throw, and a unit test enforces full coverage — the failure surfaces through `vp run validate` and CI (don't silently drop rows).
 
 ## App
 

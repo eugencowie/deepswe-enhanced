@@ -29,7 +29,7 @@ const familyLabels = { claude: "Claude", chatgpt: "ChatGPT" } as const;
 
 // A tier discount (0.95 for 95% off) as a percentage: one decimal where
 // needed ("−95%", "−97.5%"), minus sign U+2212. No discount reads "full
-// price", like the API rung: a tier that excludes a model notes it so.
+// price", like the API rung: a tier that excludes the flagship notes it so.
 // oxlint-disable-next-line react/only-export-components
 export function formatTierDiscount(discount: number): string {
   if (discount === 0) return "full price";
@@ -124,8 +124,8 @@ function RouteRung(props: Omit<MenuPrimitive.RadioItem.Props, "className">) {
 
 // The Subscriptions picker's popover: one price ladder per family, side by
 // side where there is room. The daily driver's discount is the one loud
-// figure on each rung; the price and the models that differ sit under it. No fill or edge
-// inside is grey; secondary text stays muted.
+// figure on each rung; the price and the flagship's discount sit under it. No
+// fill or edge inside is grey; secondary text stays muted.
 function RouteCard({
   filters,
   onChange,
@@ -171,14 +171,9 @@ function RouteCard({
                   <span className="text-[15px] font-semibold">
                     {formatTierDiscount(tier.tierDiscount)}
                   </span>
-                  {tier.notes.map((note) => (
-                    <span
-                      key={`${note.name}@${note.tierDiscount}`}
-                      className="text-[11px] text-muted-foreground"
-                    >
-                      {note.name}: {formatTierDiscount(note.tierDiscount)}
-                    </span>
-                  ))}
+                  <span className="text-[11px] text-muted-foreground">
+                    {tier.flagshipNote.label}: {formatTierDiscount(tier.flagshipNote.tierDiscount)}
+                  </span>
                 </span>
               </RouteRung>
             ))}
@@ -187,7 +182,8 @@ function RouteCard({
       </div>
       <DropdownMenuSeparator className="mt-2 bg-brand/20" />
       <p className="px-2.5 py-1.5 text-xs text-muted-foreground">
-        Subscription costs are estimates: the struck-out API cost scaled by the tier's discount.
+        Subscription costs are estimates: the struck-out API cost scaled by SemiAnalysis's measured
+        value for that plan and model (agentic workload).
       </p>
     </DropdownMenuContent>
   );

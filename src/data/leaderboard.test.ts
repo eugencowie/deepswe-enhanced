@@ -2,6 +2,7 @@ import { describe, expect, test } from "vite-plus/test";
 
 import {
   deepsweSnapshot,
+  familyModels,
   leaderboardSources as sources,
   modelMapping,
   throughputSnapshot,
@@ -62,15 +63,24 @@ const familyRoutes = (family: "claude" | "chatgpt"): AccessRoute[] => [
   ...tiers.filter((tier) => tier.family === family).map((tier) => tier.id),
 ];
 
-// Synthetic family-"none" models: rows come from the snapshot.
-const mappingFixture = (models: string[]): ModelMappingEntry[] =>
-  models.map((model) => ({
+// The live flagships' entries, which the Subscriptions picker's notes need
+// whatever the snapshot holds.
+const flagshipEntries = modelMapping.filter((entry) =>
+  Object.values(familyModels).some((f) => f.flagshipModel === entry.leaderboardModel),
+);
+
+// Synthetic family-"none" models, plus the flagships: rows come from the
+// snapshot, so the flagships add none.
+const mappingFixture = (models: string[]): ModelMappingEntry[] => [
+  ...models.map((model) => ({
     leaderboardModel: model,
     displayName: model,
     vendor: "Test",
     openrouterId: null,
     family: "none" as const,
-  }));
+  })),
+  ...flagshipEntries,
+];
 
 // Models whose best entry exercises each branch of the Best rule. "inverted"
 // is a Claude-family model so its entries fan out over every Claude route.
@@ -627,40 +637,45 @@ describe("pickerFamilies", () => {
     expect(tier("chatgpt", "chatgpt-pro-20x")?.tierDiscount).toBeCloseTo(1 - 200 / 2084, 10);
   });
 
-  // Unmeasured models share the daily driver's discount, so only measured
-  // ones are noted, by short name or else display name, in mapping order.
-  test("measured models whose discount differs from the daily driver's get a note", () => {
-    expect(tier("claude", "claude-max-20x")?.notes).toEqual([
-      { name: "Claude Opus 5", tierDiscount: expect.closeTo(1 - 200 / 17275, 10) },
-      { name: "Fable", tierDiscount: expect.closeTo(1 - 200 / 4713, 10) },
-      { name: "Claude Sonnet 5.5", tierDiscount: expect.closeTo(1 - 200 / 12529, 10) },
-      { name: "Fable", tierDiscount: expect.closeTo(1 - 200 / 2485, 10) },
+  // The flagship is the one model noted: every other model either shares the
+  // headline or is an older generation the picker leaves to the table.
+  test("each tier notes its family's flagship under the family's flagship label", () => {
+    expect(
+      pickerFamilies.flatMap(({ tiers }) => tiers.map((t) => [t.id, t.flagshipNote.label])),
+    ).toEqual([
+      ["claude-pro", "Fable"],
+      ["claude-max-5x", "Fable"],
+      ["claude-max-20x", "Fable"],
+      ["chatgpt-plus", "Astra"],
+      ["chatgpt-pro-5x", "Astra"],
+      ["chatgpt-pro-20x", "Astra"],
     ]);
-    expect(tier("chatgpt", "chatgpt-plus")?.notes).toEqual([
-      { name: "GPT-6 Astra", tierDiscount: expect.closeTo(1 - 20 / 162, 10) },
-      { name: "GPT-6 Sol", tierDiscount: expect.closeTo(1 - 20 / 262, 10) },
-    ]);
-  });
-
-  // Pro excludes Fable 5 and Fable 5.1: one "Fable" note covers both.
-  test("a tier excluding models notes them at no discount, sharing a note per name", () => {
-    const fable = tier("claude", "claude-pro")?.notes.filter((note) => note.name === "Fable");
-    expect(fable).toEqual([{ name: "Fable", tierDiscount: 0 }]);
-  });
-
-  test("an excluded unmeasured model gets a note on that tier only", () => {
-    const mapping = modelMapping.map((entry) =>
-      entry.leaderboardModel === "gpt-5-5"
-        ? { ...entry, excludedTiers: ["chatgpt-plus" as const] }
-        : entry,
+    // Fable 5.1 and GPT-6 Astra at their measured values.
+    expect(tier("claude", "claude-max-20x")?.flagshipNote.tierDiscount).toBeCloseTo(
+      1 - 200 / 2485,
+      10,
     );
-    const { pickerFamilies } = createLeaderboard({ ...fixtureSources, mapping });
-    const tiers = pickerFamilies.find((f) => f.family === "chatgpt")!.tiers;
-    expect(tiers.map((t) => [t.id, t.notes.filter((note) => note.name === "GPT-5.5")])).toEqual([
-      ["chatgpt-plus", [{ name: "GPT-5.5", tierDiscount: 0 }]],
-      ["chatgpt-pro-5x", []],
-      ["chatgpt-pro-20x", []],
-    ]);
+    expect(tier("chatgpt", "chatgpt-plus")?.flagshipNote.tierDiscount).toBeCloseTo(
+      1 - 20 / 162,
+      10,
+    );
+  });
+
+  // Pro excludes Fable 5.1: its subscribers pay usage credits at API rates.
+  test("a tier excluding the flagship notes it at no discount", () => {
+    expect(tier("claude", "claude-pro")?.flagshipNote).toEqual({ label: "Fable", tierDiscount: 0 });
+  });
+
+  test("a tier notes the flagship even when its discount equals the headline", () => {
+    const tiers = sources.tiers.map((t) =>
+      t.id === "chatgpt-plus"
+        ? { ...t, apiEquivalentValuesUsdPerMonth: { "gpt-6-1-sol": 211, "gpt-6-astra": 211 } }
+        : t,
+    );
+    const plus = createLeaderboard({ ...fixtureSources, tiers })
+      .pickerFamilies.find((f) => f.family === "chatgpt")!
+      .tiers.find((t) => t.id === "chatgpt-plus")!;
+    expect(plus.flagshipNote).toEqual({ label: "Astra", tierDiscount: plus.tierDiscount });
   });
 });
 

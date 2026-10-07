@@ -40,7 +40,7 @@ SemiAnalysis's agentic-workload API-equivalent values, per tier and measured mod
 | chatgpt-pro-5x | $100 | $1,322 | $1,055 | $1,482 |
 | chatgpt-pro-20x | $200 | $2,897 | $2,084 | $2,910 |
 
-`families` names each family's daily driver and flagship, with the flagship's label. They are the same on every tier of a family, so they are per family, not per tier. The flagship fields are read by [ticket 05](tickets/05-flagship-note.md).
+`families` names each family's daily driver and flagship, with the flagship's label. They are the same on every tier of a family, so they are per family, not per tier. The flagship fields label the one note on each Subscriptions picker rung ([ticket 05](tickets/05-flagship-note.md)).
 
 Load-time validation (ADR 0004) rejects:
 

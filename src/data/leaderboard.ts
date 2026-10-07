@@ -70,9 +70,9 @@ export type ModelOption = {
   vendorReported: boolean; // coloured like its rows in the Models picker
 };
 
-// A family model badged per tier in the Subscriptions picker because its
-// discount differs from the daily driver's; 0 on a tier that excludes it.
-export type UsageLimitNote = { name: string; tierDiscount: number };
+// The family flagship's discount on a tier, under the family's flagship
+// label; 0 on a tier that excludes it.
+export type FlagshipNote = { label: string; tierDiscount: number };
 
 export type PickerTier = {
   id: TierId;
@@ -80,7 +80,7 @@ export type PickerTier = {
   priceUsdPerMonth: number;
   // The family daily driver's discount on the tier.
   tierDiscount: number;
-  notes: UsageLimitNote[];
+  flagshipNote: FlagshipNote;
 };
 
 export type PickerFamily = {
@@ -163,7 +163,7 @@ export function createLeaderboard({
         shortLabel: tier.shortLabel,
         priceUsdPerMonth: tier.priceUsdPerMonth,
         tierDiscount: 1 - dailyDriverFactor(tier, familyModels),
-        notes: usageLimitNotes(mapping, family, tier, familyModels),
+        flagshipNote: flagshipNote(mapping, tier, familyModels),
       })),
   }));
   return {
@@ -440,24 +440,23 @@ function dailyDriverFactor(tier: Tier, familyModels: FamilyModels): number {
   return tier.priceUsdPerMonth / dailyDriverValue(tier, familyModels);
 }
 
-// A family's models whose factor on the tier differs from the daily driver's
-// (a measured value of their own, or a tier that excludes them), one note per
-// distinct label and factor: models sharing both (Fable 5 and Fable 5.1, both
-// "Fable" and excluded from Pro) share one note.
-function usageLimitNotes(
+// The one note on a tier rung: the family flagship's discount, shown even
+// when it rounds to the headline. assertTierValues guarantees the flagship is
+// mapped and either measured or excluded on every tier.
+function flagshipNote(
   mapping: ModelMappingEntry[],
-  family: PickerFamilyId,
   tier: Tier,
   familyModels: FamilyModels,
-): UsageLimitNote[] {
-  const headline = dailyDriverFactor(tier, familyModels);
-  const notes = new Map<string, UsageLimitNote>();
-  for (const entry of mapping) {
-    if (entry.family !== family) continue;
-    const factor = subsidisationFactor(tier, entry, familyModels);
-    if (factor === headline) continue;
-    const name = entry.shortName ?? entry.displayName;
-    notes.set(`${name}@${factor}`, { name, tierDiscount: 1 - factor });
+): FlagshipNote {
+  const { flagshipModel, flagshipLabel } = familyModels[tier.family];
+  const entry = mapping.find((e) => e.leaderboardModel === flagshipModel);
+  if (entry === undefined) {
+    throw new Error(
+      `Flagship "${flagshipModel}" is missing from the model mapping; add it to data/model-mapping.json.`,
+    );
   }
-  return [...notes.values()];
+  return {
+    label: flagshipLabel,
+    tierDiscount: 1 - subsidisationFactor(tier, entry, familyModels),
+  };
 }
