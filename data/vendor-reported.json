@@ -196,6 +196,22 @@
       "source": "Gemini 4 Argon announcement",
       "sourceUrl": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/",
       "publishedAt": "2026-09-30"
+    },
+    {
+      "model": "muse-wonder-full",
+      "effort": "max",
+      "pass_at_1": 0.79,
+      "source": "Muse Wonder model page, Muse Wonder Full (max) column",
+      "sourceUrl": "https://dev.meta.ai/models/muse-wonder/",
+      "publishedAt": "2026-10-12"
+    },
+    {
+      "model": "muse-wonder",
+      "effort": "max",
+      "pass_at_1": 0.788,
+      "source": "Muse Wonder model page, Muse Wonder (max) column",
+      "sourceUrl": "https://dev.meta.ai/models/muse-wonder/",
+      "publishedAt": "2026-10-12"
     }
   ]
 }

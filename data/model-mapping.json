@@ -266,5 +266,19 @@
     "vendor": "Google",
     "openrouterId": null,
     "family": "none"
+  },
+  {
+    "leaderboardModel": "muse-wonder-full",
+    "displayName": "Muse Wonder Full",
+    "vendor": "Meta",
+    "openrouterId": null,
+    "family": "none"
+  },
+  {
+    "leaderboardModel": "muse-wonder",
+    "displayName": "Muse Wonder",
+    "vendor": "Meta",
+    "openrouterId": "meta/muse-wonder",
+    "family": "none"
   }
 ]
