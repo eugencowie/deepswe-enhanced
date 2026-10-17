@@ -144,7 +144,7 @@
     "leaderboardModel": "qwen3-8-max",
     "displayName": "Qwen3.8 Max",
     "vendor": "Alibaba",
-    "openrouterId": "qwen/qwen3.8-max",
+    "openrouterId": "qwen/qwen3.8-max-0902",
     "family": "none"
   },
   {
@@ -264,7 +264,7 @@
     "leaderboardModel": "gemini-4-argon",
     "displayName": "Gemini 4 Argon",
     "vendor": "Google",
-    "openrouterId": null,
+    "openrouterId": "google/gemini-4-argon",
     "family": "none"
   },
   {
