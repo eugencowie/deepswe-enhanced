@@ -174,12 +174,32 @@
     {
       "model": "deepseek-v4-1-flash",
       "effort": "max",
-      "pass_at_1": 0.742,
-      "source": "DeepSeek-V4.1-Flash model card, Instruct Model results",
-      "sourceUrl": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash",
-      "publishedAt": "2026-09-10",
-      "harness": "mini-swe-agent",
-      "trials": 8
+      "pass_at_1": 0.77,
+      "average_cost_usd": 0.2,
+      "source": "DeepSeek-V4.1-Flash-1017 release note, benchmark table and DeepSWE chart",
+      "sourceUrl": "https://api-docs.deepseek.com/news/news261017/",
+      "publishedAt": "2026-10-17",
+      "harness": "mini-swe-v2"
+    },
+    {
+      "model": "deepseek-v4-1-flash",
+      "effort": "high",
+      "pass_at_1": 0.73,
+      "average_cost_usd": 0.15,
+      "source": "DeepSeek-V4.1-Flash-1017 release note, DeepSWE chart",
+      "sourceUrl": "https://api-docs.deepseek.com/news/news261017/",
+      "publishedAt": "2026-10-17",
+      "harness": "mini-swe-v2"
+    },
+    {
+      "model": "deepseek-v4-1-flash",
+      "effort": "low",
+      "pass_at_1": 0.726,
+      "average_cost_usd": 0.11,
+      "source": "DeepSeek-V4.1-Flash-1017 release note, DeepSWE chart",
+      "sourceUrl": "https://api-docs.deepseek.com/news/news261017/",
+      "publishedAt": "2026-10-17",
+      "harness": "mini-swe-v2"
     },
     {
       "model": "muse-spark-1-3",
