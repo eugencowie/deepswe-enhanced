@@ -1,121 +1,121 @@
 {
   "source": "OpenRouter",
   "sourceUrl": "https://openrouter.ai",
-  "capturedAt": "2026-10-17T11:22:20Z",
+  "capturedAt": "2026-10-23T19:51:47Z",
   "models": {
     "anthropic/claude-opus-5": {
-      "consumerP50": 68
+      "consumerP50": 65
     },
     "anthropic/claude-fable-5": {
-      "consumerP50": 49
+      "consumerP50": 54
     },
     "anthropic/claude-sonnet-5": {
-      "consumerP50": 78
+      "consumerP50": 80
     },
     "anthropic/claude-opus-4.8": {
-      "consumerP50": 53
+      "consumerP50": 63
     },
     "anthropic/claude-sonnet-4.6": {
-      "consumerP50": 43
+      "consumerP50": 37
     },
     "openai/gpt-5.6-sol": {
-      "consumerP50": 52
+      "consumerP50": 56
     },
     "openai/gpt-5.6-terra": {
-      "consumerP50": 71
+      "consumerP50": 51
     },
     "openai/gpt-5.6-luna": {
-      "consumerP50": 58
+      "consumerP50": 53
     },
     "openai/gpt-5.5": {
-      "consumerP50": 62
+      "consumerP50": 56
     },
     "openai/gpt-5.4": {
       "consumerP50": 53
     },
     "google/gemini-3.7-flash": {
-      "consumerP50": 80
+      "consumerP50": 84
     },
     "google/gemini-3.6-flash": {
-      "consumerP50": 86
+      "consumerP50": 137
     },
     "google/gemini-3.5-flash": {
-      "consumerP50": 141
+      "consumerP50": 164
     },
     "google/gemini-3.1-pro-preview": {
-      "consumerP50": 92.5
+      "consumerP50": 116
     },
     "deepseek/deepseek-v4-pro-0813": {
-      "consumerP50": 32
+      "consumerP50": 41
     },
     "z-ai/glm-5.3": {
-      "consumerP50": 57
+      "consumerP50": 53
     },
     "z-ai/glm-5.2": {
-      "consumerP50": 76
-    },
-    "moonshotai/kimi-k3": {
-      "consumerP50": 22
-    },
-    "moonshotai/kimi-k2.7-code": {
-      "consumerP50": 60
-    },
-    "qwen/qwen3.8-max-0902": {
-      "consumerP50": 32
-    },
-    "x-ai/grok-4.6": {
       "consumerP50": 54
     },
+    "moonshotai/kimi-k3": {
+      "consumerP50": 30
+    },
+    "moonshotai/kimi-k2.7-code": {
+      "consumerP50": 40
+    },
+    "qwen/qwen3.8-max-0902": {
+      "consumerP50": 39
+    },
+    "x-ai/grok-4.6": {
+      "consumerP50": 62
+    },
     "x-ai/grok-4.5": {
-      "consumerP50": 48
+      "consumerP50": 52
     },
     "meta/muse-spark-1.1": {
-      "consumerP50": 298
+      "consumerP50": 220
     },
     "meta/muse-spark-1.2": {
-      "consumerP50": 109
+      "consumerP50": 211
     },
     "z-ai/glm-5.3-flash": {
-      "consumerP50": 36
+      "consumerP50": 45
     },
     "google/gemini-3.8-flash": {
-      "consumerP50": 82
+      "consumerP50": 76
     },
     "openai/gpt-6-astra": {
-      "consumerP50": 39
+      "consumerP50": 34
     },
     "anthropic/claude-opus-5.5": {
       "consumerP50": 75
     },
     "anthropic/claude-sonnet-5.5": {
-      "consumerP50": 99
+      "consumerP50": 94
     },
     "anthropic/claude-fable-5.1": {
-      "consumerP50": 60
+      "consumerP50": 64
     },
     "openai/gpt-6.1-sol": {
-      "consumerP50": 39
-    },
-    "openai/gpt-6-sol": {
-      "consumerP50": 73
-    },
-    "openai/gpt-6-luna": {
-      "consumerP50": 75
-    },
-    "x-ai/grok-4.7": {
-      "consumerP50": 63
-    },
-    "deepseek/deepseek-v4.1-flash-1017": {
-      "consumerP50": 145
-    },
-    "meta/muse-spark-1.3": {
-      "consumerP50": 93
-    },
-    "google/gemini-4-argon": {
       "consumerP50": 36
     },
+    "openai/gpt-6-sol": {
+      "consumerP50": 59
+    },
+    "openai/gpt-6-luna": {
+      "consumerP50": 46
+    },
+    "x-ai/grok-4.7": {
+      "consumerP50": 71
+    },
+    "deepseek/deepseek-v4.1-flash-1017": {
+      "consumerP50": 65
+    },
+    "meta/muse-spark-1.3": {
+      "consumerP50": 179
+    },
+    "google/gemini-4-argon": {
+      "consumerP50": 19
+    },
     "meta/muse-wonder": {
-      "consumerP50": 95
+      "consumerP50": 58
     }
   }
 }
