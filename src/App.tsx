@@ -20,6 +20,15 @@ const utcDate = (timestamp: string) => new Date(timestamp).toISOString().slice(0
 const deepsweDate = utcDate(deepsweSnapshot.source_generated_at);
 const openrouterDate = utcDate(throughputSnapshot.capturedAt);
 const semianalysisDate = utcDate(tiersSnapshot.publishedAt);
+// Each vendor source that adjusts tier limits, once however many tiers cite it
+// (subscription-data ticket 10).
+const limitAdjustments = [
+  ...new Map(
+    tiersSnapshot.tiers.flatMap(({ limitAdjustment }) =>
+      limitAdjustment === undefined ? [] : [[limitAdjustment.sourceUrl, limitAdjustment] as const],
+    ),
+  ).values(),
+];
 
 function SourceLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
@@ -65,7 +74,13 @@ function App() {
             Sources: <SourceLink href={deepsweSnapshot.sourceUrl}>DeepSWE</SourceLink> (
             {deepsweDate}), <SourceLink href={throughputSnapshot.sourceUrl}>OpenRouter</SourceLink>{" "}
             ({openrouterDate}), <SourceLink href={tiersSnapshot.sourceUrl}>SemiAnalysis</SourceLink>{" "}
-            ({semianalysisDate}).
+            ({semianalysisDate})
+            {limitAdjustments.map(({ sourceUrl, label, publishedAt }) => (
+              <span key={sourceUrl}>
+                , <SourceLink href={sourceUrl}>{label}</SourceLink> ({publishedAt})
+              </span>
+            ))}
+            .
           </p>
         </div>
         <ModeToggle />

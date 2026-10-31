@@ -225,6 +225,18 @@ const tierSchema = z.strictObject({
   // Keyed by leaderboard model, for the models SemiAnalysis measured on the
   // tier (agentic workload). Positive: the subsidisation factor divides by it.
   apiEquivalentValuesUsdPerMonth: z.record(nonEmpty, z.number().positive()),
+  // A vendor-stated change to the tier's limits since SemiAnalysis measured
+  // it, scaling every model's value there; label is the masthead's link text.
+  // Deleted once SemiAnalysis measures the tier again (subscription-data
+  // ticket 10).
+  limitAdjustment: z
+    .strictObject({
+      factor: z.number().positive(),
+      label: nonEmpty,
+      ...provenanceFields,
+      publishedAt: z.iso.date(),
+    })
+    .optional(),
 });
 export type Tier = z.infer<typeof tierSchema>;
 

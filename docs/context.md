@@ -58,8 +58,12 @@ _Avoid_: plan card, plan picker
 Which vendor's tiers can run a model: Claude, ChatGPT, Kimi (Kimi Code), GLM (GLM Coding), or none. Every family has exactly one vendor, read from its model-mapping entries; that vendor's mark and the family's label (Kimi Code, GLM Coding) head the family's column in the Subscriptions picker, which runs Claude, ChatGPT, then the rest alphabetically by vendor. A model joins a family only when a primary source says the family's tiers serve it, so a vendor can have models in a family and in none (Kimi K2.7 Code and GLM 5.2 are in none).
 
 **API-equivalent value**:
-SemiAnalysis's estimate of a tier's full monthly usage limit for one model, priced at list API rates on their agentic workload. Per tier and model: Opus 5.5 is worth $11,726 a month on Max 20x and Fable 5.1 $2,485, a value that already includes Max's cap on Fable at half the limit. A model SemiAnalysis didn't measure takes its family daily driver's value.
+A tier's full monthly usage limit for one model, priced at list API rates on SemiAnalysis's agentic workload: SemiAnalysis's measured value, times the tier's limit adjustment where it has one. Per tier and model: Opus 5.5 is worth $11,726 a month on Max 20x and Fable 5.1 $2,485, a value that already includes Max's cap on Fable at half the limit. A model SemiAnalysis didn't measure takes its family daily driver's value.
 _Avoid_: equivalent API spend, max possible spend, usage allowance
+
+**Limit adjustment**:
+A vendor-stated change to a tier's usage limits since SemiAnalysis measured it, as a factor on every model's API-equivalent value there, citing its source. Dropped once SemiAnalysis measures the tier again. The ChatGPT Pro tiers carry ×2 from OpenAI's 2026-10-29 increase.
+_Avoid_: usage multiplier (the deleted per-model factor), boost, promo
 
 **Daily driver**:
 The model a subscription family's tiers are headlined by: Opus 5.5 for Claude, GPT-6.1 Sol for ChatGPT, Kimi K3 for Kimi, GLM 5.3 for GLM. Its tier discount is the rung's headline in the Subscriptions picker, and its API-equivalent value prices every model SemiAnalysis didn't measure, so every tier needs one.

@@ -72,6 +72,20 @@ describe("file schemas are strict", () => {
     expect(() => tiersSnapshotSchema.parse({ ...rawTiers, families })).toThrowError(/label/);
   });
 
+  // The factor scales every value on the tier, which the subsidisation factor
+  // divides by.
+  test.each([0, -2])("rejects a limit adjustment with factor %d", (factor) => {
+    const limitAdjustment = {
+      factor,
+      label: "OpenAI",
+      source: "Thibault Sottiaux on X",
+      sourceUrl: "https://x.com/thsottiaux/status/2115850175868727621",
+      publishedAt: "2026-10-29",
+    };
+    const tampered = { ...rawTiers, tiers: [{ ...rawTiers.tiers[0], limitAdjustment }] };
+    expect(() => tiersSnapshotSchema.parse(tampered)).toThrowError(/factor/);
+  });
+
   test("rejects a Pass@1 above 1", () => {
     const entry = { ...rawSnapshot.entries[0], effort: "tampered", pass_at_1: 1.5 };
     const tampered = { ...rawSnapshot, entries: [...rawSnapshot.entries, entry] };

@@ -405,7 +405,7 @@ function effortRank(effort: string | null | undefined): number {
   return rank === -1 ? EFFORT_ORDER.length : rank;
 }
 
-// The family daily driver's API-equivalent value on a tier, which every model
+// The family daily driver's measured value on a tier, which every model
 // SemiAnalysis didn't measure takes. assertTierValues guarantees it at load.
 function dailyDriverValue(tier: Tier, subscriptionFamilies: SubscriptionFamilies): number {
   const { dailyDriverModel } = subscriptionFamilies[tier.family];
@@ -419,14 +419,16 @@ function dailyDriverValue(tier: Tier, subscriptionFamilies: SubscriptionFamilies
 }
 
 // A model's API-equivalent value on a tier: SemiAnalysis's measured value, or
-// the daily driver's for a model it didn't measure.
+// the daily driver's for a model it didn't measure, times the tier's limit
+// adjustment where it has one.
 function apiEquivalentValue(
   tier: Tier,
   model: string,
   subscriptionFamilies: SubscriptionFamilies,
 ): number {
   const measured: number | undefined = tier.apiEquivalentValuesUsdPerMonth[model];
-  return measured ?? dailyDriverValue(tier, subscriptionFamilies);
+  const value = measured ?? dailyDriverValue(tier, subscriptionFamilies);
+  return value * (tier.limitAdjustment?.factor ?? 1);
 }
 
 // What a dollar of API cost becomes for a mapped model on a tier: 1 on a tier
@@ -444,7 +446,8 @@ function subsidisationFactor(
 
 // The tier's headline factor, which every unmeasured model shares.
 function dailyDriverFactor(tier: Tier, subscriptionFamilies: SubscriptionFamilies): number {
-  return tier.priceUsdPerMonth / dailyDriverValue(tier, subscriptionFamilies);
+  const { dailyDriverModel } = subscriptionFamilies[tier.family];
+  return tier.priceUsdPerMonth / apiEquivalentValue(tier, dailyDriverModel, subscriptionFamilies);
 }
 
 // The one note on a tier rung: the family flagship's discount, shown even

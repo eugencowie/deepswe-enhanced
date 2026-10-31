@@ -184,7 +184,8 @@ function RouteCard({
       <DropdownMenuSeparator className="mt-2 bg-brand/20" />
       <p className="px-2.5 py-1.5 text-xs text-muted-foreground">
         Subscription costs are estimates: the struck-out API cost scaled by SemiAnalysis's measured
-        value for that tier and model (agentic workload).
+        value for that tier and model (agentic workload), doubled on ChatGPT Pro tiers per OpenAI's
+        2026-10-29 limit increase.
       </p>
     </DropdownMenuContent>
   );
