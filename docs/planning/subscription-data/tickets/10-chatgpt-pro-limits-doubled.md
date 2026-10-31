@@ -1,7 +1,7 @@
 # 10: ChatGPT Pro limits doubled
 
 Type: task
-Status: claimed
+Status: resolved
 Blocked by: 06
 
 ## Problem
@@ -27,11 +27,17 @@ Expected rungs (GPT-6.1 Sol headline / Astra note):
 
 ## Acceptance criteria
 
-- [ ] GPT-6 Astra on Pro 500 uses factor 500 / (6,955 × 2), and an unmeasured ChatGPT model there 500 / (5,386 × 2). Plus is unchanged at 20 / 211.
-- [ ] The picker shows the rungs above.
-- [ ] The schema rejects a limit adjustment whose factor isn't positive.
-- [ ] The masthead lists "OpenAI (2026-10-29)" after SemiAnalysis, linked to the post.
-- [ ] The research note, glossary and both specs are updated.
-- [ ] `vp check` and `vp test` pass.
+- [x] GPT-6 Astra on Pro 500 uses factor 500 / (6,955 × 2), and an unmeasured ChatGPT model there 500 / (5,386 × 2). Plus is unchanged at 20 / 211.
+- [x] The picker shows the rungs above.
+- [x] The schema rejects a limit adjustment whose factor isn't positive.
+- [x] The masthead lists "OpenAI (2026-10-29)" after SemiAnalysis, linked to the post.
+- [x] The research note, glossary and both specs are updated.
+- [x] `vp check` and `vp test` pass.
 
 ## Comments
+
+**Resolved (2026-10-31):** Built as specified. Departures:
+
+- **Whole percents.** The grilling's rung table had one decimal. The picker rounds to whole percents, so the table here does too.
+- **SemiAnalysis research note.** Its pre-cut Pro 200 section now points at the 2026-10-29 note, so readers don't take the pre-cut figures as the ones used.
+- **Disclaimer hardcoded.** The picker clause names ChatGPT Pro and the date by hand, while the masthead derives its entry from `tiers.json`. Deleting the adjustment means deleting that clause too.

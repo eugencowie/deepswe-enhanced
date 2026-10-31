@@ -18,7 +18,8 @@ const count = z.number().int().nonnegative();
 // Every snapshot carries this provenance pair: the human-facing citation
 // whose URL the masthead's provenance line links (automated-refresh ticket 04;
 // a footer line at the time). Vendor-reported entries carry it per entry
-// instead, since each cites its own source. Distinct from the DeepSWE snapshot's
+// instead, since each cites its own source, and so does a tier's limit
+// adjustment. Distinct from the DeepSWE snapshot's
 // `source_url`, which is the fetched artifact itself.
 const provenanceFields = { source: nonEmpty, sourceUrl: z.url() };
 
