@@ -240,7 +240,7 @@ const tierSchema = z.strictObject({
     .optional(),
 });
 export type Tier = z.infer<typeof tierSchema>;
-type LimitAdjustment = NonNullable<Tier["limitAdjustment"]>;
+export type LimitAdjustment = NonNullable<Tier["limitAdjustment"]>;
 
 // Each family's label heads its Subscriptions picker column. Its daily driver
 // prices every model SemiAnalysis didn't measure. Its flagship, when it has
@@ -312,6 +312,7 @@ export function assertTierValues(tiers: TiersSnapshot, mapping: ModelMappingEntr
       } else if (
         first.adjustment.factor !== adjustment.factor ||
         first.adjustment.label !== adjustment.label ||
+        first.adjustment.source !== adjustment.source ||
         first.adjustment.publishedAt !== adjustment.publishedAt
       ) {
         parts.push(

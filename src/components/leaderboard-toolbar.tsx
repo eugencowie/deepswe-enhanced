@@ -6,7 +6,7 @@ import { SubscriptionsPicker } from "@/components/subscriptions-picker";
 import {
   setEffortView,
   type LeaderboardFilters,
-  type LimitAdjustment,
+  type LimitAdjustmentSource,
   type ModelOption,
   type PickerFamily,
 } from "@/data/leaderboard";
@@ -27,7 +27,7 @@ export function LeaderboardToolbar({
   onChange: (filters: LeaderboardFilters) => void;
   models: ModelOption[];
   pickerFamilies: PickerFamily[];
-  limitAdjustments: LimitAdjustment[];
+  limitAdjustments: LimitAdjustmentSource[];
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2">

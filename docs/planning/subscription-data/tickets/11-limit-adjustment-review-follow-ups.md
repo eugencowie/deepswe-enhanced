@@ -6,12 +6,12 @@ Blocked by: 10
 
 ## Problem
 
-The review of [ticket 10](10-chatgpt-pro-limits-doubled.md) found three gaps. The picker disclaimer names ChatGPT Pro and the date by hand, so deleting the limit adjustment would leave a false sentence. `App.tsx` walks `tiersSnapshot.tiers` itself, though the leaderboard module owns tier questions (ADR 0005). ADR 0010's rejected "recalibrated multipliers" reads like a conflict nobody flagged. Pro 100's rung and the masthead entry are untested.
+The review of [ticket 10](10-chatgpt-pro-limits-doubled.md) found four gaps. The picker disclaimer names ChatGPT Pro and the date by hand, so deleting the limit adjustment would leave a false sentence. `App.tsx` walks `tiersSnapshot.tiers` itself, though the leaderboard module owns tier questions (ADR 0005). ADR 0010's rejected "recalibrated multipliers" reads like a conflict nobody flagged. Pro 100's rung and the masthead entry are untested.
 
 ## What to build
 
 - **Leaderboard.** `createLeaderboard` returns `limitAdjustments`: one per source URL, `{ factor, label, sourceUrl, publishedAt, tierLabels }`, with `tierLabels` the tiers' full labels in `tiers.json` order.
-- **Load-time check.** `assertTierValues` rejects two limit adjustments that share a source URL but differ in factor, label or date, since grouping by URL relies on them agreeing.
+- **Load-time check.** `assertTierValues` rejects two limit adjustments that share a source URL but differ in factor, label, source or date, since grouping by URL relies on them agreeing.
 - **Masthead.** Reads `leaderboard.limitAdjustments`; `App.tsx` no longer touches the tiers.
 - **Picker disclaimer.** Appends, per adjustment, "×{factor} on {tier labels} per {label}'s {date} limit change", the labels joined with "and". No adjustments, no clause. Today: "…(agentic workload), ×2 on ChatGPT Pro 100, ChatGPT Pro 200 and ChatGPT Pro 500 per OpenAI's 2026-10-29 limit change."
 - **ADR 0010.** A dated amendment bullet, in ADR 0004's style, recording the limit adjustment and how it differs from the deleted usage multiplier.

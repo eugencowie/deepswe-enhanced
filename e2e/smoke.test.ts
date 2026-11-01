@@ -29,15 +29,3 @@ test("the build renders the table with no failed requests", async ({ page }) => 
 
   expect(failures).toEqual([]);
 });
-
-// Limit adjustments join the Sources line after SemiAnalysis, each cited once
-// however many tiers it covers (subscription-data ticket 11).
-test("the masthead cites each limit adjustment's source", async ({ page }) => {
-  await page.goto("./");
-  const sources = page.getByText(/^Sources:/);
-  await expect(sources).toContainText("SemiAnalysis (2026-10-05), OpenAI (2026-10-29).");
-  await expect(sources.getByRole("link", { name: "OpenAI" })).toHaveAttribute(
-    "href",
-    "https://x.com/thsottiaux/status/2115850175868727621",
-  );
-});

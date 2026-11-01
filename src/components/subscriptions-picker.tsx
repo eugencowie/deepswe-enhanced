@@ -16,7 +16,7 @@ import {
   setRoute,
   type AccessRoute,
   type LeaderboardFilters,
-  type LimitAdjustment,
+  type LimitAdjustmentSource,
   type PickerFamily,
 } from "@/data/leaderboard";
 
@@ -35,14 +35,14 @@ export function formatTierDiscount(discount: number): string {
   return `−${Math.round(discount * 100)}%`;
 }
 
-// The tiers a limit adjustment covers, "A, B and C" (no serial comma).
-const tierList = new Intl.ListFormat("en-GB", { type: "conjunction" });
-
 // A tier's monthly price as published: "$20/mo".
 // oxlint-disable-next-line react/only-export-components
 export function formatUsdPerMonth(value: number): string {
   return `$${value}/mo`;
 }
+
+// The tiers a limit adjustment covers, "A, B and C" (no serial comma).
+const tierList = new Intl.ListFormat("en-GB", { type: "conjunction" });
 
 // The Subscriptions picker: the brand-tinted trigger and its route card.
 // Brand-tinted because subscription pricing is the feature the site adds.
@@ -55,7 +55,7 @@ export function SubscriptionsPicker({
   filters: LeaderboardFilters;
   onChange: (filters: LeaderboardFilters) => void;
   pickerFamilies: PickerFamily[];
-  limitAdjustments: LimitAdjustment[];
+  limitAdjustments: LimitAdjustmentSource[];
 }) {
   // The trigger surfaces only non-API picks: quiet on the default view, the
   // chosen tiers at a glance otherwise (column order).
@@ -144,7 +144,7 @@ function RouteCard({
   filters: LeaderboardFilters;
   onChange: (filters: LeaderboardFilters) => void;
   pickerFamilies: PickerFamily[];
-  limitAdjustments: LimitAdjustment[];
+  limitAdjustments: LimitAdjustmentSource[];
 }) {
   return (
     <DropdownMenuContent

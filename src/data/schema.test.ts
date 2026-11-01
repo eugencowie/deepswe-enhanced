@@ -328,6 +328,7 @@ describe("assertTierValues", () => {
   test.each([
     ["factor", 3],
     ["label", "Codex"],
+    ["source", "OpenAI on X"],
     ["publishedAt", "2026-10-30"],
   ])("rejects limit adjustments sharing a source that differ in %s", (field, value) => {
     const tiers = {

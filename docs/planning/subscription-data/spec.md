@@ -77,7 +77,7 @@ Load-time validation (ADR 0004) rejects:
 - a value for a model missing from the mapping, or for a model outside the tier's family;
 - a tier with no value for its family's daily driver (an exclusion can't stand in, since unmeasured models fall back to it);
 - a tier with neither a value nor an exclusion for its family's flagship, when the family declares one;
-- two limit adjustments citing the same source URL that differ in factor, label or date, since the masthead and picker disclaimer cite each source once (ticket 11).
+- two limit adjustments citing the same source URL that differ in factor, label, source or date, since the masthead and picker disclaimer cite each source once (ticket 11).
 
 ## Model mapping fields
 

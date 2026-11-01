@@ -6,6 +6,7 @@
 import {
   type DeepsweSnapshot,
   type FamilyVendors,
+  type LimitAdjustment,
   type ModelMappingEntry,
   PICKER_FAMILIES,
   type PickerFamilyId,
@@ -90,10 +91,10 @@ export type PickerFamily = {
   tiers: PickerTier[];
 };
 
-// One vendor source's limit adjustment and the tiers it covers, for the
-// masthead and the picker disclaimer. Tiers sharing a source agree on the rest
+// One source's limit adjustment and the tiers citing it, for the masthead and
+// the picker disclaimer. Tiers sharing a source agree on the rest
 // (assertTierValues).
-export type LimitAdjustment = NonNullable<Tier["limitAdjustment"]> & { tierLabels: string[] };
+export type LimitAdjustmentSource = LimitAdjustment & { tierLabels: string[] };
 
 // The Subscriptions picker: exactly one access route per family, so every
 // entry appears on exactly one row and the picker changes pricing, never row
@@ -117,7 +118,7 @@ export type Leaderboard = {
   // tiers.json (ascending price) order.
   pickerFamilies: PickerFamily[];
   // One per source, its tiers in tiers.json order; empty when none adjusts.
-  limitAdjustments: LimitAdjustment[];
+  limitAdjustments: LimitAdjustmentSource[];
   // Best view, API routes, every model listed and selected.
   defaultFilters: () => LeaderboardFilters;
   visibleRows: (filters: LeaderboardFilters) => LeaderboardRow[];
@@ -172,12 +173,12 @@ export function createLeaderboard({
         flagshipNote: flagshipNote(mapping, tier, subscriptionFamilies),
       })),
   }));
-  const limitAdjustments = new Map<string, LimitAdjustment>();
-  for (const { label, limitAdjustment } of tiers) {
+  const limitAdjustments = new Map<string, LimitAdjustmentSource>();
+  for (const { label: tierLabel, limitAdjustment } of tiers) {
     if (limitAdjustment === undefined) continue;
     const { sourceUrl } = limitAdjustment;
     const group = limitAdjustments.get(sourceUrl) ?? { ...limitAdjustment, tierLabels: [] };
-    group.tierLabels.push(label);
+    group.tierLabels.push(tierLabel);
     limitAdjustments.set(sourceUrl, group);
   }
   return {
