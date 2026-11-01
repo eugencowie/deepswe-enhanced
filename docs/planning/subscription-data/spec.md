@@ -4,7 +4,7 @@ Adds subscription-subsidised effective costs to the [leaderboard table](../leade
 
 ## Data file: `data/tiers.json`
 
-SemiAnalysis's agentic-workload API-equivalent values, per tier and measured model, from [Anthropic Subscriptions Offer 5x+ More Value Than OpenAI](https://newsletter.semianalysis.com/p/anthropic-subscriptions-offer-5x) (2026-10-05). Every figure is transcribed, with its chart, in [research/semianalysis-2026-10-05.md](research/semianalysis-2026-10-05.md) (ticket 03). Values are keyed by leaderboard model id. The Kimi Code tiers are SemiAnalysis's appendix figures for Kimi K3 ([ticket 08](tickets/08-kimi-code-tiers.md)), and the GLM Coding tiers its figures for GLM 5.3 and GLM 5.3 Flash at Z.ai's undiscounted list prices, used as published although they may include Z.ai's promos ([ticket 09](tickets/09-glm-coding-tiers.md)). The ChatGPT tiers are named by price, as OpenAI now sells them, and Pro 200 takes the values after OpenAI's 2026-09-29 cut. Pro 200 subscriptions bought before the cut keep the old limits until 2026-10-29, which is ignored ([ticket 06](tickets/06-chatgpt-tier-lineup.md)).
+SemiAnalysis's agentic-workload API-equivalent values, per tier and measured model, from [Anthropic Subscriptions Offer 5x+ More Value Than OpenAI](https://newsletter.semianalysis.com/p/anthropic-subscriptions-offer-5x) (2026-10-05). Every figure is transcribed, with its chart, in [research/semianalysis-2026-10-05.md](research/semianalysis-2026-10-05.md) (ticket 03). Values are keyed by leaderboard model id. The Kimi Code tiers are SemiAnalysis's appendix figures for Kimi K3 ([ticket 08](tickets/08-kimi-code-tiers.md)), and the GLM Coding tiers its figures for GLM 5.3 and GLM 5.3 Flash at Z.ai's undiscounted list prices, used as published although they may include Z.ai's promos ([ticket 09](tickets/09-glm-coding-tiers.md)). The ChatGPT tiers are named by price, as OpenAI now sells them, and Pro 200 takes the values after OpenAI's 2026-09-29 cut. Pro 200 subscriptions bought before the cut keep the old limits until 2026-10-29, which is ignored ([ticket 06](tickets/06-chatgpt-tier-lineup.md)). On 2026-10-29 OpenAI doubled the Pro tiers' limits, which each Pro tier records as a limit adjustment of 2 beside SemiAnalysis's values, transcribed in [research/openai-2026-10-29.md](research/openai-2026-10-29.md) ([ticket 10](tickets/10-chatgpt-pro-limits-doubled.md)).
 
 ```json
 {
@@ -43,6 +43,20 @@ SemiAnalysis's agentic-workload API-equivalent values, per tier and measured mod
 | chatgpt-pro-200 | $200 | $2,897 | $2,084 | $2,910 |
 | chatgpt-pro-500 | $500 | $6,955 | $5,386 | $7,352 |
 
+The three Pro tiers each carry a limit adjustment, so their API-equivalent values are twice the measured values above:
+
+```json
+"limitAdjustment": {
+  "factor": 2,
+  "label": "OpenAI",
+  "source": "Thibault Sottiaux (OpenAI) on X",
+  "sourceUrl": "https://x.com/thsottiaux/status/2115850175868727621",
+  "publishedAt": "2026-10-29"
+}
+```
+
+`limitAdjustment` is optional on any tier: a vendor-stated change to the tier's limits since SemiAnalysis measured it, scaling every model's value there. The factor is positive, `label` is the masthead's link text and `publishedAt` an ISO date. It is deleted once SemiAnalysis measures the tier again.
+
 | Tier | Price | Kimi K3 |
 |---|---|---|
 | kimi-code-plus | $19 | $47 |
@@ -62,7 +76,8 @@ Load-time validation (ADR 0004) rejects:
 
 - a value for a model missing from the mapping, or for a model outside the tier's family;
 - a tier with no value for its family's daily driver (an exclusion can't stand in, since unmeasured models fall back to it);
-- a tier with neither a value nor an exclusion for its family's flagship, when the family declares one.
+- a tier with neither a value nor an exclusion for its family's flagship, when the family declares one;
+- two limit adjustments citing the same source URL that differ in factor, label, source or date, since the masthead and picker disclaimer cite each source once (ticket 11).
 
 ## Model mapping fields
 
@@ -76,7 +91,7 @@ Row expansion: entries in a family other than `none` get one row per tier of tha
 
 Per row:
 
-- `subsidisationFactor` = `tier.priceUsdPerMonth / apiEquivalentValue` (tier rows only), where `apiEquivalentValue` is the model's own value on the tier or, for a model SemiAnalysis didn't measure, the family daily driver's (ADR 0010). E.g. Fable 5.1 on claude-max-20x = 200 / 2,485; Sonnet 4.6 there takes Opus 5.5's value, 200 / 11,726. On a tier in the entry's `excludedTiers` the factor is 1. The excluded tier keeps its row, because the picker changes pricing, never row count (ticket 02).
+- `subsidisationFactor` = `tier.priceUsdPerMonth / apiEquivalentValue` (tier rows only), where `apiEquivalentValue` is the model's own value on the tier or, for a model SemiAnalysis didn't measure, the family daily driver's (ADR 0010), times the tier's `limitAdjustment.factor` where it has one (ticket 10). E.g. Fable 5.1 on claude-max-20x = 200 / 2,485; Sonnet 4.6 there takes Opus 5.5's value, 200 / 11,726. On a tier in the entry's `excludedTiers` the factor is 1. The excluded tier keeps its row, because the picker changes pricing, never row count (ticket 02).
 - `effectiveCost` = `average_cost_usd` (API rows) or `average_cost_usd × subsidisationFactor` (tier rows). [Cost per task data](../cost-per-task-data/spec.md) divides the effective cost, so tier rows recompute it.
 
 ## App
@@ -84,12 +99,12 @@ Per row:
 - Access route is **not** a column — it renders inside the Model cell as a tag on tier rows (exact styling decided in ticket 01).
 - Tier-row Cost and Cost/perf cells show the API cost first, struck through and muted, then the effective value in normal weight (the Cost/perf struck value is API cost ÷ Pass@1; Pass@1 = 0 renders one blank cell, no struck blank). Where the two are equal (an excluded tier) the cell shows the cost once, unstruck, and the access tag stays (ticket 02). No per-cell "(e)" marker — the estimate caveat lives in the Subscriptions picker's disclaimer instead. Both columns sort by effective values. API-row Avg cost is the unadjusted average cost. (Strikeout added in subscription-filter ticket 01's grilling; the "(e)" removed in the same ticket's follow-up.)
 - Sub-cent costs collapse to $0.01 or $0.00, which is deliberate — tiny tier costs should read as "effectively free" rather than invite comparison of raw values.
-- Masthead provenance line: SemiAnalysis linked with the figures' publication date, as "SemiAnalysis (2026-10-05)" in the Sources list. The estimate caveat lives in the Subscriptions picker only (ticket 01 had "Subscription costs are rough estimates from SemiAnalysis figures" in the masthead; shortened in [design ticket 02](../design/tickets/02-ledger-page-layout.md)).
+- Masthead provenance line: SemiAnalysis linked with the figures' publication date, as "SemiAnalysis (2026-10-05)" in the Sources list, then each distinct limit adjustment by source URL, its label linked with its date, as "OpenAI (2026-10-29)" (ticket 10). `createLeaderboard` returns these as `limitAdjustments`, one per source URL with its tiers' labels, which the masthead and the picker disclaimer both read (ticket 11). The estimate caveat lives in the Subscriptions picker only (ticket 01 had "Subscription costs are rough estimates from SemiAnalysis figures" in the masthead; shortened in [design ticket 02](../design/tickets/02-ledger-page-layout.md)).
 
 ## Acceptance criteria
 
-- Every entry in a family derives one row per tier of its family beside its API row. Spot-checked maths: Fable 5.1 on claude-max-20x uses factor 200 / 2,485, an unmeasured Claude model there uses Opus 5.5's 200 / 11,726, and Fable's claude-pro rows use factor 1 (ticket 04); GPT-6 Astra on chatgpt-pro-500 uses 500 / 6,955 and an unmeasured ChatGPT model there GPT-6.1 Sol's 500 / 5,386 (ticket 06); Kimi K3 on kimi-code-ultra uses 199 / 1,343 and Kimi K2.7 Code has only API rows (ticket 08); GLM 5.3 Flash on glm-coding-max uses 168 / 336 and GLM 5.2 has only API rows (ticket 09).
-- Unit tests cover row expansion and subsidisation (incl. measured values, the daily-driver fallback and excluded tiers).
+- Every entry in a family derives one row per tier of its family beside its API row. Spot-checked maths: Fable 5.1 on claude-max-20x uses factor 200 / 2,485, an unmeasured Claude model there uses Opus 5.5's 200 / 11,726, and Fable's claude-pro rows use factor 1 (ticket 04); GPT-6 Astra on chatgpt-pro-500 uses 500 / (6,955 × 2) and an unmeasured ChatGPT model there GPT-6.1 Sol's 500 / (5,386 × 2), while chatgpt-plus stays at 20 / 211 (tickets 06 and 10); Kimi K3 on kimi-code-ultra uses 199 / 1,343 and Kimi K2.7 Code has only API rows (ticket 08); GLM 5.3 Flash on glm-coding-max uses 168 / 336 and GLM 5.2 has only API rows (ticket 09).
+- Unit tests cover row expansion and subsidisation (incl. measured values, the daily-driver fallback, excluded tiers and limit adjustments).
 
 ## Tickets
 
@@ -102,5 +117,7 @@ Per row:
 - [07: Coding plans from other labs](tickets/07-other-labs-coding-plans.md)
 - [08: Kimi Code tiers](tickets/08-kimi-code-tiers.md)
 - [09: GLM Coding tiers](tickets/09-glm-coding-tiers.md)
+- [10: ChatGPT Pro limits doubled](tickets/10-chatgpt-pro-limits-doubled.md)
+- [11: Limit adjustment review follow-ups](tickets/11-limit-adjustment-review-follow-ups.md)
 
 The struck-out API cost was built in [subscription-filter ticket 01](../subscription-filter/tickets/01-strikeout-api-cost-exclusive-picker.md).

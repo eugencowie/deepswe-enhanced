@@ -16,6 +16,7 @@ import {
   setRoute,
   type AccessRoute,
   type LeaderboardFilters,
+  type LimitAdjustmentSource,
   type PickerFamily,
 } from "@/data/leaderboard";
 
@@ -40,16 +41,21 @@ export function formatUsdPerMonth(value: number): string {
   return `$${value}/mo`;
 }
 
+// The tiers a limit adjustment covers, "A, B and C" (no serial comma).
+const tierList = new Intl.ListFormat("en-GB", { type: "conjunction" });
+
 // The Subscriptions picker: the brand-tinted trigger and its route card.
 // Brand-tinted because subscription pricing is the feature the site adds.
 export function SubscriptionsPicker({
   filters,
   onChange,
   pickerFamilies,
+  limitAdjustments,
 }: {
   filters: LeaderboardFilters;
   onChange: (filters: LeaderboardFilters) => void;
   pickerFamilies: PickerFamily[];
+  limitAdjustments: LimitAdjustmentSource[];
 }) {
   // The trigger surfaces only non-API picks: quiet on the default view, the
   // chosen tiers at a glance otherwise (column order).
@@ -93,7 +99,12 @@ export function SubscriptionsPicker({
         )}
         <ChevronDown data-icon="inline-end" />
       </DropdownMenuTrigger>
-      <RouteCard filters={filters} onChange={onChange} pickerFamilies={pickerFamilies} />
+      <RouteCard
+        filters={filters}
+        onChange={onChange}
+        pickerFamilies={pickerFamilies}
+        limitAdjustments={limitAdjustments}
+      />
     </DropdownMenu>
   );
 }
@@ -128,10 +139,12 @@ function RouteCard({
   filters,
   onChange,
   pickerFamilies,
+  limitAdjustments,
 }: {
   filters: LeaderboardFilters;
   onChange: (filters: LeaderboardFilters) => void;
   pickerFamilies: PickerFamily[];
+  limitAdjustments: LimitAdjustmentSource[];
 }) {
   return (
     <DropdownMenuContent
@@ -184,7 +197,13 @@ function RouteCard({
       <DropdownMenuSeparator className="mt-2 bg-brand/20" />
       <p className="px-2.5 py-1.5 text-xs text-muted-foreground">
         Subscription costs are estimates: the struck-out API cost scaled by SemiAnalysis's measured
-        value for that tier and model (agentic workload).
+        value for that tier and model (agentic workload)
+        {limitAdjustments.map(({ sourceUrl, factor, tierLabels, label, publishedAt }) => (
+          <span key={sourceUrl}>
+            , ×{factor} on {tierList.format(tierLabels)} per {label}'s {publishedAt} limit change
+          </span>
+        ))}
+        .
       </p>
     </DropdownMenuContent>
   );

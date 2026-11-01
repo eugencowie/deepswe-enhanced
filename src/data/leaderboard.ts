@@ -6,6 +6,7 @@
 import {
   type DeepsweSnapshot,
   type FamilyVendors,
+  type LimitAdjustment,
   type ModelMappingEntry,
   PICKER_FAMILIES,
   type PickerFamilyId,
@@ -90,6 +91,11 @@ export type PickerFamily = {
   tiers: PickerTier[];
 };
 
+// One source's limit adjustment and the tiers citing it, for the masthead and
+// the picker disclaimer. Tiers sharing a source agree on the rest
+// (assertTierValues).
+export type LimitAdjustmentSource = LimitAdjustment & { tierLabels: string[] };
+
 // The Subscriptions picker: exactly one access route per family, so every
 // entry appears on exactly one row and the picker changes pricing, never row
 // count. Rows whose family is "none" ignore the picker entirely.
@@ -111,6 +117,8 @@ export type Leaderboard = {
   // The Subscriptions picker's sections in PICKER_FAMILIES order, tiers in
   // tiers.json (ascending price) order.
   pickerFamilies: PickerFamily[];
+  // One per source, its tiers in tiers.json order; empty when none adjusts.
+  limitAdjustments: LimitAdjustmentSource[];
   // Best view, API routes, every model listed and selected.
   defaultFilters: () => LeaderboardFilters;
   visibleRows: (filters: LeaderboardFilters) => LeaderboardRow[];
@@ -165,10 +173,19 @@ export function createLeaderboard({
         flagshipNote: flagshipNote(mapping, tier, subscriptionFamilies),
       })),
   }));
+  const limitAdjustments = new Map<string, LimitAdjustmentSource>();
+  for (const { label: tierLabel, limitAdjustment } of tiers) {
+    if (limitAdjustment === undefined) continue;
+    const { sourceUrl } = limitAdjustment;
+    const group = limitAdjustments.get(sourceUrl) ?? { ...limitAdjustment, tierLabels: [] };
+    group.tierLabels.push(tierLabel);
+    limitAdjustments.set(sourceUrl, group);
+  }
   return {
     rows,
     modelOptions,
     pickerFamilies,
+    limitAdjustments: [...limitAdjustments.values()],
     defaultFilters: () => ({
       effortView: "best",
       // PICKER_FAMILIES lists every picker family, so every key is set.
@@ -405,7 +422,7 @@ function effortRank(effort: string | null | undefined): number {
   return rank === -1 ? EFFORT_ORDER.length : rank;
 }
 
-// The family daily driver's API-equivalent value on a tier, which every model
+// The family daily driver's measured value on a tier, which every model
 // SemiAnalysis didn't measure takes. assertTierValues guarantees it at load.
 function dailyDriverValue(tier: Tier, subscriptionFamilies: SubscriptionFamilies): number {
   const { dailyDriverModel } = subscriptionFamilies[tier.family];
@@ -419,14 +436,16 @@ function dailyDriverValue(tier: Tier, subscriptionFamilies: SubscriptionFamilies
 }
 
 // A model's API-equivalent value on a tier: SemiAnalysis's measured value, or
-// the daily driver's for a model it didn't measure.
+// the daily driver's for a model it didn't measure, times the tier's limit
+// adjustment where it has one.
 function apiEquivalentValue(
   tier: Tier,
   model: string,
   subscriptionFamilies: SubscriptionFamilies,
 ): number {
   const measured: number | undefined = tier.apiEquivalentValuesUsdPerMonth[model];
-  return measured ?? dailyDriverValue(tier, subscriptionFamilies);
+  const value = measured ?? dailyDriverValue(tier, subscriptionFamilies);
+  return value * (tier.limitAdjustment?.factor ?? 1);
 }
 
 // What a dollar of API cost becomes for a mapped model on a tier: 1 on a tier
@@ -444,7 +463,8 @@ function subsidisationFactor(
 
 // The tier's headline factor, which every unmeasured model shares.
 function dailyDriverFactor(tier: Tier, subscriptionFamilies: SubscriptionFamilies): number {
-  return tier.priceUsdPerMonth / dailyDriverValue(tier, subscriptionFamilies);
+  const { dailyDriverModel } = subscriptionFamilies[tier.family];
+  return tier.priceUsdPerMonth / apiEquivalentValue(tier, dailyDriverModel, subscriptionFamilies);
 }
 
 // The one note on a tier rung: the family flagship's discount, shown even

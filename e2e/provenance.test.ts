@@ -47,3 +47,15 @@ test("every vendor-reported row's name opens a popover linking its source", asyn
   }
   expect(shown.toSorted((a, b) => a.cell.localeCompare(b.cell))).toEqual(expected);
 });
+
+// Limit adjustments join the Sources line after SemiAnalysis, each cited once
+// however many tiers it covers (subscription-data ticket 11).
+test("the masthead cites each limit adjustment's source", async ({ page }) => {
+  await page.goto("./");
+  const sources = page.getByText(/^Sources:/);
+  await expect(sources).toContainText("SemiAnalysis (2026-10-05), OpenAI (2026-10-29).");
+  await expect(sources.getByRole("link", { name: "OpenAI" })).toHaveAttribute(
+    "href",
+    "https://x.com/thsottiaux/status/2115850175868727621",
+  );
+});

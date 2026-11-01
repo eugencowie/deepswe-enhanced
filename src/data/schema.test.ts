@@ -72,6 +72,20 @@ describe("file schemas are strict", () => {
     expect(() => tiersSnapshotSchema.parse({ ...rawTiers, families })).toThrowError(/label/);
   });
 
+  // The factor scales every value on the tier, which the subsidisation factor
+  // divides by.
+  test.each([0, -2])("rejects a limit adjustment with factor %d", (factor) => {
+    const limitAdjustment = {
+      factor,
+      label: "OpenAI",
+      source: "Thibault Sottiaux on X",
+      sourceUrl: "https://x.com/thsottiaux/status/2115850175868727621",
+      publishedAt: "2026-10-29",
+    };
+    const tampered = { ...rawTiers, tiers: [{ ...rawTiers.tiers[0], limitAdjustment }] };
+    expect(() => tiersSnapshotSchema.parse(tampered)).toThrowError(/factor/);
+  });
+
   test("rejects a Pass@1 above 1", () => {
     const entry = { ...rawSnapshot.entries[0], effort: "tampered", pass_at_1: 1.5 };
     const tampered = { ...rawSnapshot, entries: [...rawSnapshot.entries, entry] };
@@ -307,6 +321,27 @@ describe("assertTierValues", () => {
       families: { ...tiersSnapshot.families, chatgpt },
     };
     expect(() => assertTierValues(tiers, modelMapping)).not.toThrow();
+  });
+
+  // The masthead and picker disclaimer cite each source once, so the tiers
+  // sharing one must agree on what it says (subscription-data ticket 11).
+  test.each([
+    ["factor", 3],
+    ["label", "Codex"],
+    ["source", "OpenAI on X"],
+    ["publishedAt", "2026-10-30"],
+  ])("rejects limit adjustments sharing a source that differ in %s", (field, value) => {
+    const tiers = {
+      ...tiersSnapshot,
+      tiers: tiersSnapshot.tiers.map((tier) =>
+        tier.id === "chatgpt-pro-500" && tier.limitAdjustment !== undefined
+          ? { ...tier, limitAdjustment: { ...tier.limitAdjustment, [field]: value } }
+          : tier,
+      ),
+    };
+    expect(() => assertTierValues(tiers, modelMapping)).toThrowError(
+      "limit adjustments citing https://x.com/thsottiaux/status/2115850175868727621 disagree: chatgpt-pro-100, chatgpt-pro-500",
+    );
   });
 });
 

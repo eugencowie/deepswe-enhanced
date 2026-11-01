@@ -86,6 +86,13 @@
         "gpt-6-astra": 1322,
         "gpt-6-1-sol": 1055,
         "gpt-6-sol": 1482
+      },
+      "limitAdjustment": {
+        "factor": 2,
+        "label": "OpenAI",
+        "source": "Thibault Sottiaux (OpenAI) on X",
+        "sourceUrl": "https://x.com/thsottiaux/status/2115850175868727621",
+        "publishedAt": "2026-10-29"
       }
     },
     {
@@ -98,6 +105,13 @@
         "gpt-6-astra": 2897,
         "gpt-6-1-sol": 2084,
         "gpt-6-sol": 2910
+      },
+      "limitAdjustment": {
+        "factor": 2,
+        "label": "OpenAI",
+        "source": "Thibault Sottiaux (OpenAI) on X",
+        "sourceUrl": "https://x.com/thsottiaux/status/2115850175868727621",
+        "publishedAt": "2026-10-29"
       }
     },
     {
@@ -110,6 +124,13 @@
         "gpt-6-astra": 6955,
         "gpt-6-1-sol": 5386,
         "gpt-6-sol": 7352
+      },
+      "limitAdjustment": {
+        "factor": 2,
+        "label": "OpenAI",
+        "source": "Thibault Sottiaux (OpenAI) on X",
+        "sourceUrl": "https://x.com/thsottiaux/status/2115850175868727621",
+        "publishedAt": "2026-10-29"
       }
     },
     {

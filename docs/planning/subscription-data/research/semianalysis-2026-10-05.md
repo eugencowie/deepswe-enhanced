@@ -74,7 +74,7 @@ On 2026-09-29 OpenAI halved Pro 200's limits and added Pro 500.
 | GPT-6 Astra | $5,734 (3.8B tokens) | $2,897 (1.9B tokens) |
 | GPT-6 Sol → GPT-6.1 Sol | $5,904 (19.6B tokens) | $2,084 (10.2B tokens) |
 
-Pro 200 subscriptions bought before the cut keep the old limits until 2026-10-29. New subscriptions get the lower limits straight away. These figures aren't used, because the grandfathered limits expire within a month.
+Pro 200 subscriptions bought before the cut keep the old limits until 2026-10-29. New subscriptions get the lower limits straight away. These figures aren't used, because the grandfathered limits expire within a month. On 2026-10-29 OpenAI dropped the cut and doubled the Pro tiers' limits instead ([openai-2026-10-29.md](openai-2026-10-29.md)), which ticket 10 applies to the post-cut values above, not to these.
 
 ## Chat workload, Claude Max 20x (not used)
 

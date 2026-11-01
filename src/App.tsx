@@ -65,7 +65,13 @@ function App() {
             Sources: <SourceLink href={deepsweSnapshot.sourceUrl}>DeepSWE</SourceLink> (
             {deepsweDate}), <SourceLink href={throughputSnapshot.sourceUrl}>OpenRouter</SourceLink>{" "}
             ({openrouterDate}), <SourceLink href={tiersSnapshot.sourceUrl}>SemiAnalysis</SourceLink>{" "}
-            ({semianalysisDate}).
+            ({semianalysisDate})
+            {leaderboard.limitAdjustments.map(({ sourceUrl, label, publishedAt }) => (
+              <span key={sourceUrl}>
+                , <SourceLink href={sourceUrl}>{label}</SourceLink> ({publishedAt})
+              </span>
+            ))}
+            .
           </p>
         </div>
         <ModeToggle />
@@ -76,6 +82,7 @@ function App() {
           onChange={setFilters}
           models={leaderboard.modelOptions}
           pickerFamilies={leaderboard.pickerFamilies}
+          limitAdjustments={leaderboard.limitAdjustments}
         />
         <LeaderboardTable
           rows={visibleRows}

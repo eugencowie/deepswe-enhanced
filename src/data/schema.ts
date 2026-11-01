@@ -18,7 +18,8 @@ const count = z.number().int().nonnegative();
 // Every snapshot carries this provenance pair: the human-facing citation
 // whose URL the masthead's provenance line links (automated-refresh ticket 04;
 // a footer line at the time). Vendor-reported entries carry it per entry
-// instead, since each cites its own source. Distinct from the DeepSWE snapshot's
+// instead, since each cites its own source, and so does a tier's limit
+// adjustment. Distinct from the DeepSWE snapshot's
 // `source_url`, which is the fetched artifact itself.
 const provenanceFields = { source: nonEmpty, sourceUrl: z.url() };
 
@@ -225,8 +226,21 @@ const tierSchema = z.strictObject({
   // Keyed by leaderboard model, for the models SemiAnalysis measured on the
   // tier (agentic workload). Positive: the subsidisation factor divides by it.
   apiEquivalentValuesUsdPerMonth: z.record(nonEmpty, z.number().positive()),
+  // A vendor-stated change to the tier's limits since SemiAnalysis measured
+  // it, scaling every model's value there; label is the masthead's link text.
+  // Deleted once SemiAnalysis measures the tier again (subscription-data
+  // ticket 10).
+  limitAdjustment: z
+    .strictObject({
+      factor: z.number().positive(),
+      label: nonEmpty,
+      ...provenanceFields,
+      publishedAt: z.iso.date(),
+    })
+    .optional(),
 });
 export type Tier = z.infer<typeof tierSchema>;
+export type LimitAdjustment = NonNullable<Tier["limitAdjustment"]>;
 
 // Each family's label heads its Subscriptions picker column. Its daily driver
 // prices every model SemiAnalysis didn't measure. Its flagship, when it has
@@ -283,11 +297,29 @@ export function assertMappingCoverage(
 // Each tier's values must price its own family's mapped models, and every
 // tier must cover its family's daily driver and any flagship it declares: the
 // daily driver with a value, since unmeasured models fall back to it, and the
-// flagship with a value or an exclusion.
+// flagship with a value or an exclusion. Limit adjustments citing one source
+// must agree, since the masthead and picker disclaimer cite each source once.
 export function assertTierValues(tiers: TiersSnapshot, mapping: ModelMappingEntry[]): void {
   const byModel = new Map(mapping.map((entry) => [entry.leaderboardModel, entry]));
+  const firstBySource = new Map<string, { id: TierId; adjustment: LimitAdjustment }>();
   const parts: string[] = [];
   for (const tier of tiers.tiers) {
+    const adjustment = tier.limitAdjustment;
+    if (adjustment !== undefined) {
+      const first = firstBySource.get(adjustment.sourceUrl);
+      if (first === undefined) {
+        firstBySource.set(adjustment.sourceUrl, { id: tier.id, adjustment });
+      } else if (
+        first.adjustment.factor !== adjustment.factor ||
+        first.adjustment.label !== adjustment.label ||
+        first.adjustment.source !== adjustment.source ||
+        first.adjustment.publishedAt !== adjustment.publishedAt
+      ) {
+        parts.push(
+          `limit adjustments citing ${adjustment.sourceUrl} disagree: ${first.id}, ${tier.id}`,
+        );
+      }
+    }
     for (const model of Object.keys(tier.apiEquivalentValuesUsdPerMonth)) {
       const entry = byModel.get(model);
       if (entry === undefined) {
