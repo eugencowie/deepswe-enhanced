@@ -56,8 +56,11 @@ test("the subscriptions picker swaps a family to one tier and shows discounts", 
   await expect(proFiveHundred).toContainText("Astra: −96%");
 
   // The estimate disclaimer replaced the per-cell "(e)" marker.
-  await expect(page.getByText("Subscription costs are estimates")).toContainText(
-    "SemiAnalysis's measured value",
+  const disclaimer = page.getByText("Subscription costs are estimates");
+  await expect(disclaimer).toContainText("SemiAnalysis's measured value");
+  // Derived from the limit adjustments (subscription-data ticket 11).
+  await expect(disclaimer).toContainText(
+    "×2 on ChatGPT Pro 100, ChatGPT Pro 200 and ChatGPT Pro 500 per OpenAI's 2026-10-29 limit change.",
   );
 
   // Picking a tier replaces the family's API rows: same count, new pricing.

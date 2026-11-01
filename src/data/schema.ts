@@ -240,6 +240,7 @@ const tierSchema = z.strictObject({
     .optional(),
 });
 export type Tier = z.infer<typeof tierSchema>;
+type LimitAdjustment = NonNullable<Tier["limitAdjustment"]>;
 
 // Each family's label heads its Subscriptions picker column. Its daily driver
 // prices every model SemiAnalysis didn't measure. Its flagship, when it has
@@ -296,11 +297,28 @@ export function assertMappingCoverage(
 // Each tier's values must price its own family's mapped models, and every
 // tier must cover its family's daily driver and any flagship it declares: the
 // daily driver with a value, since unmeasured models fall back to it, and the
-// flagship with a value or an exclusion.
+// flagship with a value or an exclusion. Limit adjustments citing one source
+// must agree, since the masthead and picker disclaimer cite each source once.
 export function assertTierValues(tiers: TiersSnapshot, mapping: ModelMappingEntry[]): void {
   const byModel = new Map(mapping.map((entry) => [entry.leaderboardModel, entry]));
+  const firstBySource = new Map<string, { id: TierId; adjustment: LimitAdjustment }>();
   const parts: string[] = [];
   for (const tier of tiers.tiers) {
+    const adjustment = tier.limitAdjustment;
+    if (adjustment !== undefined) {
+      const first = firstBySource.get(adjustment.sourceUrl);
+      if (first === undefined) {
+        firstBySource.set(adjustment.sourceUrl, { id: tier.id, adjustment });
+      } else if (
+        first.adjustment.factor !== adjustment.factor ||
+        first.adjustment.label !== adjustment.label ||
+        first.adjustment.publishedAt !== adjustment.publishedAt
+      ) {
+        parts.push(
+          `limit adjustments citing ${adjustment.sourceUrl} disagree: ${first.id}, ${tier.id}`,
+        );
+      }
+    }
     for (const model of Object.keys(tier.apiEquivalentValuesUsdPerMonth)) {
       const entry = byModel.get(model);
       if (entry === undefined) {

@@ -90,6 +90,11 @@ export type PickerFamily = {
   tiers: PickerTier[];
 };
 
+// One vendor source's limit adjustment and the tiers it covers, for the
+// masthead and the picker disclaimer. Tiers sharing a source agree on the rest
+// (assertTierValues).
+export type LimitAdjustment = NonNullable<Tier["limitAdjustment"]> & { tierLabels: string[] };
+
 // The Subscriptions picker: exactly one access route per family, so every
 // entry appears on exactly one row and the picker changes pricing, never row
 // count. Rows whose family is "none" ignore the picker entirely.
@@ -111,6 +116,8 @@ export type Leaderboard = {
   // The Subscriptions picker's sections in PICKER_FAMILIES order, tiers in
   // tiers.json (ascending price) order.
   pickerFamilies: PickerFamily[];
+  // One per source, its tiers in tiers.json order; empty when none adjusts.
+  limitAdjustments: LimitAdjustment[];
   // Best view, API routes, every model listed and selected.
   defaultFilters: () => LeaderboardFilters;
   visibleRows: (filters: LeaderboardFilters) => LeaderboardRow[];
@@ -165,10 +172,19 @@ export function createLeaderboard({
         flagshipNote: flagshipNote(mapping, tier, subscriptionFamilies),
       })),
   }));
+  const limitAdjustments = new Map<string, LimitAdjustment>();
+  for (const { label, limitAdjustment } of tiers) {
+    if (limitAdjustment === undefined) continue;
+    const { sourceUrl } = limitAdjustment;
+    const group = limitAdjustments.get(sourceUrl) ?? { ...limitAdjustment, tierLabels: [] };
+    group.tierLabels.push(label);
+    limitAdjustments.set(sourceUrl, group);
+  }
   return {
     rows,
     modelOptions,
     pickerFamilies,
+    limitAdjustments: [...limitAdjustments.values()],
     defaultFilters: () => ({
       effortView: "best",
       // PICKER_FAMILIES lists every picker family, so every key is set.

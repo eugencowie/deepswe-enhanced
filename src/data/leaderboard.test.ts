@@ -695,6 +695,7 @@ describe("pickerFamilies", () => {
     expect(max20?.priceUsdPerMonth).toBe(200);
     expect(max20?.tierDiscount).toBeCloseTo(1 - 200 / 11726, 10);
     // GPT-6.1 Sol, doubled on Pro.
+    expect(tier("chatgpt", "chatgpt-pro-100")?.tierDiscount).toBeCloseTo(1 - 100 / (1055 * 2), 10);
     expect(tier("chatgpt", "chatgpt-pro-200")?.tierDiscount).toBeCloseTo(1 - 200 / (2084 * 2), 10);
     const pro500 = tier("chatgpt", "chatgpt-pro-500");
     expect(pro500?.shortLabel).toBe("Pro 500");
@@ -743,6 +744,10 @@ describe("pickerFamilies", () => {
       1 - 20 / 162,
       10,
     );
+    expect(tier("chatgpt", "chatgpt-pro-100")?.flagshipNote?.tierDiscount).toBeCloseTo(
+      1 - 100 / (1322 * 2),
+      10,
+    );
     expect(tier("chatgpt", "chatgpt-pro-500")?.flagshipNote?.tierDiscount).toBeCloseTo(
       1 - 500 / (6955 * 2),
       10,
@@ -772,6 +777,28 @@ describe("pickerFamilies", () => {
       .pickerFamilies.find((f) => f.family === "chatgpt")!
       .tiers.find((t) => t.id === "chatgpt-plus")!;
     expect(plus.flagshipNote).toEqual({ label: "Astra", tierDiscount: plus.tierDiscount });
+  });
+});
+
+// The masthead cites each source once, and the picker disclaimer names the
+// tiers it adjusts (subscription-data ticket 11).
+describe("limitAdjustments", () => {
+  test("groups the tiers each source adjusts, in tiers.json order", () => {
+    expect(live().limitAdjustments).toEqual([
+      {
+        factor: 2,
+        label: "OpenAI",
+        source: "Thibault Sottiaux (OpenAI) on X",
+        sourceUrl: "https://x.com/thsottiaux/status/2115850175868727621",
+        publishedAt: "2026-10-29",
+        tierLabels: ["ChatGPT Pro 100", "ChatGPT Pro 200", "ChatGPT Pro 500"],
+      },
+    ]);
+  });
+
+  test("is empty when no tier carries one", () => {
+    const tiers = sources.tiers.map(({ limitAdjustment: _dropped, ...tier }) => tier);
+    expect(createLeaderboard({ ...fixtureSources, tiers }).limitAdjustments).toEqual([]);
   });
 });
 

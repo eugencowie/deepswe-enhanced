@@ -76,7 +76,8 @@ Load-time validation (ADR 0004) rejects:
 
 - a value for a model missing from the mapping, or for a model outside the tier's family;
 - a tier with no value for its family's daily driver (an exclusion can't stand in, since unmeasured models fall back to it);
-- a tier with neither a value nor an exclusion for its family's flagship, when the family declares one.
+- a tier with neither a value nor an exclusion for its family's flagship, when the family declares one;
+- two limit adjustments citing the same source URL that differ in factor, label or date, since the masthead and picker disclaimer cite each source once (ticket 11).
 
 ## Model mapping fields
 
@@ -98,7 +99,7 @@ Per row:
 - Access route is **not** a column — it renders inside the Model cell as a tag on tier rows (exact styling decided in ticket 01).
 - Tier-row Cost and Cost/perf cells show the API cost first, struck through and muted, then the effective value in normal weight (the Cost/perf struck value is API cost ÷ Pass@1; Pass@1 = 0 renders one blank cell, no struck blank). Where the two are equal (an excluded tier) the cell shows the cost once, unstruck, and the access tag stays (ticket 02). No per-cell "(e)" marker — the estimate caveat lives in the Subscriptions picker's disclaimer instead. Both columns sort by effective values. API-row Avg cost is the unadjusted average cost. (Strikeout added in subscription-filter ticket 01's grilling; the "(e)" removed in the same ticket's follow-up.)
 - Sub-cent costs collapse to $0.01 or $0.00, which is deliberate — tiny tier costs should read as "effectively free" rather than invite comparison of raw values.
-- Masthead provenance line: SemiAnalysis linked with the figures' publication date, as "SemiAnalysis (2026-10-05)" in the Sources list, then each distinct limit adjustment by source URL, its label linked with its date, as "OpenAI (2026-10-29)" (ticket 10). The estimate caveat lives in the Subscriptions picker only (ticket 01 had "Subscription costs are rough estimates from SemiAnalysis figures" in the masthead; shortened in [design ticket 02](../design/tickets/02-ledger-page-layout.md)).
+- Masthead provenance line: SemiAnalysis linked with the figures' publication date, as "SemiAnalysis (2026-10-05)" in the Sources list, then each distinct limit adjustment by source URL, its label linked with its date, as "OpenAI (2026-10-29)" (ticket 10). `createLeaderboard` returns these as `limitAdjustments`, one per source URL with its tiers' labels, which the masthead and the picker disclaimer both read (ticket 11). The estimate caveat lives in the Subscriptions picker only (ticket 01 had "Subscription costs are rough estimates from SemiAnalysis figures" in the masthead; shortened in [design ticket 02](../design/tickets/02-ledger-page-layout.md)).
 
 ## Acceptance criteria
 
@@ -117,5 +118,6 @@ Per row:
 - [08: Kimi Code tiers](tickets/08-kimi-code-tiers.md)
 - [09: GLM Coding tiers](tickets/09-glm-coding-tiers.md)
 - [10: ChatGPT Pro limits doubled](tickets/10-chatgpt-pro-limits-doubled.md)
+- [11: Limit adjustment review follow-ups](tickets/11-limit-adjustment-review-follow-ups.md)
 
 The struck-out API cost was built in [subscription-filter ticket 01](../subscription-filter/tickets/01-strikeout-api-cost-exclusive-picker.md).
