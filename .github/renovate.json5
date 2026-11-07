@@ -15,32 +15,5 @@
       depNameTemplate: "ghcr.io/renovatebot/renovate",
       autoReplaceStringTemplate: "renovate-version: {{{newValue}}}{{#if newDigest}}@{{{newDigest}}}{{/if}}",
     },
-    {
-      description: "Update template version",
-      customType: "regex",
-      managerFilePatterns: [".cruft.json"],
-      matchStrings: ['"checkout"\\s*:\\s*(?:"(?<currentValue>[^"]+)"|null)'],
-      datasourceTemplate: "github-tags",
-      depNameTemplate: "eugencowie/templates",
-      currentValueTemplate: "{{#if currentValue}}{{{currentValue}}}{{else}}v0.0.0{{/if}}",
-      autoReplaceStringTemplate: '"checkout": "{{{newValue}}}"',
-    },
-  ],
-
-  packageRules: [
-    {
-      description: "Apply template update using cruft",
-      matchDepNames: ["eugencowie/templates"],
-      postUpgradeTasks: {
-        executionMode: "branch",
-        installTools: { mise: {} },
-        commands: [
-          "git restore -s HEAD .cruft.json",
-          "mise install --locked",
-          "mise run --skip-tools template:update --skip-apply-ask --checkout {{{newValue}}}",
-          "mise lock",
-        ],
-      },
-    },
   ],
 }

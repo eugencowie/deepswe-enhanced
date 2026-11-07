@@ -64,7 +64,7 @@ function siteUrl(): string {
 }
 
 const projectConfig: UserConfig = {
-  fmt: { ignorePatterns: ["docs/", ".github/", ".cruft.json"] },
+  fmt: { ignorePatterns: ["docs/", ".github/"] },
   define: { "import.meta.env.VITE_SITE_URL": JSON.stringify(siteUrl()) },
 };
 
