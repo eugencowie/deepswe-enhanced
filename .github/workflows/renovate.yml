@@ -7,17 +7,19 @@ on:
     - cron: "30 0-3 * * 1"
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pull-requests: write
-  issues: write
-  statuses: write
-
 jobs:
   renovate:
+    name: Renovate
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      statuses: write
     steps:
-      - uses: renovatebot/github-action@37beffda261423addd537c33f2d126df7f6ffbab # v46.2.6
+      - name: Renovate
+        uses: renovatebot/github-action@37beffda261423addd537c33f2d126df7f6ffbab # v46.2.6
         with:
           token: ${{ secrets.RENOVATE_TOKEN || github.token }}
         env:
