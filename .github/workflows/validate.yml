@@ -3,15 +3,34 @@ name: Validate
 on:
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
+    name: Validate
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v7.0.1
-        with: { persist-credentials: false }
-      - uses: voidzero-dev/setup-vp@v1.17.0
-        with: { cache: true }
-      - run: vp run validate
-      - if: ${{ !cancelled() }}
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install dependencies
+        uses: voidzero-dev/setup-vp@v1.17.0
+        with:
+          cache: true
+
+      - name: Validate
+        run: vp run validate
+
+      - name: Upload Playwright report
         uses: actions/upload-artifact@v7.0.2
-        with: { name: playwright-report, path: playwright-report }
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
