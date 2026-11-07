@@ -1,6 +1,6 @@
 # Spec: Leaderboard table
 
-Shows the DeepSWE v1.1 benchmark results in a table: the snapshot the app reads, the five source columns, the Model cell, formatting, and the first footer line. Every other feature extends this table and links here. Vocabulary: [docs/context.md](../../context.md). Source facts: [DeepSWE research](../product-spec/research/deepswe-leaderboard-data.md).
+Shows the DeepSWE v1.1 benchmark results in a table: the snapshot the app reads, the five source columns, the Model cell, formatting, and the first footer line. Every other feature extends this table and links here. Vocabulary: [docs/glossary.md](../../glossary.md). Source facts: [DeepSWE research](../product-spec/research/deepswe-leaderboard-data.md).
 
 ## Data file: `data/deepswe-v1.1.json`
 

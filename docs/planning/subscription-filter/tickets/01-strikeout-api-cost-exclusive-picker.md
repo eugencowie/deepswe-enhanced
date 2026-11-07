@@ -6,7 +6,7 @@ Blocked by: effort-filter/01
 
 ## What to build
 
-Two coupled changes to effort-filter ticket 01's filters, grilled 2026-08-24 (spec amended to match). Exclusivity is palatable *because* of the strikeout: the API baseline stays visible on every tier row, so side-by-side API/tier rows are no longer needed. Vocabulary: API cost, Tier discount, and the revised Effective cost and Subscriptions picker entries in [docs/context.md](../../../context.md).
+Two coupled changes to effort-filter ticket 01's filters, grilled 2026-08-24 (spec amended to match). Exclusivity is palatable *because* of the strikeout: the API baseline stays visible on every tier row, so side-by-side API/tier rows are no longer needed. Vocabulary: API cost, Tier discount, and the revised Effective cost and Subscriptions picker entries in [docs/glossary.md](../../../glossary.md).
 
 **Strikeout API cost on tier rows.** Avg cost and Cost/perf cells on tier rows show the API cost first — struck through *and* muted — then the effective value in normal weight. API rows are unchanged.
 

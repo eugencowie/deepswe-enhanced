@@ -1,6 +1,6 @@
 # Spec: Automated refresh
 
-Keeps the [leaderboard table](../leaderboard-table/spec.md)'s snapshots and the [model mapping](../model-data/spec.md) up to date: two refresh scripts, the weekly workflow, the Refresh PR, generated mapping entries, and the human version-bump workflow. Refreshes land only as human-reviewed commits. Vocabulary: snapshot, Refresh PR, generated mapping entry, vendor mapping, consumer provider slug, org slug, cost adjustment factor in [docs/context.md](../../context.md).
+Keeps the [leaderboard table](../leaderboard-table/spec.md)'s snapshots and the [model mapping](../model-data/spec.md) up to date: two refresh scripts, the weekly workflow, the Refresh PR, generated mapping entries, and the human version-bump workflow. Refreshes land only as human-reviewed commits. Vocabulary: snapshot, Refresh PR, generated mapping entry, vendor mapping, consumer provider slug, org slug, cost adjustment factor in [docs/glossary.md](../../glossary.md).
 
 ## Refresh scripts
 

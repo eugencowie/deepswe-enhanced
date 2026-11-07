@@ -24,7 +24,7 @@ Found while adding Claude Fable 5.1 as a vendor-reported entry (vendor-reported-
 - **Table.** Tier-row Cost and Cost/perf cells drop the struck-out API cost when the factor is 1 (it would just repeat the value). The access tag stays. No cell marker.
 - **Picker.** On a tier that excludes a model, that model's note reads "Fable: full price" (reusing the API rung's caption) instead of a discount. Max 5x and Max 20x keep "Fable: −90%" and "Fable: −95%".
 - **Docs.**
-  - Glossary (`docs/context.md`): the usage multiplier entry says Fable is 0.5 because Max caps it at 50% of weekly limits, not "halved". Add a term for the tier exclusion.
+  - Glossary (`docs/glossary.md`): the usage multiplier entry says Fable is 0.5 because Max caps it at 50% of weekly limits, not "halved". Add a term for the tier exclusion.
   - Subscription-data spec: add `excludedTiers` to the model mapping fields and the factor-1 rule to the derivation rules.
   - Subscription-filter spec: add the "full price" note.
   - Credit both edits to this ticket.

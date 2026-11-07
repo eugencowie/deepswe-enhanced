@@ -7,7 +7,7 @@ Status: resolved
 
 Render each vendor's mark before the model name in the Model cell, per the
 2026-08-26 grilling and [vendor mark research](../../product-spec/research/vendor-marks.md).
-Vocabulary: a **vendor mark** (see `docs/context.md`) is the brand mark shown
+Vocabulary: a **vendor mark** (see `docs/glossary.md`) is the brand mark shown
 beside a model — not always the vendor's corporate logo (Moonshot's mark is
 Kimi, Alibaba's is Qwen).
 
@@ -56,7 +56,7 @@ rather than `.tsx` conversions), no surrounding copy suggesting sponsorship.
 ### Terminology cleanup
 
 The research doc predates the glossary decision and says "provider icons";
-`docs/context.md` reserves "provider" for OpenRouter endpoint operators.
+`docs/glossary.md` reserves "provider" for OpenRouter endpoint operators.
 Rename the doc's title/prose to vendor-mark language while keeping the
 package/file names it cites verbatim. Add a line to the spec's App section
 describing the mark in the Model cell.

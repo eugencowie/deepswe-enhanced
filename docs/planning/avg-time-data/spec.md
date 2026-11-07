@@ -1,6 +1,6 @@
 # Spec: Average time data
 
-Adds throughput-derived average time to the [leaderboard table](../leaderboard-table/spec.md): the OpenRouter throughput snapshot, the model mapping's OpenRouter id, the derivation, and the Tok/s and Avg time columns. Vocabulary: throughput, consumer endpoint, average time in [docs/context.md](../../context.md). Source facts: [OpenRouter research](../product-spec/research/openrouter-throughput.md).
+Adds throughput-derived average time to the [leaderboard table](../leaderboard-table/spec.md): the OpenRouter throughput snapshot, the model mapping's OpenRouter id, the derivation, and the Tok/s and Avg time columns. Vocabulary: throughput, consumer endpoint, average time in [docs/glossary.md](../../glossary.md). Source facts: [OpenRouter research](../product-spec/research/openrouter-throughput.md).
 
 ## Data file: `data/openrouter-throughput.json`
 

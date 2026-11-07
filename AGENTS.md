@@ -12,7 +12,7 @@ Default canonical labels. See `docs/agents/triage-labels.md`.
 
 ### Domain Docs
 
-Single-context layout: `docs/context.md` and ADRs in `docs/architecture/`. See `docs/agents/domain.md`.
+Single-context layout: `docs/glossary.md` and ADRs in `docs/architecture/`. See `docs/agents/domain.md`.
 
 ## Development Environment
 

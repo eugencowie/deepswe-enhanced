@@ -8,7 +8,7 @@ Status: resolved
 A toggle in the Models picker that lists or unlists the vendor-reported
 models, on by default, as the maintainer asked on 2026-10-04. Vocabulary:
 **Models picker**, **vendor-reported entry** in
-[docs/context.md](../../../context.md). It is the "filter on provenance"
+[docs/glossary.md](../../../glossary.md). It is the "filter on provenance"
 [ADR 0009](../../../architecture/0009-vendor-reported-entries.md) names as the
 fix should vendor-reported rows mislead; on by default, so the ADR's rejection
 of hiding them still holds.

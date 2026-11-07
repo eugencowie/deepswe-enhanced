@@ -1,6 +1,6 @@
-// Pure core for the DeepSWE site's price revisions (docs/context.md): the
-// per-entry cost adjustment factor, bundle extraction, and version
-// resolution. The refresh shell does the fetching (ADR 0006).
+// Pure core for the DeepSWE site's price revisions: the per-entry cost
+// adjustment factor, bundle extraction, and version resolution. The refresh
+// shell does the fetching (ADR 0006).
 
 import { z } from "zod";
 import { type PriceRevision, type TokenRates, priceRevisionSchema } from "../src/data/schema.ts";

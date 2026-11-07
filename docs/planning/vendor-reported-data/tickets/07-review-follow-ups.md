@@ -6,7 +6,7 @@ Blocked by: none
 
 ## What to build
 
-Follow-ups from the review of [#95](https://github.com/eugencowie/deepswe-enhanced/pull/95) against `main`, settled in a grilling with the maintainer on 2026-10-06. Vocabulary: **vendor-reported entry**, **model mapping**, **Refresh PR** in [docs/context.md](../../../context.md).
+Follow-ups from the review of [#95](https://github.com/eugencowie/deepswe-enhanced/pull/95) against `main`, settled in a grilling with the maintainer on 2026-10-06. Vocabulary: **vendor-reported entry**, **model mapping**, **Refresh PR** in [docs/glossary.md](../../../glossary.md).
 
 ### The model name replaces the marker
 

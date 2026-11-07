@@ -27,7 +27,7 @@ C, grilled 2026-09-07 with three changes from the prototype:
 
 Kept from the prototype: monthly price under each tier label, the "full price" caption on the API rung, brand fill for the selected rung with no check mark, and the estimate disclaimer under a separator.
 
-Review follow-ups, same day: "plan" is a glossary-avoided word, so the card is a route card (added to docs/context.md) and the rung component is `RouteRung`; the discount figure dropped from 16px to 15px to stay on the documented type scale; the column's vendor mark now comes from `PickerFamily.vendor`, derived from the mapping, instead of a hardcoded map; the monthly price goes through `formatUsdPerMonth`.
+Review follow-ups, same day: "plan" is a glossary-avoided word, so the card is a route card (added to docs/glossary.md) and the rung component is `RouteRung`; the discount figure dropped from 16px to 15px to stay on the documented type scale; the column's vendor mark now comes from `PickerFamily.vendor`, derived from the mapping, instead of a hardcoded map; the monthly price goes through `formatUsdPerMonth`.
 
 ## Acceptance criteria
 
@@ -50,7 +50,7 @@ the rung keeps its direct Base UI radio item; the extra e2e assertion (no Fable 
 ChatGPT rungs) stays. The popover gained the brand wash with a brand 20% ring; after trying the
 pairs by hand the trigger's 8%/12% won over the columns' 5%/8% and a fainter 3%/5%, and a hovered or focused rung takes a faint brand
 fill rather than the menu's grey accent so nothing inside the card is grey. The design spec's purple line now names the Subscriptions picker, trigger
-and popover, and docs/context.md distinguishes a filter (a feature and its state) from a
+and popover, and docs/glossary.md distinguishes a filter (a feature and its state) from a
 picker (the control that sets it) rather than renaming either. Verification: the dev build
 was checked by hand in place of a deploy check; the Playwright suite passes against the
 production build.

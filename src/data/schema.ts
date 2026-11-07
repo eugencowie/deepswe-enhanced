@@ -1,8 +1,8 @@
-// One schema per data file (docs/context.md), with each file's type inferred
-// from it. The app parses the five files it imports (sources.ts), the refresh
-// shells parse the rest, and schema.test.ts parses all seven. Every file schema
-// is strict with uniform value constraints: we own every byte of these files,
-// so an unknown key or an impossible value is drift, never something to strip.
+// One schema per data file, with each file's type inferred from it. The app
+// parses the five files it imports (sources.ts), the refresh shells parse the
+// rest, and schema.test.ts parses all seven. Every file schema is strict with
+// uniform value constraints: we own every byte of these files, so an unknown
+// key or an impossible value is drift, never something to strip.
 //
 // The load-time integrity checks (ADR 0004) live here too: they reject
 // malformed committed data — duplicate identities, broken mapping coverage —
@@ -59,7 +59,7 @@ const tokenRatesSchema = z.strictObject({
 });
 export type TokenRates = z.infer<typeof tokenRatesSchema>;
 
-// Old and new rates (docs/context.md: price revision).
+// A price revision's old and new rates.
 export const priceRevisionSchema = z.strictObject({
   from: tokenRatesSchema,
   to: tokenRatesSchema,
@@ -74,7 +74,7 @@ export const priceRevisionsFileSchema = z.strictObject({
 });
 export type PriceRevisionsFile = z.infer<typeof priceRevisionsFileSchema>;
 
-// An entry's identity is its (model, effort level) pair (docs/context.md).
+// An entry's identity is its (model, effort level) pair.
 function rejectDuplicateEntries(kind: string) {
   return (entries: { model: string; effort: string | null }[], ctx: z.RefinementCtx) => {
     const seen = new Set<string>();
@@ -371,7 +371,7 @@ export function assertNoOverlap(
 }
 
 // Each picker family's one vendor, whose mark labels the family's column in
-// the Subscriptions picker (docs/context.md). Read from the family's mapping
+// the Subscriptions picker. Read from the family's mapping
 // entries at load: a family with none, or with entries from two vendors, has
 // no single mark to show, so the load fails naming the family.
 export type FamilyVendors = Record<PickerFamilyId, string>;

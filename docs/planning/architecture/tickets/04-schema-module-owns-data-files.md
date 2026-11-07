@@ -29,7 +29,7 @@ This is the prefactor for ticket 05.
 - [x] Neither refresh shell casts a JSON file; every read goes through a schema, and each shell parses its output through the file schema before writing.
 - [x] The app parses the four files it imports; a schema test parses all six committed data files.
 - [x] The DeepSWE snapshot, mapping and price-revision schema tests still pass, and `vp check`, `vp test` and the e2e suite are green.
-- [x] docs/context.md and any ADR that names the old type module are updated if they point at moved symbols.
+- [x] docs/glossary.md and any ADR that names the old type module are updated if they point at moved symbols.
 
 ## Answer
 
