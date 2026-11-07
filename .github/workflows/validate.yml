@@ -25,8 +25,14 @@ jobs:
         with:
           cache: true
 
+      - name: Install tools
+        uses: jdx/mise-action@v5.2.7
+        with:
+          # setup-vp owns Vite+ and its cache, so mise installs only the workflow linters.
+          install_args: jactionlint shellcheck
+
       - name: Validate
-        run: vp run validate
+        run: mise run --skip-tools validate
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v7.0.2

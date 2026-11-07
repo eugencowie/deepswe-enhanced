@@ -2,6 +2,8 @@
 vite-plus = "https://github.com/markmals/mise-vite-plus"
 
 [tools]
+jactionlint = "latest"
+shellcheck = "latest"
 vite-plus = "latest"
 
 [tasks.install]
@@ -26,12 +28,12 @@ run = [
 ]
 
 [tasks.validate]
-description = "Build, then run checks, tests, end-to-end tests, and a dry-run deploy"
-run = "vp run validate"
+description = "Lint workflows, build, then run checks, tests, end-to-end tests, and a dry-run deploy"
+run = ["jactionlint", "vp run validate"]
 
 [tasks."validate:fix"]
 description = "Fix formatting and lint issues, then validate"
-run = "vp run validate:fix"
+run = ["jactionlint", "vp run validate:fix"]
 
 [tasks.check]
 description = "Run format, lint, and type checks"
