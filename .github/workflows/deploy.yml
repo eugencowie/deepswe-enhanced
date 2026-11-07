@@ -11,6 +11,7 @@
 # Repository variables
 # - SITE_URL: the public URL of the site, used for canonical links.
 #
+
 name: Deploy
 
 on:
