@@ -1,6 +1,6 @@
 # Spec: Cost per task data
 
-Adds cost per solved task to the [leaderboard table](../leaderboard-table/spec.md) as the Cost/perf column — the primary reason this project exists. Vocabulary: cost per solved task, effective cost in [docs/context.md](../../context.md).
+Adds cost per solved task to the [leaderboard table](../leaderboard-table/spec.md) as the Cost/perf column — the primary reason this project exists. Vocabulary: cost per solved task, effective cost in [docs/glossary.md](../../glossary.md).
 
 ## Derivation rule
 

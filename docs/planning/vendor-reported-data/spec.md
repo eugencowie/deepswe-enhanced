@@ -1,6 +1,6 @@
 # Spec: Vendor-reported data
 
-Adds vendor-reported entries to the [leaderboard](../leaderboard-table/spec.md): DeepSWE v1.1 scores that vendors publish for models the DeepSWE leaderboard has not run. The DeepSWE leaderboard has published nothing since GPT-6 Astra (job finished 2026-09-01), while Claude Opus 5.5, GPT-6.1 Sol and about ten other models ship with vendor-stated DeepSWE v1.1 figures. Vocabulary: vendor-reported entry, snapshot, model mapping in [docs/context.md](../../context.md). Decision record: [ADR 0009](../../architecture/0009-vendor-reported-entries.md). Decided in a grilling session on 2026-10-04.
+Adds vendor-reported entries to the [leaderboard](../leaderboard-table/spec.md): DeepSWE v1.1 scores that vendors publish for models the DeepSWE leaderboard has not run. The DeepSWE leaderboard has published nothing since GPT-6 Astra (job finished 2026-09-01), while Claude Opus 5.5, GPT-6.1 Sol and about ten other models ship with vendor-stated DeepSWE v1.1 figures. Vocabulary: vendor-reported entry, snapshot, model mapping in [docs/glossary.md](../../glossary.md). Decision record: [ADR 0009](../../architecture/0009-vendor-reported-entries.md). Decided in a grilling session on 2026-10-04.
 
 ## Admission rules
 

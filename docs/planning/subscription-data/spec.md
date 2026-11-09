@@ -1,6 +1,6 @@
 # Spec: Subscription data
 
-Adds subscription-subsidised effective costs to the [leaderboard table](../leaderboard-table/spec.md): the SemiAnalysis tier figures, tier rows, the subsidisation maths, the access tag, and the struck-out API cost. Vocabulary: access route, access tag, tier, API-equivalent value, daily driver, flagship, excluded tier, subsidisation factor, API cost, effective cost in [docs/context.md](../../context.md).
+Adds subscription-subsidised effective costs to the [leaderboard table](../leaderboard-table/spec.md): the SemiAnalysis tier figures, tier rows, the subsidisation maths, the access tag, and the struck-out API cost. Vocabulary: access route, access tag, tier, API-equivalent value, daily driver, flagship, excluded tier, subsidisation factor, API cost, effective cost in [docs/glossary.md](../../glossary.md).
 
 ## Data file: `data/tiers.json`
 

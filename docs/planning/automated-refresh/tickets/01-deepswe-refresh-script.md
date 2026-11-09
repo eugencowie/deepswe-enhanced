@@ -19,7 +19,7 @@ Guard rails: warn without switching when the manifest's `latest` moves past v1.1
 - The cost adjustment factor table is an inline constant in the script (it is what a human edits in the version-bump workflow). The snapshot's `cost_adjustments` records the table verbatim, matching the seed.
 - Structure: pure `normalize(manifest, artifact, mapping)` plus a thin fetch/write shell. Zod schemas live in `scripts/` (zod as devDependency; the app bundle never sees it). Unit tests in `scripts/` cover the guard rails: duplicate config throws, missing mapping throws naming the model, factor application, latest-moved warning.
 - Failure is all-or-nothing: nothing is written on error. The `latest` ≠ v1.1 warning goes to stderr and the run exits 0. Manifest-vs-artifact task-count mismatch and an absent `latest_job` are hard errors. A null `finished_at` was originally a hard error too; [ticket 05](05-handle-null-latest-job-finished-at.md) made it valid provenance after observing it live (DeepSWE displays the rows while the job runs). Written JSON must match oxfmt output so `vp check` produces no reformat diff.
-- Glossary: "Cost adjustment factor" added to [docs/context.md](../../../context.md).
+- Glossary: "Cost adjustment factor" added to [docs/glossary.md](../../../glossary.md).
 
 ## Acceptance criteria
 

@@ -23,7 +23,7 @@ Implementation notes:
 
 The footer already exists — its lines shipped with leaderboard-table ticket 01, avg-time-data ticket 01 and subscription-data ticket 01.
 
-Per the [spec](../spec.md) (App section). Vocabulary: Best effort level and Subscriptions picker in [docs/context.md](../../../context.md).
+Per the [spec](../spec.md) (App section). Vocabulary: Best effort level and Subscriptions picker in [docs/glossary.md](../../../glossary.md).
 
 ## Acceptance criteria
 

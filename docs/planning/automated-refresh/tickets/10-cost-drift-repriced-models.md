@@ -19,7 +19,7 @@ Seen 2026-09-05 while comparing the Best view against the site, first for two mo
 | gpt-5-6-sol [medium] | $1.42 | $1.86 |
 | gpt-5-6-sol [low] | $0.82 | $1.07 |
 
-Root cause: the site does not store cost adjustment factors. It stores a price revision per model (old and new list prices per million input, cached-input, and output tokens) and derives a factor per row from that row's mean token counts. Our `data/cost-adjustments.json` is a hand-typed scalar per model. It was missing four of the site's seven models, and a scalar cannot express gpt-5-6-sol's non-uniform revision, whose factor ranges from 0.760 to 0.770 across effort levels. Vocabulary: price revision, cost adjustment factor in [docs/context.md](../../../context.md). Decision record: [ADR 0006](../../../architecture/0006-price-revisions-scraped-from-bundle.md).
+Root cause: the site does not store cost adjustment factors. It stores a price revision per model (old and new list prices per million input, cached-input, and output tokens) and derives a factor per row from that row's mean token counts. Our `data/cost-adjustments.json` is a hand-typed scalar per model. It was missing four of the site's seven models, and a scalar cannot express gpt-5-6-sol's non-uniform revision, whose factor ranges from 0.760 to 0.770 across effort levels. Vocabulary: price revision, cost adjustment factor in [docs/glossary.md](../../../glossary.md). Decision record: [ADR 0006](../../../architecture/0006-price-revisions-scraped-from-bundle.md).
 
 ## Design
 

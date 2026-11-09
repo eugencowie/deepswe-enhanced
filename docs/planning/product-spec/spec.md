@@ -1,6 +1,6 @@
 # Product spec
 
-A static web app extending the DeepSWE v1.1 leaderboard with average time (via OpenRouter throughput), subscription-subsidised effective costs (via SemiAnalysis tier figures), and cost per solved task, as separate sortable/filterable rows per access route. Vocabulary: [docs/context.md](../../context.md). Decisions: [charting grilling](tickets/01-charting-grilling.md). Source facts: [DeepSWE research](research/deepswe-leaderboard-data.md), [OpenRouter research](research/openrouter-throughput.md).
+A static web app extending the DeepSWE v1.1 leaderboard with average time (via OpenRouter throughput), subscription-subsidised effective costs (via SemiAnalysis tier figures), and cost per solved task, as separate sortable/filterable rows per access route. Vocabulary: [docs/glossary.md](../../glossary.md). Decisions: [charting grilling](tickets/01-charting-grilling.md). Source facts: [DeepSWE research](research/deepswe-leaderboard-data.md), [OpenRouter research](research/openrouter-throughput.md).
 
 The tool is a deliberately rough comparison. Every derived number follows one stated convention; none is presented as a measurement.
 

@@ -1,6 +1,6 @@
 # Spec: Model data
 
-Replaces the leaderboard model ids in the [leaderboard table](../leaderboard-table/spec.md)'s Model cell with display names and vendor marks, neither of which DeepSWE's data files provide, and owns the model mapping file. Vocabulary: display name, vendor, vendor mark, model mapping in [docs/context.md](../../context.md).
+Replaces the leaderboard model ids in the [leaderboard table](../leaderboard-table/spec.md)'s Model cell with display names and vendor marks, neither of which DeepSWE's data files provide, and owns the model mapping file. Vocabulary: display name, vendor, vendor mark, model mapping in [docs/glossary.md](../../glossary.md).
 
 ## Data file: `data/model-mapping.json`
 

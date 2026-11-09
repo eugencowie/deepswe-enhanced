@@ -6,7 +6,7 @@ Blocked by: none
 
 ## What to build
 
-Follow-ups from the second review of [#95](https://github.com/eugencowie/deepswe-enhanced/pull/95) against `main`, after ticket 07 and the popover, masthead and rule changes that followed it; settled in a grilling with the maintainer on 2026-10-06. Vocabulary: **vendor-reported entry**, **enhancement**, **masthead** in [docs/context.md](../../../context.md).
+Follow-ups from the second review of [#95](https://github.com/eugencowie/deepswe-enhanced/pull/95) against `main`, after ticket 07 and the popover, masthead and rule changes that followed it; settled in a grilling with the maintainer on 2026-10-06. Vocabulary: **vendor-reported entry**, **enhancement**, **masthead** in [docs/glossary.md](../../../glossary.md).
 
 ### Code
 

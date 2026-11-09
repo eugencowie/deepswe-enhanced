@@ -22,7 +22,7 @@ Implementation notes:
 - Rewrite the "Best keeps the highest effort" unit test and the fable expectation in `e2e/filters.test.ts` (should be `Claude Fable 5 [xhigh]`). Add a tie case to the fixture.
 - Fix the stale comment above `filterRows`.
 
-Vocabulary: Best entry in [docs/context.md](../../../context.md), replacing "Best effort level".
+Vocabulary: Best entry in [docs/glossary.md](../../../glossary.md), replacing "Best effort level".
 
 ## Acceptance criteria
 

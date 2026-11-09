@@ -6,7 +6,7 @@ Blocked by: none (can start immediately)
 
 ## What to build
 
-The toolbar builds the Subscriptions picker's trigger (tier picks, accessible name, vendor marks) while the route card owns only its popover, and the Models menu is written inline. Give each picker (docs/context.md) one component that owns its menu, trigger and content. The toolbar then composes the version chip, the effort buttons and the two pickers and nothing else.
+The toolbar builds the Subscriptions picker's trigger (tier picks, accessible name, vendor marks) while the route card owns only its popover, and the Models menu is written inline. Give each picker (docs/glossary.md) one component that owns its menu, trigger and content. The toolbar then composes the version chip, the effort buttons and the two pickers and nothing else.
 
 The two formatters used only by the route card (tier discount, monthly price) move into the Subscriptions picker with their tests, and the standalone format module is deleted, as ADR 0007 anticipated.
 

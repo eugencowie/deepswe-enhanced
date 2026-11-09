@@ -7,21 +7,36 @@ on:
 
 jobs:
   refresh:
+    name: Refresh
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with: { persist-credentials: false }
-      - uses: voidzero-dev/setup-vp@313600b80b104eadebb9111787d37a2e83e014ca # v1.17.0
-        with: { cache: true }
-      - run: vp run refresh:deepswe
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install dependencies
+        uses: voidzero-dev/setup-vp@v1.17.0
+        with:
+          cache: true
+
+      - name: Refresh DeepSWE
         id: deepswe
+        run: vp run refresh:deepswe
         continue-on-error: true
-      - run: vp run refresh:openrouter
+
+      - name: Refresh OpenRouter
         id: openrouter
+        run: vp run refresh:openrouter
         continue-on-error: true
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
+
+      - name: Open pull request
+        uses: peter-evans/create-pull-request@v8.1.1
         with:
           token: ${{ secrets.REFRESH_PR_TOKEN }}
           branch: refresh/snapshots
@@ -48,7 +63,9 @@ jobs:
             `data/openrouter-throughput.json` from OpenRouter's model-endpoints API. The per-model value changes are rolling-30-minute jitter; review the model count and any warnings below — a disappeared model's previous value appears there, not in the data.
 
             ${{ steps.openrouter.outcome == 'failure' && '**The OpenRouter refresh failed**; see the run log.' || steps.openrouter.outputs.summary }}
-      - if: steps.deepswe.outcome == 'failure' || steps.openrouter.outcome == 'failure'
+
+      - name: Fail if a refresh failed
+        if: steps.deepswe.outcome == 'failure' || steps.openrouter.outcome == 'failure'
         env:
           DEEPSWE: ${{ steps.deepswe.outcome }}
           OPENROUTER: ${{ steps.openrouter.outcome }}

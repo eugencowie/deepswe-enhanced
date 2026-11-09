@@ -9,7 +9,7 @@ What is this effort's destination, and what shape does the subsidised leaderboar
 
 ## Answer
 
-Resolved live with the user while charting the map (2026-08-20). Vocabulary below is defined in [docs/context.md](../../../context.md).
+Resolved live with the user while charting the map (2026-08-20). Vocabulary below is defined in [docs/glossary.md](../../../glossary.md).
 
 ### Destination
 

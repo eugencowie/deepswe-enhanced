@@ -26,7 +26,7 @@ The driver is a coupling the split ignored: `refresh-openrouter.ts` reads `data/
 - PR body: two sections, one per source, each keeping its current review guidance and summary. Each script's summary heading names its source so the two do not collide. The failed-half text is selected with inline GitHub expressions on the step outcome (`outcome == 'failure' && '<failed line>' || outputs.summary`); action inputs are not shell, so splicing upstream text there is injection-safe and no compose step is needed.
 - `workflow_dispatch` still runs both halves with no input (ticket 08 decision stands).
 - Local mirror: a `refresh` script in `package.json` and a matching mise task run both scripts in workflow order, so a manual run reproduces the Refresh PR contents.
-- Glossary: "Refresh PR" added to [docs/context.md](../../../context.md); ADR 0003's "Friday PR" reworded to match. No ADR for this ticket: the decision is cheap to reverse and this ticket records the trade-off.
+- Glossary: "Refresh PR" added to [docs/glossary.md](../../../glossary.md); ADR 0003's "Friday PR" reworded to match. No ADR for this ticket: the decision is cheap to reverse and this ticket records the trade-off.
 
 ## Acceptance criteria
 

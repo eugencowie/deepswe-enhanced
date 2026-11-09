@@ -10,7 +10,7 @@ import zaiSvg from "@lobehub/icons-static-svg/icons/zai.svg?raw";
 
 // A vendor mark is the model-facing brand mark, not always the vendor's
 // corporate logo: Moonshot shows Kimi and Alibaba shows Qwen, matching the
-// marks the DeepSWE site displays (see docs/context.md and model-data ticket 01).
+// marks the DeepSWE site displays (see model-data ticket 01).
 // The monochrome files (Anthropic, OpenAI, Z.ai, xAI, Kimi) use currentColor
 // and follow the theme; the -color files carry fixed brand colors legible on
 // both themes. Kimi deliberately uses the monochrome file: kimi-color.svg

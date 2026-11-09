@@ -7,7 +7,7 @@ Status: resolved
 
 Show each model's vendor mark alongside its name in the Models picker, per the
 2026-09-06 grilling. Vocabulary: **vendor mark**, **display name** in
-[docs/context.md](../../../context.md). Supersedes the "Model cell only — not
+[docs/glossary.md](../../../glossary.md). Supersedes the "Model cell only — not
 the Models picker" line in
 [model-data ticket 01](../../model-data/tickets/01-vendor-marks.md).
 

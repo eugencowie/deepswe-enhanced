@@ -6,7 +6,7 @@ Blocked by: none (can start immediately)
 
 ## What to build
 
-The Best entry (docs/context.md) is chosen per model and is independent of access route, yet the visible-rows filter recomputes a best-per-model map on every call and then needs a guarded closure to avoid matching a missing model's default-effort rows. Decide bestness once, at row derivation, and store it on the row as a boolean. The visible-rows filter becomes a single predicate over model selection, family route and effort view, and the per-call map, the guarded closure and its comment disappear.
+The Best entry (docs/glossary.md) is chosen per model and is independent of access route, yet the visible-rows filter recomputes a best-per-model map on every call and then needs a guarded closure to avoid matching a missing model's default-effort rows. Decide bestness once, at row derivation, and store it on the row as a boolean. The visible-rows filter becomes a single predicate over model selection, family route and effort view, and the per-call map, the guarded closure and its comment disappear.
 
 Best-view behaviour is unchanged: highest Pass@1 on the raw fraction, higher effort level wins an exact tie, the same entry is best on every access route.
 

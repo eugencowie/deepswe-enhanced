@@ -17,7 +17,7 @@ A scheduled GitHub Actions workflow that runs the DeepSWE refresh script and ope
 - Branch/PR model: one stable branch (`refresh/deepswe`) force-updated per run, so there is at most one open refresh PR, updated in place. `peter-evans/create-pull-request` handles no-diff runs, branch reuse, and PR creation.
 - Guard-rail trips (new unmapped model) fail the workflow run; the failure notification is the alert. No GitHub issue — the repo's tracker is local Markdown.
 - No auto-merge: the PR always waits for human review. The refresh job stays minimal (fetch + script + PR); validation is the PR's normal CI.
-- Glossary: "Snapshot" reworded in [docs/context.md](../../../context.md) from "refreshed manually" to "refreshed only through human-reviewed commits, never at build or run time" — the invariant is human review and build-time-static data, not who types the command. Spec's refresh-scripts section amended to match.
+- Glossary: "Snapshot" reworded in [docs/glossary.md](../../../glossary.md) from "refreshed manually" to "refreshed only through human-reviewed commits, never at build or run time" — the invariant is human review and build-time-static data, not who types the command. Spec's refresh-scripts section amended to match.
 
 ## Acceptance criteria
 

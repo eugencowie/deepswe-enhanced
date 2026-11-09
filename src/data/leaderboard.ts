@@ -20,7 +20,7 @@ import {
 } from "./schema.ts";
 
 // How you would pay to run a model: direct API, or a specific tier. Every row
-// is an entry combined with one access route (docs/context.md).
+// is an entry combined with one access route.
 export type AccessRoute = "api" | TierId;
 
 // The marker on a tier row naming its tier; API rows are untagged.
@@ -53,7 +53,7 @@ export type LeaderboardRow = {
   effort?: string; // absent = the model's default effort
   accessRoute: AccessRoute;
   accessTag?: AccessTag; // absent on API rows
-  isBestEntry: boolean; // the model's best entry (docs/context.md); the same on every route
+  isBestEntry: boolean; // the model's best entry; the same on every route
   provenance: Provenance; // the same on every route
   passAt1: number;
   cost: CostPair | undefined; // absent when the vendor-reported entry states no cost
@@ -207,7 +207,7 @@ export function createLeaderboard({
 
 // Model-column order: display name, then effort (default first). No access
 // route tiebreak: visible rows hold one route per family, so two rows never
-// share a model and effort (docs/context.md, Subscriptions picker).
+// share a model and effort.
 export function compareModel(a: LeaderboardRow, b: LeaderboardRow): number {
   const byName = a.displayName.localeCompare(b.displayName, "en");
   if (byName !== 0) return byName;
