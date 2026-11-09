@@ -166,7 +166,22 @@ playwright/.auth/
 .wrangler/
 
 #
-# mise
+# https://github.com/github/gitignore/blob/main/Global/mise.gitignore
 #
 
+# https://mise.jdx.dev/configuration.html
+# https://mise.jdx.dev/configuration/environments.html
+.mise.*.local.toml
+.mise.local.toml
+mise.*.local.toml
 mise.local.toml
+.mise/*.local.toml
+mise/*.local.toml
+
+# https://mise.jdx.dev/dev-tools/mise-lock.html#local-lockfiles
+# https://mise.jdx.dev/dev-tools/mise-lock.html#environment-specific-lockfiles
+mise.local.lock
+mise.*.local.lock
+
+# https://mise.jdx.dev/configuration.html#tool-versions
+.tool-versions
