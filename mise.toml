@@ -1,10 +1,7 @@
-[plugins]
-vite-plus = "https://github.com/markmals/mise-vite-plus"
-
 [tools]
 jactionlint = "latest"
 shellcheck = "latest"
-vite-plus = "latest"
+"github:voidzero-dev/vite-plus" = "latest"
 
 [tasks.install]
 description = "Install dependencies"
@@ -16,7 +13,7 @@ run = "vp update"
 
 [tasks.upgrade]
 description = "Upgrade all dependencies and tooling to latest"
-run = ["mise plugins upgrade", "mise upgrade --local --bump", "mise run upgrade:deps"]
+run = ["mise upgrade --local --bump", "mise run upgrade:deps"]
 
 [tasks."upgrade:deps"]
 hide = true
