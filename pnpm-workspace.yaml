@@ -11,7 +11,7 @@ overrides:
   vite: "catalog:"
 
 patchedDependencies:
-  "@shadcn/registry@0.1.0": patches/@shadcn__registry@0.1.0.patch
+  "@shadcn/registry@0.2.1": patches/@shadcn__registry@0.2.1.patch
 
 peerDependencyRules:
   allowAny: [vite]
