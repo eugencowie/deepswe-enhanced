@@ -19,7 +19,7 @@ jobs:
           persist-credentials: false
 
       - name: Install dependencies
-        uses: voidzero-dev/setup-vp@v1.17.0
+        uses: voidzero-dev/setup-vp@v1.22.0
         with:
           cache: true
 
