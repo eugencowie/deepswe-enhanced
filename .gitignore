@@ -150,6 +150,12 @@ vite.config.ts.timestamp-*
 .vite/
 
 #
+# Vite+
+#
+
+.vitest/
+
+#
 # Playwright
 #
 
