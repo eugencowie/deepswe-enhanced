@@ -13,7 +13,7 @@ workflows:
         - 'voidzero-dev/setup-vp@v1.17.0'
     '.github/workflows/refresh.yml':
         - 'actions/checkout@v7.0.1'
-        - 'peter-evans/create-pull-request@v8.1.1'
+        - 'peter-evans/create-pull-request@v8.1.2'
         - 'voidzero-dev/setup-vp@v1.17.0'
     '.github/workflows/renovate.yml':
         - 'renovatebot/github-action@v46.3.12'
@@ -43,9 +43,9 @@ dependencies:
         commit: 'sha1-b44d12e7d0d8ee7461bb893e1b1993500433185b'
         owner_id: 216188
         repo_id: 738284564
-    'peter-evans/create-pull-request@v8.1.1':
-        ref: 'v8.1.1'
-        commit: 'sha1-5f6978faf089d4d20b00c7766989d076bb2fc7f1'
+    'peter-evans/create-pull-request@v8.1.2':
+        ref: 'v8.1.2'
+        commit: 'sha1-15733dbdfeedb4f7fdb73d13c6f5ac83b710fab8'
         owner_id: 18365890
         repo_id: 197176365
     'renovatebot/github-action@v46.3.12':
