@@ -1,0 +1,37 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Eugén Cowie <eugencowie@users.noreply.github.com>
+Date: Tue, 10 Nov 2026 12:00:00 +0000
+Subject: [PATCH] Strip "use client" from every file when rsc is false
+
+Regenerating components with `shadcn add --overwrite ...` produced a
+different diff every time. "use client" directives were removed from
+some files but left in others, and which files flip changed from run
+to run, causing constant churn.
+
+The transformer that removed "use client" in non-RSC projects tested
+each file against a module-level regex declared with the global flag:
+
+    const directiveRegex = /^["']use client["']$/g
+
+A global regex keeps its `lastIndex` between `.test()` calls, so after
+each match the next call starts mid-string and fails. The directive is
+stripped from every other file in a batch, depending on the processing
+order.
+
+0.2.x rewrote the transformer but kept the global regex. It resets
+`lastIndex` only for files it cannot parse, so the bug remains.
+
+This fix drops the /g flag so the regex is stateless and the directive
+is stripped from every file on every run.
+---
+ dist/chunk-GP5XIDBG.js | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/dist/chunk-GP5XIDBG.js b/dist/chunk-GP5XIDBG.js
+index de760b3f2b23837be9b77ffcb00f8b999065ada1..e6539fe1e54e491f2152ec04743bb51b3c0e139e 100644
+--- a/dist/chunk-GP5XIDBG.js
++++ b/dist/chunk-GP5XIDBG.js
+@@ -1 +1 @@
+-import {a as a$1,c}from'./chunk-5AKVIUQ5.js';import {b,j}from'./chunk-7PG7PSM2.js';var a=/^["']use client["']$/g,g=(t,{config:p,filename:x})=>{if(p.rsc)return t;let n=b(t);if(!n)return /\.([cm]?[jt]sx?|json)$/.test(x)||(a.lastIndex=0),t;let e=a$1(t,n.program),r=e.findIndex(({node:s})=>s?.type==="ExpressionStatement"||s?.type==="Directive");return r!==-1&&a.test(j(t,e[r].node))?c(t,e,r):t};export{g as a};
+\ No newline at end of file
++import {a as a$1,c}from'./chunk-5AKVIUQ5.js';import {b,j}from'./chunk-7PG7PSM2.js';var a=/^["']use client["']$/,g=(t,{config:p,filename:x})=>{if(p.rsc)return t;let n=b(t);if(!n)return /\.([cm]?[jt]sx?|json)$/.test(x)||(a.lastIndex=0),t;let e=a$1(t,n.program),r=e.findIndex(({node:s})=>s?.type==="ExpressionStatement"||s?.type==="Directive");return r!==-1&&a.test(j(t,e[r].node))?c(t,e,r):t};export{g as a};
