@@ -39,6 +39,7 @@ jobs:
         uses: peter-evans/create-pull-request@v8.1.2
         with:
           token: ${{ secrets.REFRESH_PR_TOKEN }}
+          author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           branch: refresh/snapshots
           add-paths: |
             data/deepswe-v1.1.json
