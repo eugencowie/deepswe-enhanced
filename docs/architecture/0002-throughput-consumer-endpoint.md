@@ -12,4 +12,5 @@ The leaderboard's cost figures describe the model's official API at list price, 
 
 - Models whose vendor runs no consumer endpoint show a blank, never a substitute statistic; a refresh warns when a previously present consumer endpoint disappears.
 - OpenRouter model IDs are revision-pinned wherever a pinned listing exists (unversioned aliases silently drifted to older revisions for both DeepSeek V4 models). The UI does not show revisions; the mapped ID is exposed via a tooltip on the model name.
+- A consumer endpoint OpenRouter has demoted (non-zero `status`) is still read: the one endpoint the rule selects has no fallback, so filtering on status blanked a model through a brief outage. The refresh warns the status instead ([automated-refresh ticket 11](../planning/automated-refresh/tickets/11-capture-demoted-consumer-endpoints.md)).
 - Historical entries show current throughput, not the value at benchmark time.

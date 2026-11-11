@@ -154,8 +154,12 @@ export function buildSnapshot(
       continue;
     }
 
+    // No status filter: OpenRouter documents the status enum without meanings,
+    // and a non-zero status (live: -2, -5) is a routing demotion that can sit
+    // beside 100% uptime. The consumer endpoint is the only candidate, so
+    // dropping it blanked the model through a brief outage; its p50 is still
+    // measured on completed requests, so it's captured and the status warned.
     const candidates = endpoints
-      .filter((endpoint) => endpoint.status === 0)
       .filter((endpoint) => !serviceTierPattern.test(endpoint.tag))
       .filter((endpoint) => isConsumerTag(endpoint, slug));
 
@@ -181,6 +185,12 @@ export function buildSnapshot(
           `omitted (blank in the UI).${previously(modelId)}`,
       );
       continue;
+    }
+    if (match.status !== 0) {
+      warnings.push(
+        `Consumer endpoint ${match.tag} for "${modelId}" reports status ${match.status} ` +
+          `(demoted by OpenRouter); captured anyway.`,
+      );
     }
 
     models[modelId] = { consumerP50: p50 };

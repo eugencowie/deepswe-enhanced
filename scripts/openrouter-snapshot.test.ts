@@ -128,16 +128,18 @@ describe("consumer endpoint selection", () => {
     expect(snapshot.models).toEqual({ "vendor/m": { consumerP50: 30 } });
   });
 
-  it("excludes inactive endpoints", () => {
+  it("captures a demoted consumer endpoint and warns its status", () => {
     const { snapshot, warnings } = buildSnapshot(
       [mappingEntry("m", "Vendor", "vendor/m")],
       vendors,
-      new Map([["vendor/m", [endpoint("vendor", 55, { status: -3 }), endpoint("other", 30)]]]),
+      new Map([["vendor/m", [endpoint("vendor", 55, { status: -2 }), endpoint("other", 30)]]]),
       null,
       capturedAt,
     );
-    expect(snapshot.models).toEqual({});
-    expect(warnings).toHaveLength(1);
+    expect(snapshot.models).toEqual({ "vendor/m": { consumerP50: 55 } });
+    expect(warnings).toEqual([
+      'Consumer endpoint vendor for "vendor/m" reports status -2 (demoted by OpenRouter); captured anyway.',
+    ]);
   });
 
   it("throws on an ambiguous match, naming the surviving tags", () => {
