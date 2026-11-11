@@ -39,10 +39,7 @@ jobs:
         uses: peter-evans/create-pull-request@v8.1.2
         with:
           token: ${{ secrets.REFRESH_PR_TOKEN }}
-          # The action's default author (<id>+<login>@users.noreply.github.com)
-          # differs from the merger's commit email, so squash merges added a
-          # Co-authored-by trailer for the same account.
-          author: Eugén Cowie <eugencowie@users.noreply.github.com>
+          author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           branch: refresh/snapshots
           add-paths: |
             data/deepswe-v1.1.json
