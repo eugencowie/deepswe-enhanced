@@ -20,7 +20,7 @@ workflows:
     '.github/workflows/validate.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/upload-artifact@v7.0.2'
-        - 'jdx/mise-action@v5.2.7'
+        - 'jdx/mise-action@v5.2.9'
         - 'voidzero-dev/setup-vp@v1.22.0'
 dependencies:
     'actions/checkout@v7.0.1':
@@ -38,9 +38,9 @@ dependencies:
         commit: 'sha1-953926a2e2182532811c01a25e53647d93bf07c0'
         owner_id: 314135
         repo_id: 213471363
-    'jdx/mise-action@v5.2.7':
-        ref: 'v5.2.7'
-        commit: 'sha1-b44d12e7d0d8ee7461bb893e1b1993500433185b'
+    'jdx/mise-action@v5.2.9':
+        ref: 'v5.2.9'
+        commit: 'sha1-236a21c3b91f5db6d4e174b348674a0f0caac06d'
         owner_id: 216188
         repo_id: 738284564
     'peter-evans/create-pull-request@v8.1.2':
